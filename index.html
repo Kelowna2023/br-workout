@@ -769,7 +769,8 @@ function connect(){
         else if((S.activeAt||0) > (ra.updatedAt||0)) pushActive();
       } else if(S.active) pushActive();
       if(migrated){ migrated = false; saveCfg(); }
-      if(dropStale() || trimActive() || relabel()) saveActive();
+      var offPlan = false; if(S.active && !S.active.routineId){ S.active = null; offPlan = true; } var pk2 = S.parked.filter(function(w){ return w.routineId; }); if(pk2.length !== S.parked.length){ S.parked = pk2; offPlan = true; }
+      if(dropStale() || trimActive() || relabel() || offPlan) saveActive();
       savePend(); setSync("cloud");
       var ae = document.activeElement; if(!(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName))) render();
     });
@@ -1100,9 +1101,8 @@ function renderToday(){
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
     rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
-  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr" data-act="start-open"><span class="wn">Freestyle</span></button>' + rows;
   return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><div class="ledger">' + rows + '</div>' +
-    '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Freestyle workout →</button><a href="#routines">Edit workouts →</a></div>';
+    '<div class="links mono" style="padding-top:18px"><span></span><a href="#routines">Edit workouts →</a></div>';
 }
 
 function exState(x){ var dn = x.sets.filter(function(q){ return q.done; }).length, pn = Math.max(x.plan || 0, x.sets.length); return { dn:dn, pn:pn, all: dn > 0 && dn >= pn }; }
@@ -1380,7 +1380,10 @@ function fillIntro(){
   var pl = todayPlan(); $("#i-day").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
   $("#i-title").textContent = "Time to train"; $("#i-sub").textContent = ""; $("#i-sub").style.display = "none";
 }
-(function(){ if(relabel()) saveActive(); fillIntro(); if(S.active) $("#intro").classList.add("quick");
+(function(){ var dirty = relabel();
+  if(S.active && !S.active.routineId){ S.active = null; dirty = true; }
+  var pk = S.parked.filter(function(w){ return w.routineId; }); if(pk.length !== S.parked.length){ S.parked = pk; dirty = true; }
+  if(dirty) saveActive(); fillIntro(); if(S.active) $("#intro").classList.add("quick");
   if(location.hash && location.hash !== "#today") try{ history.replaceState(null, "", "#today"); }catch(e){}
   $("#intro").hidden = false; })();
 render();
