@@ -520,6 +520,9 @@ main{padding-top:0;padding-bottom:calc(40px + env(safe-area-inset-bottom))}
 .wr .wn{font-size:32px}
 
 main:not([data-v="today"]){padding-top:24px}
+
+/* ---- a workout opens as a plain list of its exercises; one expands only when tapped ---- */
+.back + .ledger{margin-top:18px;border-top:1px solid var(--knurl)}
 </style>
 </head>
 <body>
@@ -1067,7 +1070,6 @@ function renderToday(){
 function exState(x){ var dn = x.sets.filter(function(q){ return q.done; }).length, pn = Math.max(x.plan || 0, x.sets.length); return { dn:dn, pn:pn, all: dn > 0 && dn >= pn }; }
 function openGroup(a){
   if(a.openEx != null && a.exercises[a.openEx]) return groupOf(a, a.openEx);
-  for(var i = 0; i < a.exercises.length; i++) if(!exState(a.exercises[i]).all) return groupOf(a, i);
   return [];
 }
 function actBlock(a, ei, hist, u, inSS, gi, gn){
@@ -1096,9 +1098,10 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
     '</div>';
 }
 function renderWorkout(){
-  var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), h = '<button type="button" class="mono back" data-act="to-list">← Workouts · ' + esc(a.name) + '</button>', rows = "";
+  var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), rows = "", allDone = a.exercises.length > 0 && a.exercises.every(function(x){ return exState(x).all; }),
+    h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button>' : '<button type="button" class="mono back" data-act="to-list">← Workouts · ' + esc(a.name) + '</button>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
-  if(!grp.length) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
+  if(!grp.length && allDone) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
   a.exercises.forEach(function(x, ei){ if(grp.indexOf(ei) >= 0) return; var s = exState(x);
     rows += '<button type="button" class="tr' + (s.all ? " fin" : "") + '" data-act="ex-toggle" data-e="' + ei + '" aria-label="' + esc(x.name) + ', ' + s.dn + ' of ' + s.pn + ' sets done. Open"><span class="mono">' + pad2(ei+1) + '</span><span class="nm" style="grid-column:2/4">' + esc(x.name) + '</span><span class="mono">' + (s.all ? "Done" : s.dn + " / " + s.pn) + '</span></button>'; });
   h += '<div class="ledger">' + rows + '</div>';
@@ -1236,6 +1239,7 @@ document.addEventListener("click", function(ev){
         '<div class="row"><button class="btn grow" type="button" data-act="add-set" data-e="' + ei + '">Add a set</button><button class="btn grow" type="button" data-act="del-set" data-e="' + ei + '">Remove last set</button></div>' +
         '<button class="btn ghost danger" type="button" data-act="del-ex" data-e="' + ei + '">Remove this lift</button><button class="btn" type="button" data-act="sheet-close">Done</button>'); break;
     case "add-ex-open": sheet('<h2>Add an exercise</h2><input class="field" id="new-ex" list="exnames" placeholder="Exercise name" aria-label="Exercise name"><div class="row"><button class="btn ghost grow" type="button" data-act="sheet-close">Back</button><button class="btn go grow" type="button" data-act="add-ex">Add</button></div>'); $("#new-ex").focus(); break;
+    case "ex-close": a.openEx = null; saveActive(); render(); $("#view").scrollTop = 0; break;
     case "ex-toggle": a.openEx = groupOf(a, ei)[0]; saveActive(); render(); $("#view").scrollTop = 0; break;
     case "add-set": var ax = a.exercises[ei], asets = ax.sets, al = asets[asets.length-1], ahx = histIndex()[key(ax.name)], ahp = ahx && ahx.last[asets.length] ? ahx.last[asets.length] : null;
       asets.push({ w: al ? al.w : "", r: al ? al.r : "", pl: al && al.pl ? al.pl.slice() : [], bar: al ? al.bar : undefined, done:false, prev: ahp ? { w:ahp.w, r:ahp.r } : null });
