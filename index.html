@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -324,6 +324,53 @@ td.r,th.r{text-align:right}
   .set.done .chk{animation:pop .2s ease-out}
   @keyframes pop{from{transform:scale(.8)}to{transform:scale(1)}}
 }
+
+/* ---- type scale pass: one large title per screen, quiet rows beneath, gold only where the eye should go ---- */
+h2{font-size:22px;letter-spacing:.04em}
+.wk-head h2{font-size:26px}
+.eyebrow{font-size:11px;letter-spacing:.2em}
+.brand,.sync{font-size:11px}
+.btn{font-size:15px;min-height:44px;padding:10px 16px}
+.btn.go{font-size:18px;letter-spacing:.1em;min-height:52px}
+.btn.small{font-size:13px;min-height:40px;padding:8px 12px}
+.exhead{min-height:40px}
+.exhead .exn{font-size:17px;font-weight:500;letter-spacing:.05em}
+.exhead .exc{font-size:13px}
+.card.ex.shut{padding:6px 14px}
+.card.ex.fin .exn{color:var(--dust)}
+.card.ex.next{box-shadow:inset 2px 0 0 var(--plate)}
+.card.ex.next .exc{color:var(--plate)}
+.ex .meta{font-size:12px}
+.set input,.set .wbtn{height:42px;font-size:20px}
+.set .chk,.set .nbtn{height:42px}
+.set .n{font-size:15px}
+.sethead{font-size:10px}
+.setsub{font-size:12px}
+.field.note{height:38px;font-size:13px}
+.ss{gap:6px}
+.ss>.eyebrow{font-size:10px}
+.strip b{font-size:22px}
+.strip span{font-size:10px}
+.strip small{font-size:14px!important}
+.pick h1{font-size:30px;letter-spacing:.03em}
+.day{min-height:60px;padding:10px 14px;grid-template-columns:46px minmax(0,1fr) auto}
+.day .d b{font-size:14px;letter-spacing:.14em}
+.day .d span{font-size:11px}
+.day .n b{font-size:18px;font-weight:500;letter-spacing:.04em}
+.day .n span{font-size:12px}
+.day .s{font-size:10px}
+.rt .t b{font-size:18px;font-weight:500;letter-spacing:.04em}
+.rt .t span{font-size:12px}
+.disc{font-size:14px;letter-spacing:.14em}
+.hs b{font-size:18px;font-weight:500;letter-spacing:.04em}
+.hs .meta{font-size:12px}
+.lines{font-size:14px}
+.goal .t b{font-size:17px}
+.goal .pct{font-size:20px}
+.tabs a{font-size:11px;letter-spacing:.16em}
+.big{font-size:44px}
+#rest .time{font-size:32px}
+.textlink{font-size:12px}
 </style>
 </head>
 <body>
@@ -844,14 +891,15 @@ function renderToday(){
 function renderWorkout(){
   var a = S.active, u = S.cfg.units, hist = histIndex();
   var h = '<div class="wk-head"><div class="t"><h2>' + esc(a.name) + '</h2></div></div>';
-  var inSS = false;
+  var inSS = false, nextEx = -1;
+  a.exercises.some(function(q, qi){ var dn = q.sets.filter(function(z){ return z.done; }).length; if(!(dn > 0 && dn >= Math.max(q.plan || 0, q.sets.length))){ nextEx = qi; return true; } return false; });
   a.exercises.forEach(function(x, ei){
     var hh = hist[key(x.name)], linked = x.link && a.exercises[ei+1];
-    if(linked && !inSS){ inSS = true; h += '<div class="ss"><div class="eyebrow">Superset · rest after the last lift</div>'; }
+    if(linked && !inSS){ inSS = true; h += '<div class="ss"><div class="eyebrow">Superset</div>'; }
     var grp = groupOf(a, ei)[0], isOpen = a.openEx === grp, doneN = x.sets.filter(function(q){ return q.done; }).length, planN = Math.max(x.plan || 0, x.sets.length), allDone = doneN > 0 && doneN >= planN;
     var head = '<h3 class="exh"><button type="button" class="exhead" data-act="ex-toggle" data-e="' + ei + '" aria-expanded="' + isOpen + '"><span class="exn">' + esc(x.name) + '</span><span class="exc' + (allDone ? " all" : "") + '" aria-label="' + doneN + ' of ' + planN + ' sets done">' + (allDone ? CHECK : doneN + " / " + planN) + '</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></h3>';
-    if(!isOpen){ h += '<section class="card ex shut">' + head + '</section>'; if(inSS && !linked){ inSS = false; h += '</div>'; } return; }
-    h += '<section class="card ex">' + head + '<div class="meta">' + (x.target ? '<span>Target ' + (x.plan || x.sets.length) + ' × ' + esc(x.target) + '</span>' : "") + '<span>Rest ' + fmtClock(x.rest) + '</span>' + (hh && hh.bestSet ? '<span>Best ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r + '</span>' : "") + '</div>' +
+    if(!isOpen){ h += '<section class="card ex shut' + (allDone ? " fin" : "") + (ei === nextEx ? " next" : "") + '">' + head + '</section>'; if(inSS && !linked){ inSS = false; h += '</div>'; } return; }
+    h += '<section class="card ex' + (allDone ? " fin" : "") + (ei === nextEx ? " next" : "") + '">' + head + '<div class="meta">' + (x.target ? '<span>Target ' + (x.plan || x.sets.length) + ' × ' + esc(x.target) + '</span>' : "") + '<span>Rest ' + fmtClock(x.rest) + '</span>' + (hh && hh.bestSet ? '<span>Best ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r + '</span>' : "") + '</div>' +
       (x.bump ? '<div class="up">Up ' + x.bump + ' ' + esc(u) + ': you hit every rep last time</div>' : "") +
       '<input class="field note" aria-label="Note for ' + esc(x.name) + '" data-note="' + esc(key(x.name)) + '" value="' + esc(S.cfg.notes[key(x.name)] || "") + '" placeholder="Note for this lift (seat height, grip, cues)">' +
       '<div class="sets"><div class="sethead"><span></span><span>' + esc(x.repLabel || "Reps") + '</span><span>' + esc(u) + '</span><span>Note</span><span>Done</span></div>';
