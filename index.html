@@ -523,6 +523,27 @@ main:not([data-v="today"]){padding-top:24px}
 
 /* ---- a workout opens as a plain list of its exercises; one expands only when tapped ---- */
 .back + .ledger{margin-top:18px;border-top:1px solid var(--knurl)}
+
+/* ---- an open exercise is a table of sets: reps, weight, log ---- */
+.st{margin-top:28px;display:flex;flex-direction:column;gap:10px}
+.sr{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.15fr) 36px 64px;gap:8px;align-items:center}
+.sr.hdr{color:var(--dust);margin-bottom:-2px}
+.sr.hdr span:nth-child(2),.sr.hdr span:nth-child(3){text-align:center}
+.sn{color:var(--dust)}
+.si{height:56px;width:100%;min-width:0;margin:0;padding:0;border:1px solid var(--knurl);border-radius:0;background:transparent;color:var(--chalk);text-align:center;font:500 28px/1 Oswald,'Arial Narrow',sans-serif;font-variant-numeric:tabular-nums;-webkit-appearance:none;appearance:none;-webkit-user-select:text;user-select:text}
+.si::placeholder{color:#5a5853;font-size:20px;opacity:1}
+.si:focus{outline:0;border-color:var(--plate)}
+.sr.cur .si{border-color:var(--chalk)}
+.sr.cur .si:focus{border-color:var(--plate)}
+.sr.done .si{color:var(--dust);border-color:transparent;border-bottom-color:var(--knurl)}
+.ck{height:56px;margin:0;padding:0;border:1px solid var(--knurl);border-radius:0;background:transparent;color:var(--dust);font:400 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.sr.cur .ck{background:var(--plate);border-color:var(--plate);color:var(--ink);font:400 18px/1 var(--poster);letter-spacing:.06em}
+.sr.done .ck{border-color:var(--plate);color:var(--plate);font:400 20px/1 var(--poster)}
+.nt{height:56px;margin:0;padding:0;background:none;border:0;border-radius:0;color:#5a5853;display:grid;place-items:center}
+.nt.has{color:var(--plate)}
+.st .setnote{padding-left:30px}
+.sl{display:flex;justify-content:space-between;padding-top:20px}
+#rest [data-act="rest-max"]{display:none}
 </style>
 </head>
 <body>
@@ -661,7 +682,7 @@ var S = {
   progressEx: null
 };
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
-var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = false;
+var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = true;
 
 /* ---------- persistence: this device first, then your Claude account ---------- */
 function setSync(s){
@@ -794,7 +815,7 @@ function mkEx(x, hist){
   var bump = !!(h && topR && h.last.length >= n && h.last.slice(0,n).every(function(s){ return s.r >= topR && s.w > 0; }));
   for(var i = 0; i < 1; i++){
     var p = h && h.last.length ? (h.last[i] || h.last[h.last.length-1]) : null;
-    sets.push({ w: p ? (bump ? p.w + inc : p.w) : "", r: p && !bump ? p.r : (x.repLabel ? 1 : lowRep(x.reps)), done:false, prev: p ? {w:p.w, r:p.r} : null });
+    sets.push({ w: p ? (bump ? p.w + inc : p.w) : "", r: p ? (bump ? (x.repLabel ? 1 : lowRep(x.reps)) : p.r) : "", done:false, prev: p ? {w:p.w, r:p.r} : null });
   }
   return { name:x.name, target:x.reps || "", rest: parseInt(x.rest,10) || 90, sets:sets, plan:n, bump: bump ? inc : 0, link: !!x.link, repLabel: x.repLabel || "" };
 }
@@ -823,7 +844,7 @@ function toggleSet(ei, si){
   var later = x.sets.slice(si+1).some(function(o){ return !o.done; }) || a.exercises.slice(ei+1).some(function(o){ return o.sets.some(function(q){ return !q.done; }); });
   var chained = x.link && a.exercises[ei+1];
   if(chained){ toast("Straight into " + a.exercises[ei+1].name); }
-  else if(later){ a.restTotal = x.rest; a.restEnd = Date.now() + x.rest*1000; restFlash = 0; restMin = false; a.restNext = nextUp(a); }
+  else if(later){ a.restTotal = x.rest; a.restEnd = Date.now() + x.rest*1000; restFlash = 0; restMin = true; a.restNext = nextUp(a); }
   saveActive(); render();
 }
 function nextUp(a){
@@ -1073,28 +1094,28 @@ function openGroup(a){
   return [];
 }
 function actBlock(a, ei, hist, u, inSS, gi, gn){
-  var x = a.exercises[ei], s = exState(x), cs = -1;
+  var x = a.exercises[ei], s = exState(x), cs = -1, rows = "", rl = x.repLabel || "Reps";
   for(var i = 0; i < x.sets.length; i++) if(!x.sets[i].done){ cs = i; break; }
-  var logged = cs < 0; if(logged) cs = x.sets.length - 1;
-  var st = x.sets[cs], id = "s-" + ei + "-" + cs, hasW = st.w !== "" && st.w != null, hasNote = !!(st.note && String(st.note).trim());
-  var rv = String(st.r == null ? "" : st.r), wv = hasW ? fmtW(num(st.w)) : "0";
-  var rfs = rv.length > 2 ? 64 : 88, wfs = wv.length > 5 ? 50 : wv.length > 4 ? 62 : wv.length > 3 ? 76 : 88;
-  var sq = ""; for(var k = 0; k < s.pn; k++){ var q = x.sets[k];
-    sq += q && q.done ? '<button type="button" class="b f" data-act="check" data-e="' + ei + '" data-s="' + k + '" aria-label="Set ' + (k+1) + ' logged. Undo it"></button>' : '<i class="b" aria-hidden="true"></i>'; }
-  var line = [];
-  if(x.target) line.push((x.plan || s.pn) + " × " + esc(String(x.target).replace("-", "–")));
-  if(st.prev && !logged) line.push("last " + st.prev.r + " × " + fmtW(st.prev.w));
-  if(x.bump) line.push("up " + x.bump + " " + esc(u));
+  var ref = x.sets[cs < 0 ? x.sets.length - 1 : cs], line = [], line2 = [];
+  if(x.target) line.push((x.plan || s.pn) + " sets · " + esc(String(x.target).replace("-", "–")) + " " + esc(rl.toLowerCase()));
+  if(ref.prev) line2.push("Last time " + ref.prev.r + " × " + fmtW(ref.prev.w) + " " + esc(u));
+  if(x.bump) line2.push("go up " + x.bump + " " + esc(u));
+  x.sets.forEach(function(st, si){
+    var id = "s-" + ei + "-" + si, hasNote = !!(st.note && String(st.note).trim()), n = si + 1;
+    rows += '<div class="sr' + (st.done ? " done" : si === cs ? " cur" : "") + '"><span class="mono sn">' + n + '</span>' +
+      '<input class="num si" id="' + id + '-r" inputmode="numeric" autocomplete="off" aria-label="Set ' + n + ' ' + esc(rl.toLowerCase()) + '" data-e="' + ei + '" data-s="' + si + '" data-k="r" value="' + esc(String(st.r == null ? "" : st.r)) + '" placeholder="' + esc(String(x.target || "0").replace("-", "–")) + '">' +
+      '<input class="num si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="0">' +
+      '<button type="button" class="nt' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" aria-label="' + (hasNote ? "Note on set " + n : "Add a note to set " + n) + '" data-act="set-note" data-e="' + ei + '" data-s="' + si + '"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg></button>' +
+      '<button type="button" class="ck" data-act="check" data-e="' + ei + '" data-s="' + si + '" aria-label="' + (st.done ? "Set " + n + " logged. Undo it" : "Log set " + n) + '">' + (st.done ? "✓" : "Log") + '</button></div>' +
+      (st.open ? '<div class="setnote"><textarea class="field" id="' + id + '-n" rows="2" aria-label="Note for set ' + n + '" data-e="' + ei + '" data-s="' + si + '" data-k="note" placeholder="Note for set ' + n + '">' + esc(st.note || "") + '</textarea></div>' : "");
+  });
   return '<div class="act2' + (gi ? " sub" : "") + '">' +
     (inSS ? '<div class="mono ss2">Superset · ' + (gi+1) + ' of ' + gn + '</div>' : "") +
     '<div class="xh"><h3 class="xn" style="font-size:' + (x.name.length > 26 ? 26 : 34) + 'px">' + esc(x.name) + '</h3><button type="button" class="more" aria-label="More options for ' + esc(x.name) + '" data-act="ex-more" data-e="' + ei + '">···</button></div>' +
     (line.length ? '<div class="mono xt">' + line.join(" · ") + '</div>' : "") +
-    '<div class="nums' + (logged ? " dim" : "") + '"><label for="' + id + '-r"><span class="mono">' + esc(x.repLabel || "Reps") + '</span><input class="big num" id="' + id + '-r" inputmode="numeric" data-e="' + ei + '" data-s="' + cs + '" data-k="r" value="' + esc(rv) + '" placeholder="0" style="font-size:' + rfs + 'px;width:' + (Math.max(1, rv.length) * 0.56).toFixed(2) + 'em"></label><i>×</i>' +
-    '<div><span class="mono">' + esc(u) + '</span><button type="button" class="big num' + (hasW ? "" : " empty") + '" id="' + id + '-w" style="font-size:' + wfs + 'px" aria-label="Weight ' + (hasW ? wv + " " + esc(u) : "not set") + '. Opens the bar counter" data-act="weight" data-e="' + ei + '" data-s="' + cs + '">' + wv + '</button></div></div>' +
-    '<div class="sq" aria-label="' + s.dn + ' of ' + s.pn + ' sets logged">' + sq + '<button type="button" class="mono nb' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" data-act="set-note" data-e="' + ei + '" data-s="' + cs + '">' + (hasNote ? "Note ●" : "+ Note") + '</button></div>' +
-    (st.open ? '<div class="setnote"><textarea class="field" id="' + id + '-n" rows="2" aria-label="Note for set ' + (cs+1) + '" data-e="' + ei + '" data-s="' + cs + '" data-k="note" placeholder="Note for this set">' + esc(st.note || "") + '</textarea></div>' : "") +
-    (logged ? '<button type="button" class="logbtn ghost" data-act="add-set" data-e="' + ei + '"><span>Add set</span><span>+</span></button>'
-            : '<button type="button" class="logbtn" data-act="check" data-e="' + ei + '" data-s="' + cs + '"><span>Log set</span><span>→</span></button>') +
+    (line2.length ? '<div class="mono xt" style="margin-top:8px">' + line2.join(" · ") + '</div>' : "") +
+    '<div class="st"><div class="sr hdr mono" aria-hidden="true"><span>Set</span><span>' + esc(rl) + '</span><span>' + esc(u) + '</span><span></span><span></span></div>' + rows + '</div>' +
+    '<div class="links mono sl"><button type="button" data-act="add-set" data-e="' + ei + '">+ Add set</button><button type="button" data-act="weight" data-e="' + ei + '" data-s="' + (cs < 0 ? x.sets.length - 1 : cs) + '">What&#39;s on the bar →</button></div>' +
     '</div>';
 }
 function renderWorkout(){
