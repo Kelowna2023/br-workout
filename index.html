@@ -108,6 +108,14 @@ select.field{appearance:auto}
 #elapsed{font-family:var(--display);font-weight:600;font-size:22px;color:var(--dust)}
 .ex h3{font-size:25px;font-weight:600;letter-spacing:.02em;overflow-wrap:anywhere}
 .ex .meta{font-size:13px;color:var(--dust);display:flex;gap:12px;flex-wrap:wrap}
+.ex .exh{margin:0;font-size:inherit}
+.exhead{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;align-items:center;gap:12px;width:100%;min-height:44px;padding:2px 0;background:transparent;border:0;text-align:left;color:inherit}
+.exhead .exn{font-family:var(--display);font-weight:600;font-size:24px;line-height:1.05;letter-spacing:.02em;text-transform:uppercase;overflow-wrap:anywhere}
+.exhead .exc{font-size:15px;color:var(--dust);letter-spacing:.06em;font-variant-numeric:tabular-nums;display:flex;align-items:center}
+.exhead .exc svg{width:20px;height:20px;stroke:var(--plate);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.exhead .chev{width:18px;height:18px;stroke:var(--dust);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.exhead[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.card.ex.shut{padding:8px 14px}
 .sets{display:flex;flex-direction:column;gap:6px}
 .set,.sethead{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1fr) 46px 48px;gap:8px;align-items:center}
 .sethead{font-size:11px;color:var(--dust);text-transform:uppercase;letter-spacing:.1em}
@@ -840,7 +848,10 @@ function renderWorkout(){
   a.exercises.forEach(function(x, ei){
     var hh = hist[key(x.name)], linked = x.link && a.exercises[ei+1];
     if(linked && !inSS){ inSS = true; h += '<div class="ss"><div class="eyebrow">Superset · rest after the last lift</div>'; }
-    h += '<section class="card ex"><h3>' + esc(x.name) + '</h3><div class="meta">' + (x.target ? '<span>Target ' + (x.plan || x.sets.length) + ' × ' + esc(x.target) + '</span>' : "") + '<span>Rest ' + fmtClock(x.rest) + '</span>' + (hh && hh.bestSet ? '<span>Best ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r + '</span>' : "") + '</div>' +
+    var grp = groupOf(a, ei)[0], isOpen = a.openEx === grp, doneN = x.sets.filter(function(q){ return q.done; }).length, planN = Math.max(x.plan || 0, x.sets.length), allDone = doneN > 0 && doneN >= planN;
+    var head = '<h3 class="exh"><button type="button" class="exhead" data-act="ex-toggle" data-e="' + ei + '" aria-expanded="' + isOpen + '"><span class="exn">' + esc(x.name) + '</span><span class="exc' + (allDone ? " all" : "") + '" aria-label="' + doneN + ' of ' + planN + ' sets done">' + (allDone ? CHECK : doneN + " / " + planN) + '</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></h3>';
+    if(!isOpen){ h += '<section class="card ex shut">' + head + '</section>'; if(inSS && !linked){ inSS = false; h += '</div>'; } return; }
+    h += '<section class="card ex">' + head + '<div class="meta">' + (x.target ? '<span>Target ' + (x.plan || x.sets.length) + ' × ' + esc(x.target) + '</span>' : "") + '<span>Rest ' + fmtClock(x.rest) + '</span>' + (hh && hh.bestSet ? '<span>Best ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r + '</span>' : "") + '</div>' +
       (x.bump ? '<div class="up">Up ' + x.bump + ' ' + esc(u) + ': you hit every rep last time</div>' : "") +
       '<input class="field note" aria-label="Note for ' + esc(x.name) + '" data-note="' + esc(key(x.name)) + '" value="' + esc(S.cfg.notes[key(x.name)] || "") + '" placeholder="Note for this lift (seat height, grip, cues)">' +
       '<div class="sets"><div class="sethead"><span></span><span>' + esc(x.repLabel || "Reps") + '</span><span>' + esc(u) + '</span><span>Note</span><span>Done</span></div>';
@@ -983,6 +994,7 @@ document.addEventListener("click", function(ev){
       saveActive(); render(); if(ns.open){ var nt = $("#s-" + ei + "-" + si + "-n"); if(nt) nt.focus(); } break;
     case "confirm-yes": var fn = confirmFn; closeSheet(); if(fn) fn(); break;
     case "check": toggleSet(ei, si); break;
+    case "ex-toggle": var og = groupOf(a, ei)[0]; a.openEx = a.openEx === og ? null : og; saveActive(); render(); break;
     case "add-set": var hidx = histIndex(); groupOf(a, ei).forEach(function(gi){
         var gx = a.exercises[gi], sets = gx.sets, l = sets[sets.length-1], hx = hidx[key(gx.name)], hp = hx && hx.last[sets.length] ? hx.last[sets.length] : null;
         sets.push({ w: l ? l.w : "", r: l ? l.r : "", pl: l && l.pl ? l.pl.slice() : [], bar: l ? l.bar : undefined, done:false, prev: hp ? { w:hp.w, r:hp.r } : null }); });
@@ -990,7 +1002,7 @@ document.addEventListener("click", function(ev){
     case "del-set": groupOf(a, ei).forEach(function(gi){ var gs = a.exercises[gi].sets; if(gs.length > 1 && !gs[gs.length-1].done) gs.pop(); }); saveActive(); render(); break;
     case "del-ex": ask("Remove " + a.exercises[ei].name + "?", "Its sets from this workout will be dropped.", "Remove", function(){ a.exercises.splice(ei,1); saveActive(); render(); }); break;
     case "add-ex": var inp = $("#new-ex"), nm = inp.value.trim(); if(!nm){ toast("Type an exercise name"); inp.focus(); break; }
-      a.exercises.push(mkEx({ name:nm, sets:3, reps:"", rest:90 }, histIndex())); saveActive(); render(); break;
+      a.exercises.push(mkEx({ name:nm, sets:3, reps:"", rest:90 }, histIndex())); a.openEx = groupOf(a, a.exercises.length - 1)[0]; saveActive(); render(); break;
     case "finish": finishWorkout(); break;
     case "cancel": ask("Cancel this workout?", "Everything logged in this session will be thrown away.", "Cancel workout", discardWorkout); break;
     case "rest-add": if(a && a.restEnd){ var d = +b.dataset.v * 1000; a.restEnd += d; a.restTotal = Math.max(1, a.restTotal + d/1000); ls.set("active", a); tick(); } break;
