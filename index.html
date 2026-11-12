@@ -503,6 +503,11 @@ main[data-v="today"] .tr{min-height:50px}
 .wr.today .wn{color:var(--plate)}
 .back{display:block;position:relative;z-index:2;background:none;border:0;border-radius:0;color:var(--dust);text-align:left;min-height:44px;padding:22px 0 0;margin:0}
 #intro .btn.go{background:var(--plate);color:var(--ink)}
+
+/* ---- tap a workout and go; several can be in progress; back to the welcome ---- */
+.pk{display:flex;align-items:center;justify-content:space-between;padding:30px 0 10px}
+.pk .back{padding:0;min-height:44px;min-width:88px;margin:0}
+#intro.quick *,#intro.quick::after{animation:none!important}
 </style>
 </head>
 <body>
@@ -634,6 +639,7 @@ var S = {
   cfg: normalise(ls.get("cfg") || clone(STARTER)),
   sessions: ls.get("sessions") || [],
   active: ls.get("active") || null,
+  parked: ls.get("parked") || [],
   activeAt: ls.get("activeAt") || 0,
   pend: ls.get("pend") || { cfg:false, add:[], del:[] },
   openRoutine: null, pick: false,
@@ -665,11 +671,12 @@ function pushCfg(){
   dbWrite("cfg", function(){ return db.doc("app/config").set(body).then(function(){ S.pend.cfg = false; savePend(); }); });
 }
 function saveActive(){
-  S.activeAt = Date.now(); ls.set("active", S.active); ls.set("activeAt", S.activeAt);
+  S.activeAt = Date.now(); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("activeAt", S.activeAt);
   debounce("active", 1500, pushActive);
 }
 function pushActive(){
   var body = S.active ? { on:true, w:clone(S.active), updatedAt:S.activeAt } : { on:false, updatedAt:S.activeAt };
+  body.p = clone(S.parked);
   dbWrite("active", function(){ return db.doc("app/active").set(body); });
 }
 function pushSession(s){
@@ -705,11 +712,11 @@ function connect(){
       S.pend.add.slice().forEach(function(id){ var s = merged.filter(function(m){ return m.id === id; })[0]; if(s) pushSession(s); });
       S.pend.del.slice().forEach(pushDelete);
       if(a.exists){ var ra = a.data() || {};
-        if((ra.updatedAt||0) > (S.activeAt||0)){ S.active = ra.on && ra.w ? clone(ra.w) : null; S.activeAt = ra.updatedAt; ls.set("active", S.active); ls.set("activeAt", S.activeAt); }
+        if((ra.updatedAt||0) > (S.activeAt||0)){ S.active = ra.on && ra.w ? clone(ra.w) : null; S.parked = Array.isArray(ra.p) ? clone(ra.p) : []; S.activeAt = ra.updatedAt; ls.set("active", S.active); ls.set("parked", S.parked); ls.set("activeAt", S.activeAt); }
         else if((S.activeAt||0) > (ra.updatedAt||0)) pushActive();
       } else if(S.active) pushActive();
       if(migrated){ migrated = false; saveCfg(); }
-      if(dropStale() || trimActive()) saveActive();
+      if(dropStale() || trimActive() || relabel()) saveActive();
       savePend(); setSync("cloud");
       var ae = document.activeElement; if(!(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName))) render();
     });
@@ -825,6 +832,18 @@ function finishWorkout(){
     '<div class="strip"><div><b class="num">' + fmtMin(s.dur).replace(" min","") + '</b><span>Minutes</span></div><div><b class="num">' + cnt + '</b><span>Sets</span></div><div><b class="num">' + fmtVol(vol) + '</b><span>' + esc(S.cfg.units) + ' moved</span></div></div>' +
     (prs.length ? '<div class="lines">' + prs.map(function(p){ return '<div><span><span class="pill">Record</span> ' + esc(p) + '</span><span></span></div>'; }).join("") + '</div>' : "") +
     '<button class="btn go" type="button" data-act="sheet-close">Done</button>');
+}
+function hasWork(w){ return !!(w.note && String(w.note).trim()) || w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done || (q.note && String(q.note).trim()); }); }); }
+function relabel(){ var ch = false; (S.active ? [S.active] : []).concat(S.parked).forEach(function(w){ if(!w.routineId) return;
+    var r = S.cfg.routines.filter(function(q){ return q.id === w.routineId; })[0]; if(r && w.name !== r.name){ w.name = r.name; ch = true; } }); return ch; }
+function goWorkout(r){
+  var a = S.active, rid = r ? r.id : null, i = -1;
+  if(a && a.routineId === rid){ S.pick = false; render(); $("#view").scrollTop = 0; return; }
+  if(a){ a.restEnd = null; S.parked = S.parked.filter(function(w){ return w.id !== a.id; }); if(hasWork(a)) S.parked.push(a); S.active = null; }
+  S.parked.forEach(function(w, k){ if(w.routineId === rid) i = k; });
+  if(i < 0){ startWorkout(r); return; }
+  S.active = S.parked.splice(i, 1)[0]; S.pick = false; relabel();
+  saveActive(); location.hash = "#today"; render(); $("#view").scrollTop = 0;
 }
 function discardWorkout(){ S.active = null; saveActive(); render(); }
 
@@ -1024,12 +1043,12 @@ function renderToday(){
   var ws0 = weekStart(Date.now()), t = new Date(); t.setHours(0,0,0,0); var today0 = t.getTime(), today = t.getDay(), rows = "", a = S.active;
   var order = S.cfg.routines.slice().sort(function(x, y){ var dx = x.day == null ? 9 : (x.day + 6) % 7, dy = y.day == null ? 9 : (y.day + 6) % 7; return dx - dy; });
   order.forEach(function(r){
-    var isToday = r.day === today, live = a && a.routineId === r.id, done = false;
+    var isToday = r.day === today, live = (a && a.routineId === r.id) || S.parked.some(function(w){ return w.routineId === r.id; }), done = false;
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
     rows += '<button type="button" class="wr' + (isToday ? " today" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span><span class="mono' + (live || isToday ? " hi" : "") + '">' + (live ? "Resume →" : done ? "Done" : isToday ? "Today" : r.day != null ? DAYS[r.day].slice(0,3) : "") + '</span></button>'; });
-  if(a && !a.routineId) rows = '<button type="button" class="wr today" data-act="resume"><span class="wn">' + esc(a.name) + '</span><span class="mono hi">Resume →</span></button>' + rows;
-  return '<div class="mono pk">Workouts</div><div class="ledger">' + rows + '</div>' +
+  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr today" data-act="start-open"><span class="wn">Open workout</span><span class="mono hi">Resume →</span></button>' + rows;
+  return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button><span>Workouts</span></div><div class="ledger">' + rows + '</div>' +
     '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><button type="button" data-act="plates">What&#39;s on the bar →</button></div>';
 }
 
@@ -1178,12 +1197,9 @@ document.addEventListener("click", function(ev){
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
-    case "start": (function(r0){
-        if(a && a.routineId === r0.id){ cut(function(){ S.pick = false; render(); $("#view").scrollTop = 0; }); return; }
-        if(a){ ask("Start " + r0.name + "?", "Your " + a.name + " workout in progress will be thrown away.", "Start " + r0.name, function(){ cut(function(){ startWorkout(r0); }); }); return; }
-        cut(function(){ startWorkout(r0); }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
-    case "start-open": if(a){ ask("Start an open workout?", "Your " + a.name + " workout in progress will be thrown away.", "Start open workout", function(){ cut(function(){ startWorkout(null); }); }); break; }
-      cut(function(){ startWorkout(null); }); break;
+    case "start": (function(r0){ cut(function(){ goWorkout(r0); }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
+    case "start-open": cut(function(){ goWorkout(null); }); break;
+    case "to-home": cut(function(){ var el = $("#intro"); fillIntro(); el.classList.add("quick"); el.hidden = false; }); break;
     case "resume": cut(function(){ S.pick = false; render(); $("#view").scrollTop = 0; }); break;
     case "to-list": cut(function(){ S.pick = true; if(location.hash !== "#today") location.hash = "#today"; render(); $("#view").scrollTop = 0; }); break;
     case "enter": cut(endIntro); break;
@@ -1294,9 +1310,11 @@ function cut(fn){
 }
 function endIntro(){ var el = $("#intro"); if(el.hidden) return; el.hidden = true; S.pick = true; render();
   if(viewName() === "today"){ var m = $("#view"); m.scrollTop = 0; m.classList.add("enter"); setTimeout(function(){ m.classList.remove("enter"); }, 1700); } }
-(function(){ if(S.active) return;
+function fillIntro(){
   var pl = todayPlan(); $("#i-day").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
   $("#i-title").textContent = "Time to train"; $("#i-sub").textContent = "Today · " + pl.title;
+}
+(function(){ if(relabel()) saveActive(); fillIntro(); if(S.active) return;
   if(location.hash && location.hash !== "#today") try{ history.replaceState(null, "", "#today"); }catch(e){}
   $("#intro").hidden = false; })();
 render();
