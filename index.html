@@ -508,6 +508,18 @@ main[data-v="today"] .tr{min-height:50px}
 .pk{display:flex;align-items:center;justify-content:space-between;padding:30px 0 10px}
 .pk .back{padding:0;min-height:44px;min-width:88px;margin:0}
 #intro.quick *,#intro.quick::after{animation:none!important}
+
+/* ---- sections live at the top; the list is names only ---- */
+.tabs{order:-1;border-top:0;border-bottom:1px solid var(--knurl);padding:env(safe-area-inset-top) 8px 0!important}
+.tabs a{padding:20px 8px 16px;font-size:12px;letter-spacing:.1em;color:var(--dust)}
+.tabs a[aria-current="page"]{color:var(--chalk);box-shadow:inset 0 -2px 0 var(--plate)}
+.tabs a[aria-current="page"]::before,.tabs a[aria-current="page"]::after{content:none}
+main{padding-top:0;padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+.pk{padding:14px 0 6px}
+.wr{padding:28px 16px}
+.wr .wn{font-size:32px}
+
+main:not([data-v="today"]){padding-top:24px}
 </style>
 </head>
 <body>
@@ -537,10 +549,10 @@ main[data-v="today"] .tr{min-height:50px}
     <button class="mono rmin" type="button" data-act="rest-min">← Back to my sets</button>
   </div>
   <nav class="tabs" aria-label="Sections">
-    <a href="#today" id="tab-today">Log</a>
+    <a href="#today" id="tab-today">Workouts</a>
     <a href="#history" id="tab-history">History</a>
     <a href="#progress" id="tab-progress">Progress</a>
-    <a href="#routines" id="tab-routines">Routines</a>
+    <a href="#routines" id="tab-routines">Setup</a>
   </nav>
   <div id="grain" aria-hidden="true"></div>
   <div id="intro" hidden><div class="bar t"></div><div class="bar b"></div><div class="mid"><svg class="brmark" viewBox="14 28 180 144" role="img" aria-label="BR monogram"><g class="m-all">
@@ -1046,9 +1058,9 @@ function renderToday(){
     var isToday = r.day === today, live = (a && a.routineId === r.id) || S.parked.some(function(w){ return w.routineId === r.id; }), done = false;
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
-    rows += '<button type="button" class="wr' + (isToday ? " today" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span><span class="mono' + (live || isToday ? " hi" : "") + '">' + (live ? "Resume →" : done ? "Done" : isToday ? "Today" : r.day != null ? DAYS[r.day].slice(0,3) : "") + '</span></button>'; });
-  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr today" data-act="start-open"><span class="wn">Open workout</span><span class="mono hi">Resume →</span></button>' + rows;
-  return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button><span>Workouts</span></div><div class="ledger">' + rows + '</div>' +
+    rows += '<button type="button" class="wr' + (isToday ? " today" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
+  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr today" data-act="start-open"><span class="wn">Open workout</span></button>' + rows;
+  return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><div class="ledger">' + rows + '</div>' +
     '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><button type="button" data-act="plates">What&#39;s on the bar →</button></div>';
 }
 
@@ -1096,9 +1108,9 @@ function renderWorkout(){
 }
 
 function renderHistory(){
-  if(!S.sessions.length) return '<section class="hd"><span class="fit" data-max="200">History</span></section><div class="empty">Finished workouts land here. Start one from the Lift tab.</div>';
+  if(!S.sessions.length) return '<div class="empty">Finished workouts land here. Start one from Workouts.</div>';
   var u = S.cfg.units;
-  return '<section class="hd"><span class="fit" data-max="200">History</span></section><div class="list">' + S.sessions.map(function(s){
+  return '<div class="list">' + S.sessions.map(function(s){
     return '<details class="card hs"><summary><div class="eyebrow">' + fmtDate(s.startedAt) + '</div><b>' + esc(s.name) + '</b><div class="meta num"><span>' + fmtMin(s.dur) + '</span><span>' + s.setCount + ' sets</span><span>' + fmtVol(s.volume) + ' ' + esc(u) + '</span>' + (s.prs && s.prs.length ? '<span class="pill">' + s.prs.length + (s.prs.length > 1 ? " records" : " record") + '</span>' : "") + '</div></summary>' +
       '<div class="lines num">' + s.exercises.map(function(x){ return '<div><span>' + esc(x.name) + '</span><span>' + x.sets.map(function(t){ return fmtW(t.w) + "×" + t.r; }).join(", ") + '</span></div>' + x.sets.map(function(t, ti){ return t.note ? '<div class="notebox">Set ' + (ti+1) + ': ' + esc(t.note) + '</div>' : ""; }).join(""); }).join("") + '</div>' +
       (s.note ? '<div class="notebox">' + esc(s.note) + '</div>' : "") +
@@ -1124,7 +1136,7 @@ function chart(series, u){
 }
 function renderGoals(hist){
   var u = S.cfg.units, gs = S.cfg.goals;
-  var wsP = weekStats(), h = '<section class="hd"><span class="fit" data-max="200">Progress</span></section><div class="cells mono" style="margin-top:6px;border-top:1px solid var(--chalk)"><span>This week<b class="num">' + wsP.thisWeek + ' / ' + S.cfg.weeklyGoal + '</b></span><span>Week streak<b class="num">' + wsP.streak + '</b></span><span>All time<b class="num">' + S.sessions.length + '</b></span></div><h2>Goals</h2><div class="list">' + (gs.length ? gs.map(function(g){
+  var wsP = weekStats(), h = '<div class="cells mono" style="border-top:1px solid var(--chalk)"><span>This week<b class="num">' + wsP.thisWeek + ' / ' + S.cfg.weeklyGoal + '</b></span><span>Week streak<b class="num">' + wsP.streak + '</b></span><span>All time<b class="num">' + S.sessions.length + '</b></span></div><h2>Goals</h2><div class="list">' + (gs.length ? gs.map(function(g){
     var tg = e1rm(num(g.w), num(g.r)), hh = hist[key(g.name)], best = hh ? hh.best : 0, pct = tg > 0 ? Math.min(100, Math.round(best/tg*100)) : 0, hit = tg > 0 && best >= tg;
     return '<div class="card goal"><div class="rt"><div class="t"><b>' + esc(g.name) + '</b><span class="num">Target ' + fmtW(num(g.w)) + ' ' + esc(u) + ' × ' + esc(g.r) + (hh && hh.bestSet ? ' · best so far ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r : ' · not logged yet') + '</span></div>' + (hit ? '<span class="pill">Reached</span>' : '<b class="pct num">' + pct + '%</b>') + '<button class="iconbtn" type="button" aria-label="Delete goal ' + esc(g.name) + '" data-act="goal-del" data-id="' + esc(g.id) + '">×</button></div><div class="gbar"><i style="width:' + pct + '%' + (hit ? ';background:var(--chalk)' : '') + '"></i></div></div>'; }).join("")
     : '<div class="empty">Set a target for a lift, like Bench Press 225 × 5, and track how close you are.</div>') + '</div>' +
@@ -1168,7 +1180,7 @@ function renderRoutines(){
     if(!any) cards += '<div class="card restday"><div class="rt"><span class="disc">' + DAYS[dv].slice(0,3) + '</span><div class="t"><b>Rest &amp; mobility</b><span>Active recovery and mobility</span></div></div></div>';
   });
   rs.forEach(function(r, ri){ if(!dated || r.day == null) cards += card(r, ri); });
-  var h = '<section class="hd"><span class="fit" data-max="200">Routines</span></section><div class="list">' + cards + '</div>' +
+  var h = '<div class="list">' + cards + '</div>' +
     '<button class="btn" type="button" data-act="r-add">New routine</button>' +
     (STANDALONE ? '<div class="card"><div class="eyebrow">Backup</div><div class="muted" style="font-size:14px">Your workouts are saved on this phone. Save a backup file now and then so a lost or new phone does not wipe your history.</div><div class="row"><button class="btn grow" type="button" data-act="backup">Save a backup</button><label class="btn ghost grow" style="display:grid;place-items:center;cursor:pointer" for="restore-file">Restore from backup</label><input id="restore-file" type="file" accept="application/json,.json" style="position:absolute;opacity:0;width:1px;height:1px"></div></div>' : "") +
     '<div class="row"><span class="eyebrow grow">Weight units</span><div class="seg"><button type="button" data-act="units" data-v="lb" aria-pressed="' + (u === "lb") + '">lb</button><button type="button" data-act="units" data-v="kg" aria-pressed="' + (u === "kg") + '">kg</button></div></div><div class="mono syncline">' + esc($("#sync").textContent) + '</div>';
@@ -1181,7 +1193,7 @@ function render(){
   if(main.dataset.v === v) main.scrollTop = top; else main.scrollTop = 0;
   main.dataset.v = v;
   ["today","history","progress","routines"].forEach(function(n){ var t = $("#tab-" + n); if(n === v) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current"); });
-  $("#tab-today").textContent = "Log"; $("#app").dataset.v = v;
+  $("#app").dataset.v = v;
   $("#hdr").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
   var names = {}; S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ if(key(x.name)) names[key(x.name)] = x.name; }); });
   S.sessions.forEach(function(s){ s.exercises.forEach(function(x){ names[key(x.name)] = x.name; }); });
