@@ -544,6 +544,23 @@ main:not([data-v="today"]){padding-top:24px}
 .st .setnote{padding-left:30px}
 .sl{display:flex;justify-content:space-between;padding-top:20px}
 #rest [data-act="rest-max"]{display:none}
+
+/* ---- history is a calendar; setup folds into workouts ---- */
+#tab-routines{display:none}
+.tabs{justify-content:flex-start;gap:14px}
+.cal-h{display:flex;align-items:center;justify-content:space-between}
+.cal-h button{background:none;border:0;border-radius:0;color:var(--chalk);min-width:44px;min-height:44px;font-size:16px;padding:0}
+.cal-h button:first-child{text-align:left}.cal-h button:last-child{text-align:right}
+.cal-h button:disabled{color:var(--knurl)}
+.cal-t{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--dust)}
+.cal-t b{font-weight:400;color:var(--chalk)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px}
+.cal span{text-align:center;color:var(--dust);padding-bottom:4px}
+.cal b{aspect-ratio:1;display:grid;place-items:center;font:500 16px/1 Oswald,'Arial Narrow',sans-serif;color:var(--dust);font-variant-numeric:tabular-nums}
+.cal b.td{box-shadow:inset 0 0 0 1px var(--chalk);color:var(--chalk)}
+.cal b.on{background:var(--plate);color:var(--ink);box-shadow:none}
+.cal b.on.td{box-shadow:inset 0 0 0 2px var(--chalk)}
+main[data-v="routines"]{padding-top:0}
 </style>
 </head>
 <body>
@@ -678,7 +695,7 @@ var S = {
   parked: ls.get("parked") || [],
   activeAt: ls.get("activeAt") || 0,
   pend: ls.get("pend") || { cfg:false, add:[], del:[] },
-  openRoutine: null, pick: false,
+  openRoutine: null, pick: false, histMonth: 0,
   progressEx: null
 };
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
@@ -1085,7 +1102,7 @@ function renderToday(){
     rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
   if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr" data-act="start-open"><span class="wn">Open workout</span></button>' + rows;
   return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><div class="ledger">' + rows + '</div>' +
-    '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><button type="button" data-act="plates">What&#39;s on the bar →</button></div>';
+    '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><a href="#routines">Edit workouts →</a></div>';
 }
 
 function exState(x){ var dn = x.sets.filter(function(q){ return q.done; }).length, pn = Math.max(x.plan || 0, x.sets.length); return { dn:dn, pn:pn, all: dn > 0 && dn >= pn }; }
@@ -1132,9 +1149,17 @@ function renderWorkout(){
 }
 
 function renderHistory(){
-  if(!S.sessions.length) return '<div class="empty">Finished workouts land here. Start one from Workouts.</div>';
-  var u = S.cfg.units;
-  return '<div class="list">' + S.sessions.map(function(s){
+  var u = S.cfg.units, now = new Date(), m = S.histMonth ? new Date(S.histMonth) : new Date(now.getFullYear(), now.getMonth(), 1);
+  var y = m.getFullYear(), mo = m.getMonth(), nd = new Date(y, mo + 1, 0).getDate(), lead = (m.getDay() + 6) % 7, by = {}, cells = "", i;
+  var isNow = y === now.getFullYear() && mo === now.getMonth();
+  var list = S.sessions.filter(function(s){ var d = new Date(s.startedAt); if(d.getFullYear() !== y || d.getMonth() !== mo) return false; by[d.getDate()] = (by[d.getDate()] || 0) + 1; return true; });
+  var gymDays = Object.keys(by).length;
+  ["M","T","W","T","F","S","S"].forEach(function(d){ cells += '<span class="mono" aria-hidden="true">' + d + '</span>'; });
+  for(i = 0; i < lead; i++) cells += '<i></i>';
+  for(i = 1; i <= nd; i++) cells += '<b class="' + (by[i] ? "on" : "") + (isNow && i === now.getDate() ? " td" : "") + '"' + (by[i] ? ' aria-label="' + i + ', trained"' : "") + '>' + i + '</b>';
+  return '<div class="cal-h"><button type="button" class="mono" data-act="cal" data-v="-1" aria-label="Previous month">←</button><div class="mono cal-t"><b>' + m.toLocaleDateString("en-US",{month:"long",year:"numeric"}) + '</b><span>' + gymDays + (gymDays === 1 ? " day" : " days") + ' trained</span></div><button type="button" class="mono" data-act="cal" data-v="1" aria-label="Next month"' + (isNow ? ' disabled' : '') + '>→</button></div>' +
+    '<div class="cal">' + cells + '</div>' +
+    '<div class="list" style="margin-top:26px">' + list.map(function(s){
     return '<details class="card hs"><summary><div class="eyebrow">' + fmtDate(s.startedAt) + '</div><b>' + esc(s.name) + '</b><div class="meta num"><span>' + fmtMin(s.dur) + '</span><span>' + s.setCount + ' sets</span><span>' + fmtVol(s.volume) + ' ' + esc(u) + '</span>' + (s.prs && s.prs.length ? '<span class="pill">' + s.prs.length + (s.prs.length > 1 ? " records" : " record") + '</span>' : "") + '</div></summary>' +
       '<div class="lines num">' + s.exercises.map(function(x){ return '<div><span>' + esc(x.name) + '</span><span>' + x.sets.map(function(t){ return fmtW(t.w) + "×" + t.r; }).join(", ") + '</span></div>' + x.sets.map(function(t, ti){ return t.note ? '<div class="notebox">Set ' + (ti+1) + ': ' + esc(t.note) + '</div>' : ""; }).join(""); }).join("") + '</div>' +
       (s.note ? '<div class="notebox">' + esc(s.note) + '</div>' : "") +
@@ -1186,7 +1211,7 @@ function renderProgress(){
 function renderRoutines(){
   var u = S.cfg.units, rs = S.cfg.routines;
   var card = function(r, ri){
-    return '<details class="card" data-rid="' + esc(r.id) + '"' + (S.openRoutine === r.id ? " open" : "") + '><summary><div class="rt"><span class="disc">' + (r.day != null ? DAYS[r.day].slice(0,3) : ("0" + (ri+1)).slice(-2)) + '</span><div class="t"><b>' + esc(r.name || "Untitled") + '</b><span>' + r.exercises.length + ' exercises · tap to edit</span></div><button class="btn small" type="button" data-act="start" data-id="' + esc(r.id) + '">Start</button></div></summary>' +
+    return '<details class="card" data-rid="' + esc(r.id) + '"' + (S.openRoutine === r.id ? " open" : "") + '><summary><div class="rt"><span class="disc">' + (r.day != null ? DAYS[r.day].slice(0,3) : ("0" + (ri+1)).slice(-2)) + '</span><div class="t"><b>' + esc(r.name || "Untitled") + '</b><span>' + r.exercises.length + ' exercises · tap to edit</span></div></div></summary>' +
       '<div class="row"><label class="grow eyebrow" for="r-' + ri + '-name">Name<input class="field" id="r-' + ri + '-name" data-r="' + ri + '" data-k="name" value="' + esc(r.name) + '"></label></div>' +
       '<label class="eyebrow" for="r-' + ri + '-focus">Focus<input class="field" id="r-' + ri + '-focus" data-r="' + ri + '" data-k="focus" value="' + esc(r.focus || "") + '"></label>' +
       '<label class="eyebrow" for="r-' + ri + '-day">Day<select class="field" id="r-' + ri + '-day" data-r="' + ri + '" data-k="day"><option value="">No set day</option>' + [1,2,3,4,5,6,0].map(function(dv){ return '<option value="' + dv + '"' + (r.day === dv ? " selected" : "") + '>' + DAYS[dv] + '</option>'; }).join("") + '</select></label>' +
@@ -1197,15 +1222,15 @@ function renderRoutines(){
           '<label for="' + id + '-p">Reps<input class="field" id="' + id + '-p" data-r="' + ri + '" data-x="' + xi + '" data-k="reps" value="' + esc(x.reps) + '"></label>' +
           '<label for="' + id + '-t">Rest (s)<input class="field" id="' + id + '-t" inputmode="numeric" data-r="' + ri + '" data-x="' + xi + '" data-k="rest" value="' + esc(x.rest) + '"></label></div>' +
           '<label class="lk" for="' + id + '-l"><input type="checkbox" id="' + id + '-l" data-r="' + ri + '" data-x="' + xi + '" data-k="link"' + (x.link ? " checked" : "") + '>Superset with the next exercise</label></div>'; }).join("") + '</div>' +
-      '<div class="row"><button class="btn small" type="button" data-act="r-add-ex" data-r="' + ri + '">Add exercise</button><span class="grow"></span><button class="btn small ghost danger" type="button" data-act="r-del" data-r="' + ri + '">Delete routine</button></div></details>'; };
+      '<div class="row"><button class="btn small" type="button" data-act="r-add-ex" data-r="' + ri + '">Add exercise</button><span class="grow"></span><button class="btn small ghost danger" type="button" data-act="r-del" data-r="' + ri + '">Delete workout</button></div></details>'; };
   var cards = "", dated = rs.some(function(r){ return r.day != null; });
   if(dated) [1,2,3,4,5,6,0].forEach(function(dv){
     var any = false; rs.forEach(function(r, ri){ if(r.day === dv){ cards += card(r, ri); any = true; } });
     if(!any) cards += '<div class="card restday"><div class="rt"><span class="disc">' + DAYS[dv].slice(0,3) + '</span><div class="t"><b>Rest &amp; mobility</b><span>Active recovery and mobility</span></div></div></div>';
   });
   rs.forEach(function(r, ri){ if(!dated || r.day == null) cards += card(r, ri); });
-  var h = '<div class="list">' + cards + '</div>' +
-    '<button class="btn" type="button" data-act="r-add">New routine</button>' +
+  var h = '<button type="button" class="mono back" data-act="to-list" style="padding-bottom:18px">← Workouts · Edit</button><div class="list">' + cards + '</div>' +
+    '<button class="btn" type="button" data-act="r-add">New workout</button>' +
     (STANDALONE ? '<div class="card"><div class="eyebrow">Backup</div><div class="muted" style="font-size:14px">Your workouts are saved on this phone. Save a backup file now and then so a lost or new phone does not wipe your history.</div><div class="row"><button class="btn grow" type="button" data-act="backup">Save a backup</button><label class="btn ghost grow" style="display:grid;place-items:center;cursor:pointer" for="restore-file">Restore from backup</label><input id="restore-file" type="file" accept="application/json,.json" style="position:absolute;opacity:0;width:1px;height:1px"></div></div>' : "") +
     '<div class="row"><span class="eyebrow grow">Weight units</span><div class="seg"><button type="button" data-act="units" data-v="lb" aria-pressed="' + (u === "lb") + '">lb</button><button type="button" data-act="units" data-v="kg" aria-pressed="' + (u === "kg") + '">kg</button></div></div><div class="mono syncline">' + esc($("#sync").textContent) + '</div>';
   return h;
@@ -1216,7 +1241,7 @@ function render(){
   main.innerHTML = { today:renderToday, history:renderHistory, progress:renderProgress, routines:renderRoutines }[v]();
   if(main.dataset.v === v) main.scrollTop = top; else main.scrollTop = 0;
   main.dataset.v = v;
-  ["today","history","progress","routines"].forEach(function(n){ var t = $("#tab-" + n); if(n === v) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current"); });
+  ["today","history","progress","routines"].forEach(function(n){ var t = $("#tab-" + n); if(n === v || (n === "today" && v === "routines")) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current"); });
   $("#app").dataset.v = v;
   $("#hdr").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
   var names = {}; S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ if(key(x.name)) names[key(x.name)] = x.name; }); });
@@ -1260,6 +1285,8 @@ document.addEventListener("click", function(ev){
         '<div class="row"><button class="btn grow" type="button" data-act="add-set" data-e="' + ei + '">Add a set</button><button class="btn grow" type="button" data-act="del-set" data-e="' + ei + '">Remove last set</button></div>' +
         '<button class="btn ghost danger" type="button" data-act="del-ex" data-e="' + ei + '">Remove this lift</button><button class="btn" type="button" data-act="sheet-close">Done</button>'); break;
     case "add-ex-open": sheet('<h2>Add an exercise</h2><input class="field" id="new-ex" list="exnames" placeholder="Exercise name" aria-label="Exercise name"><div class="row"><button class="btn ghost grow" type="button" data-act="sheet-close">Back</button><button class="btn go grow" type="button" data-act="add-ex">Add</button></div>'); $("#new-ex").focus(); break;
+    case "cal": (function(){ var n0 = new Date(), c = S.histMonth ? new Date(S.histMonth) : new Date(n0.getFullYear(), n0.getMonth(), 1);
+        S.histMonth = new Date(c.getFullYear(), c.getMonth() + (+b.dataset.v), 1).getTime(); render(); })(); break;
     case "ex-close": a.openEx = null; saveActive(); render(); $("#view").scrollTop = 0; break;
     case "ex-toggle": a.openEx = groupOf(a, ei)[0]; saveActive(); render(); $("#view").scrollTop = 0; break;
     case "add-set": var ax = a.exercises[ei], asets = ax.sets, al = asets[asets.length-1], ahx = histIndex()[key(ax.name)], ahp = ahx && ahx.last[asets.length] ? ahx.last[asets.length] : null;
