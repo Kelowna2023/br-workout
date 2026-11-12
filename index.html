@@ -470,6 +470,28 @@ main[data-v="today"]{gap:0}
 #intro .i-sub{font-family:var(--mono);font-size:11px}
 #intro .btn.go{border-radius:0;box-shadow:none;font-size:28px}
 .mono-num{font-variant-numeric:tabular-nums}
+
+/* ---- calm pass: only what is needed while lifting, with room around it ---- */
+.act2{margin:0 -16px;padding:40px 16px 34px;display:flex;flex-direction:column;border-bottom:1px solid var(--chalk)}
+.act2.sub{padding-top:30px}
+.ss2{color:var(--plate);margin-bottom:12px}
+.xh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.xn{margin:0;font-family:var(--poster);font-weight:400;line-height:1.02;text-transform:uppercase;letter-spacing:.01em;overflow-wrap:anywhere;text-wrap:balance;color:var(--chalk)}
+.more{flex:none;background:none;border:0;border-radius:0;color:var(--dust);font:700 22px/1 Oswald,'Arial Narrow',sans-serif;letter-spacing:.12em;min-width:44px;min-height:44px;margin:-8px -10px 0 0}
+.xt{color:var(--dust);margin-top:12px}
+.act2 .nums{margin-top:40px}
+.act2 .nums .big{height:auto;line-height:.9}
+.act2 .nums input.big{height:.9em}
+.act2 .nums label,.act2 .nums>div{display:flex;flex-direction:column;justify-content:flex-end}
+.act2 .nums i{font-size:22px;padding-bottom:8px}
+.act2 .sq{margin:30px 0 0}
+.act2 .setnote{padding:14px 0 0}
+.logbtn{display:flex;align-items:center;justify-content:space-between;width:100%;height:52px;margin-top:30px;padding:0 16px;border:0;border-radius:0;background:var(--plate);color:var(--ink);font:400 20px/1 var(--poster);letter-spacing:.06em;text-transform:uppercase}
+.logbtn.ghost{background:transparent;color:var(--chalk);border:1px solid var(--knurl)}
+main[data-v="today"] .tr{min-height:50px}
+.wk-foot{gap:6px;padding-top:28px}
+.wk-foot .logbtn{margin-top:0}
+#intro .btn.go{background:var(--chalk);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1018,35 +1040,34 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
   var logged = cs < 0; if(logged) cs = x.sets.length - 1;
   var st = x.sets[cs], id = "s-" + ei + "-" + cs, hasW = st.w !== "" && st.w != null, hasNote = !!(st.note && String(st.note).trim());
   var rv = String(st.r == null ? "" : st.r), wv = hasW ? fmtW(num(st.w)) : "0";
-  var rfs = rv.length > 2 ? 96 : 136, wfs = wv.length > 5 ? 72 : wv.length > 4 ? 88 : wv.length > 3 ? 108 : 136;
+  var rfs = rv.length > 2 ? 64 : 88, wfs = wv.length > 5 ? 50 : wv.length > 4 ? 62 : wv.length > 3 ? 76 : 88;
   var sq = ""; for(var k = 0; k < s.pn; k++){ var q = x.sets[k];
     sq += q && q.done ? '<button type="button" class="b f" data-act="check" data-e="' + ei + '" data-s="' + k + '" aria-label="Set ' + (k+1) + ' logged. Undo it"></button>' : '<i class="b" aria-hidden="true"></i>'; }
-  var log = x.sets.map(function(q, k){ return q.done ? "S" + (k+1) + " " + q.r + "×" + fmtW(num(q.w)) + (q.pr ? " <b>record</b>" : "") : ""; }).filter(Boolean).join(" · ");
-  var h = '<section class="hd' + (gi ? " sub" : "") + '">' + (inSS ? '<div class="mono" style="color:var(--plate);margin-bottom:8px">Superset · ' + (gi+1) + ' of ' + gn + '</div>' : "") + fitHead(x.name, gi ? 130 : 170) + '</section><div class="rule"></div>';
-  h += '<div class="act"><div class="mono row2"><span>' + pad2(ei+1) + ' of ' + pad2(a.exercises.length) + (x.target ? ' · Target ' + (x.plan || s.pn) + ' × ' + esc(x.target) : "") + '</span><span>Rest ' + fmtClock(x.rest) + '</span></div>' +
-    (x.bump ? '<div class="mono up">Up ' + x.bump + ' ' + esc(u) + ' · you hit every rep last time</div>' : "") +
+  var line = [];
+  if(x.target) line.push((x.plan || s.pn) + " × " + esc(String(x.target).replace("-", "–")));
+  if(st.prev && !logged) line.push("last " + st.prev.r + " × " + fmtW(st.prev.w));
+  if(x.bump) line.push("up " + x.bump + " " + esc(u));
+  return '<div class="act2' + (gi ? " sub" : "") + '">' +
+    (inSS ? '<div class="mono ss2">Superset · ' + (gi+1) + ' of ' + gn + '</div>' : "") +
+    '<div class="xh"><h3 class="xn" style="font-size:' + (x.name.length > 26 ? 26 : 34) + 'px">' + esc(x.name) + '</h3><button type="button" class="more" aria-label="More options for ' + esc(x.name) + '" data-act="ex-more" data-e="' + ei + '">···</button></div>' +
+    (line.length ? '<div class="mono xt">' + line.join(" · ") + '</div>' : "") +
     '<div class="nums' + (logged ? " dim" : "") + '"><label for="' + id + '-r"><span class="mono">' + esc(x.repLabel || "Reps") + '</span><input class="big num" id="' + id + '-r" inputmode="numeric" data-e="' + ei + '" data-s="' + cs + '" data-k="r" value="' + esc(rv) + '" placeholder="0" style="font-size:' + rfs + 'px;width:' + (Math.max(1, rv.length) * 0.56).toFixed(2) + 'em"></label><i>×</i>' +
     '<div><span class="mono">' + esc(u) + '</span><button type="button" class="big num' + (hasW ? "" : " empty") + '" id="' + id + '-w" style="font-size:' + wfs + 'px" aria-label="Weight ' + (hasW ? wv + " " + esc(u) : "not set") + '. Opens the bar counter" data-act="weight" data-e="' + ei + '" data-s="' + cs + '">' + wv + '</button></div></div>' +
-    '<div class="sq">' + sq + '<span class="mono">Set ' + pad2(Math.min(cs + 1, s.pn)) + ' of ' + pad2(s.pn) + '</span><button type="button" class="mono nb' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" data-act="set-note" data-e="' + ei + '" data-s="' + cs + '">' + (hasNote ? "Note ●" : "+ Note") + '</button></div>' +
+    '<div class="sq" aria-label="' + s.dn + ' of ' + s.pn + ' sets logged">' + sq + '<button type="button" class="mono nb' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" data-act="set-note" data-e="' + ei + '" data-s="' + cs + '">' + (hasNote ? "Note ●" : "+ Note") + '</button></div>' +
     (st.open ? '<div class="setnote"><textarea class="field" id="' + id + '-n" rows="2" aria-label="Note for set ' + (cs+1) + '" data-e="' + ei + '" data-s="' + cs + '" data-k="note" placeholder="Note for this set">' + esc(st.note || "") + '</textarea></div>' : "") +
-    '<div class="mono info">' + (st.prev && !logged ? 'Last workout · ' + st.prev.r + ' × ' + fmtW(st.prev.w) + ' ' + esc(u) + (log ? "<br>" : "") : "") + log + '</div>' +
-    (logged ? '<button type="button" class="slab ghost" data-act="add-set" data-e="' + ei + '"><span>Add set</span><span>+</span></button>'
-            : '<button type="button" class="slab" data-act="check" data-e="' + ei + '" data-s="' + cs + '"><span>Log set</span><span>→</span></button>') +
-    '<input class="field note" aria-label="Note for ' + esc(x.name) + '" data-note="' + esc(key(x.name)) + '" value="' + esc(S.cfg.notes[key(x.name)] || "") + '" placeholder="Note for this lift (seat height, grip, cues)">' +
-    '<div class="links mono"><button type="button" data-act="del-set" data-e="' + ei + '">− Remove last set</button><button type="button" class="danger" data-act="del-ex" data-e="' + ei + '">Remove lift</button></div></div>';
-  return h;
+    (logged ? '<button type="button" class="logbtn ghost" data-act="add-set" data-e="' + ei + '"><span>Add set</span><span>+</span></button>'
+            : '<button type="button" class="logbtn" data-act="check" data-e="' + ei + '" data-s="' + cs + '"><span>Log set</span><span>→</span></button>') +
+    '</div>';
 }
 function renderWorkout(){
   var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), h = "", rows = "";
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
-  if(!grp.length) h += '<section class="hd">' + fitHead(a.name, 200) + '</section><div class="rule"></div>';
-  a.exercises.forEach(function(x, ei){ if(grp.indexOf(ei) >= 0) return; var s = exState(x), ss = (x.link && a.exercises[ei+1]) || (ei > 0 && a.exercises[ei-1].link);
-    rows += '<button type="button" class="tr' + (s.all ? " fin" : "") + '" data-act="ex-toggle" data-e="' + ei + '" aria-label="' + esc(x.name) + ', ' + s.dn + ' of ' + s.pn + ' sets done. Open"><span class="mono">' + pad2(ei+1) + '</span><span class="nm" style="grid-column:2/4">' + esc(x.name) + '</span><span class="mono">' + (ss ? "SS · " : "") + (s.all ? "Done" : s.dn ? s.dn + " / " + s.pn : (x.plan || s.pn) + (x.target ? "×" + esc(String(x.target).replace("-", "–")) : "")) + '</span></button>'; });
+  if(!grp.length) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
+  a.exercises.forEach(function(x, ei){ if(grp.indexOf(ei) >= 0) return; var s = exState(x);
+    rows += '<button type="button" class="tr' + (s.all ? " fin" : "") + '" data-act="ex-toggle" data-e="' + ei + '" aria-label="' + esc(x.name) + ', ' + s.dn + ' of ' + s.pn + ' sets done. Open"><span class="mono">' + pad2(ei+1) + '</span><span class="nm" style="grid-column:2/4">' + esc(x.name) + '</span><span class="mono">' + (s.all ? "Done" : s.dn + " / " + s.pn) + '</span></button>'; });
   h += '<div class="ledger">' + rows + '</div>';
-  h += '<div class="wk-foot"><div class="row"><input class="field grow" id="new-ex" list="exnames" placeholder="Add an exercise" aria-label="Exercise name" style="flex:1 1 180px"><button class="btn" type="button" data-act="add-ex">Add</button></div>' +
-    '<label class="eyebrow" for="wk-note">' + esc(a.name) + ' · workout notes<textarea class="field" id="wk-note" rows="3" placeholder="How it felt, sleep, anything to remember">' + esc(a.note || "") + '</textarea></label>' +
-    '<button type="button" class="bar" data-act="finish" style="margin-top:0"><span>Finish workout</span><span>→</span></button>' +
-    '<button class="btn ghost danger" type="button" data-act="cancel">Cancel workout</button></div>';
+  h += '<div class="wk-foot"><button type="button" class="logbtn ghost" data-act="finish"><span>Finish workout</span><span>→</span></button>' +
+    '<div class="links mono"><button type="button" data-act="add-ex-open">+ Add exercise</button><button type="button" class="danger" data-act="cancel">Cancel workout</button></div></div>';
   return h;
 }
 
@@ -1170,14 +1191,20 @@ document.addEventListener("click", function(ev){
       saveActive(); render(); if(ns.open){ var nt = $("#s-" + ei + "-" + si + "-n"); if(nt) nt.focus(); } break;
     case "confirm-yes": var fn = confirmFn; closeSheet(); if(fn) fn(); break;
     case "check": toggleSet(ei, si); break;
+    case "ex-more": var mx = a.exercises[ei];
+      sheet('<div><div class="eyebrow">' + esc(mx.name) + '</div><h2>Options</h2></div>' +
+        '<label class="eyebrow" for="lift-note">Note for this lift, kept for next time<input class="field" id="lift-note" data-note="' + esc(key(mx.name)) + '" value="' + esc(S.cfg.notes[key(mx.name)] || "") + '" placeholder="Seat height, grip, cues"></label>' +
+        '<div class="row"><button class="btn grow" type="button" data-act="add-set" data-e="' + ei + '">Add a set</button><button class="btn grow" type="button" data-act="del-set" data-e="' + ei + '">Remove last set</button></div>' +
+        '<button class="btn ghost danger" type="button" data-act="del-ex" data-e="' + ei + '">Remove this lift</button><button class="btn" type="button" data-act="sheet-close">Done</button>'); break;
+    case "add-ex-open": sheet('<h2>Add an exercise</h2><input class="field" id="new-ex" list="exnames" placeholder="Exercise name" aria-label="Exercise name"><div class="row"><button class="btn ghost grow" type="button" data-act="sheet-close">Back</button><button class="btn go grow" type="button" data-act="add-ex">Add</button></div>'); $("#new-ex").focus(); break;
     case "ex-toggle": a.openEx = groupOf(a, ei)[0]; saveActive(); render(); $("#view").scrollTop = 0; break;
     case "add-set": var ax = a.exercises[ei], asets = ax.sets, al = asets[asets.length-1], ahx = histIndex()[key(ax.name)], ahp = ahx && ahx.last[asets.length] ? ahx.last[asets.length] : null;
       asets.push({ w: al ? al.w : "", r: al ? al.r : "", pl: al && al.pl ? al.pl.slice() : [], bar: al ? al.bar : undefined, done:false, prev: ahp ? { w:ahp.w, r:ahp.r } : null });
-      a.openEx = groupOf(a, ei)[0]; saveActive(); render(); break;
-    case "del-set": var dsets = a.exercises[ei].sets; if(dsets.length > 1){ dsets.pop(); saveActive(); render(); } else toast("That is the only set"); break;
+      a.openEx = groupOf(a, ei)[0]; saveActive(); closeSheet(); render(); break;
+    case "del-set": var dsets = a.exercises[ei].sets; if(dsets.length > 1){ dsets.pop(); saveActive(); closeSheet(); render(); } else toast("That is the only set"); break;
     case "del-ex": ask("Remove " + a.exercises[ei].name + "?", "Its sets from this workout will be dropped.", "Remove", function(){ a.exercises.splice(ei,1); saveActive(); render(); }); break;
     case "add-ex": var inp = $("#new-ex"), nm = inp.value.trim(); if(!nm){ toast("Type an exercise name"); inp.focus(); break; }
-      a.exercises.push(mkEx({ name:nm, sets:3, reps:"", rest:90 }, histIndex())); a.openEx = groupOf(a, a.exercises.length - 1)[0]; saveActive(); render(); break;
+      a.exercises.push(mkEx({ name:nm, sets:3, reps:"", rest:90 }, histIndex())); a.openEx = groupOf(a, a.exercises.length - 1)[0]; saveActive(); closeSheet(); render(); break;
     case "finish": finishWorkout(); break;
     case "cancel": ask("Cancel this workout?", "Everything logged in this session will be thrown away.", "Cancel workout", discardWorkout); break;
     case "rest-add": if(a && a.restEnd){ var d = +b.dataset.v * 1000; a.restEnd += d; a.restTotal = Math.max(1, a.restTotal + d/1000); ls.set("active", a); tick(); } break;
