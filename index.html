@@ -838,7 +838,7 @@ function mkEx(x, hist){
 }
 function startWorkout(r){
   var hist = histIndex();
-  S.active = { id:uid(), routineId: r ? r.id : null, name: r ? r.name : "Open workout", startedAt:Date.now(), restEnd:null, restTotal:0,
+  S.active = { id:uid(), routineId: r ? r.id : null, name: r ? r.name : "Freestyle", startedAt:Date.now(), restEnd:null, restTotal:0,
     exercises: (r ? r.exercises : []).filter(function(x){ return key(x.name); }).map(function(x){ return mkEx(x, hist); }) };
   S.pick = false;
   saveActive(); location.hash = "#today"; render(); $("#view").scrollTop = 0;
@@ -1100,9 +1100,9 @@ function renderToday(){
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
     rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
-  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr" data-act="start-open"><span class="wn">Open workout</span></button>' + rows;
+  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr" data-act="start-open"><span class="wn">Freestyle</span></button>' + rows;
   return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><div class="ledger">' + rows + '</div>' +
-    '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><a href="#routines">Edit workouts →</a></div>';
+    '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Freestyle workout →</button><a href="#routines">Edit workouts →</a></div>';
 }
 
 function exState(x){ var dn = x.sets.filter(function(q){ return q.done; }).length, pn = Math.max(x.plan || 0, x.sets.length); return { dn:dn, pn:pn, all: dn > 0 && dn >= pn }; }
@@ -1142,6 +1142,8 @@ function renderWorkout(){
   if(!grp.length && allDone) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
   a.exercises.forEach(function(x, ei){ if(grp.indexOf(ei) >= 0) return; var s = exState(x);
     rows += '<button type="button" class="tr' + (s.all ? " fin" : "") + '" data-act="ex-toggle" data-e="' + ei + '" aria-label="' + esc(x.name) + ', ' + s.dn + ' of ' + s.pn + ' sets done. Open"><span class="mono">' + pad2(ei+1) + '</span><span class="nm" style="grid-column:2/4">' + esc(x.name) + '</span><span class="mono">' + (s.all ? "Done" : s.dn + " / " + s.pn) + '</span></button>'; });
+  if(!a.exercises.length) return h + '<div class="act2" style="border-bottom:0"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt" style="line-height:1.7">Not on your plan. Add exercises as you go.</div>' +
+    '<button type="button" class="logbtn" data-act="add-ex-open"><span>Add exercise</span><span>+</span></button><div class="links mono sl"><span></span><button type="button" class="danger" data-act="cancel">Cancel workout</button></div></div>';
   h += '<div class="ledger">' + rows + '</div>';
   h += '<div class="wk-foot"><button type="button" class="logbtn ghost" data-act="finish"><span>Finish workout</span><span>→</span></button>' +
     '<div class="links mono"><button type="button" data-act="add-ex-open">+ Add exercise</button><button type="button" class="danger" data-act="cancel">Cancel workout</button></div></div>';
