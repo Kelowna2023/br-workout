@@ -841,7 +841,6 @@ function renderWorkout(){
     var hh = hist[key(x.name)], linked = x.link && a.exercises[ei+1];
     if(linked && !inSS){ inSS = true; h += '<div class="ss"><div class="eyebrow">Superset · rest after the last lift</div>'; }
     h += '<section class="card ex"><h3>' + esc(x.name) + '</h3><div class="meta">' + (x.target ? '<span>Target ' + (x.plan || x.sets.length) + ' × ' + esc(x.target) + '</span>' : "") + '<span>Rest ' + fmtClock(x.rest) + '</span>' + (hh && hh.bestSet ? '<span>Best ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r + '</span>' : "") + '</div>' +
-      muscleMap(x.name) +
       (x.bump ? '<div class="up">Up ' + x.bump + ' ' + esc(u) + ': you hit every rep last time</div>' : "") +
       '<input class="field note" aria-label="Note for ' + esc(x.name) + '" data-note="' + esc(key(x.name)) + '" value="' + esc(S.cfg.notes[key(x.name)] || "") + '" placeholder="Note for this lift (seat height, grip, cues)">' +
       '<div class="sets"><div class="sethead"><span></span><span>' + esc(x.repLabel || "Reps") + '</span><span>' + esc(u) + '</span><span>Note</span><span>Done</span></div>';
