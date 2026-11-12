@@ -1058,8 +1058,8 @@ function renderToday(){
     var isToday = r.day === today, live = (a && a.routineId === r.id) || S.parked.some(function(w){ return w.routineId === r.id; }), done = false;
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
-    rows += '<button type="button" class="wr' + (isToday ? " today" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
-  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr today" data-act="start-open"><span class="wn">Open workout</span></button>' + rows;
+    rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
+  if((a && !a.routineId) || S.parked.some(function(w){ return !w.routineId; })) rows = '<button type="button" class="wr" data-act="start-open"><span class="wn">Open workout</span></button>' + rows;
   return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><div class="ledger">' + rows + '</div>' +
     '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><button type="button" data-act="plates">What&#39;s on the bar →</button></div>';
 }
@@ -1324,9 +1324,9 @@ function endIntro(){ var el = $("#intro"); if(el.hidden) return; el.hidden = tru
   if(viewName() === "today"){ var m = $("#view"); m.scrollTop = 0; m.classList.add("enter"); setTimeout(function(){ m.classList.remove("enter"); }, 1700); } }
 function fillIntro(){
   var pl = todayPlan(); $("#i-day").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
-  $("#i-title").textContent = "Time to train"; $("#i-sub").textContent = "Today · " + pl.title;
+  $("#i-title").textContent = "Time to train"; $("#i-sub").textContent = ""; $("#i-sub").style.display = "none";
 }
-(function(){ if(relabel()) saveActive(); fillIntro(); if(S.active) return;
+(function(){ if(relabel()) saveActive(); fillIntro(); if(S.active) $("#intro").classList.add("quick");
   if(location.hash && location.hash !== "#today") try{ history.replaceState(null, "", "#today"); }catch(e){}
   $("#intro").hidden = false; })();
 render();
