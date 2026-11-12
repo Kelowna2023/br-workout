@@ -492,6 +492,17 @@ main[data-v="today"] .tr{min-height:50px}
 .wk-foot{gap:6px;padding-top:28px}
 .wk-foot .logbtn{margin-top:0}
 #intro .btn.go{background:var(--chalk);color:var(--ink)}
+
+/* ---- home is the list of workouts, nothing else ---- */
+.pk{color:var(--dust);padding:44px 0 18px}
+.wr{display:flex;align-items:baseline;justify-content:space-between;gap:16px;width:100%;padding:26px 16px;border:0;border-bottom:1px solid var(--knurl);border-radius:0;background:transparent;color:var(--chalk);text-align:left}
+.wr:first-child{border-top:1px solid var(--knurl)}
+.wr .wn{font:400 30px/1.02 var(--poster);text-transform:uppercase;letter-spacing:.01em;overflow-wrap:anywhere;min-width:0}
+.wr .mono{flex:none;color:var(--dust)}
+.wr .mono.hi{color:var(--plate)}
+.wr.today .wn{color:var(--plate)}
+.back{display:block;position:relative;z-index:2;background:none;border:0;border-radius:0;color:var(--dust);text-align:left;min-height:44px;padding:22px 0 0;margin:0}
+#intro .btn.go{background:var(--plate);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -569,8 +580,8 @@ var ls = {
 };
 
 /* ---------- starter program (shown until you edit it) ---------- */
-var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:2, goals:[], notes:{}, routines:[
-  { id:"mon", day:1, name:"Back & Hamstrings", focus:"Rows, RDLs, pulldowns, shrugs", exercises:[
+var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:3, goals:[], notes:{}, routines:[
+  { id:"mon", day:1, name:"Posterior Chain", focus:"Rows, RDLs, pulldowns, shrugs", exercises:[
     {name:"Low Cable Row", sets:4, reps:"12-15", rest:75},
     {name:"RDL", sets:4, reps:"10-12", rest:90},
     {name:"Cable Straight-Arm Pulldown", sets:3, reps:"15", rest:60},
@@ -584,14 +595,14 @@ var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:2, goals:[], notes:{},
     {name:"Overhead Cable Tricep Extension", sets:3, reps:"15-20", rest:60},
     {name:"Cable Tricep Pushdown", sets:3, reps:"15-20", rest:60}
   ]},
-  { id:"thu", day:4, name:"Legs", focus:"Split squats, squats, extensions, RDLs, calves", exercises:[
+  { id:"thu", day:4, name:"Lower Body", focus:"Split squats, squats, extensions, RDLs, calves", exercises:[
     {name:"Smith Bulgarian Split Squat", sets:4, reps:"8-10", rest:90},
     {name:"Goblet Squat / Heels-Elevated Smith Squat", sets:3, reps:"10-12", rest:90},
     {name:"Leg Extension", sets:4, reps:"12-15", rest:60},
     {name:"RDL", sets:3, reps:"12", rest:90},
     {name:"Smith Calf Raise", sets:4, reps:"15-20", rest:60}
   ]},
-  { id:"fri", day:5, name:"Upper Supersets", focus:"Row + press, delts, arms, flys, calves", exercises:[
+  { id:"fri", day:5, name:"Upper Density", focus:"Row + press, delts, arms, flys, calves", exercises:[
     {name:"Cable Seated Row", sets:4, reps:"15-20", rest:75, link:true},
     {name:"Flat Press", sets:4, reps:"15-20", rest:75},
     {name:"Lateral Raise", sets:4, reps:"15-20", rest:60, link:true},
@@ -613,6 +624,8 @@ var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:2, goals:[], notes:{},
 var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], migrated = false;
 function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars = c.bars || {}; c.weeklyGoal = c.weeklyGoal || 5; c.routines = c.routines || [];
   if((c.pv || 0) < 2){ c.routines = clone(STARTER.routines); c.weeklyGoal = 5; c.pv = 2; migrated = true; }
+  if((c.pv || 0) < 3){ var ren = { mon:["Back & Hamstrings","Posterior Chain"], thu:["Legs","Lower Body"], fri:["Upper Supersets","Upper Density"] };
+    c.routines.forEach(function(r){ if(ren[r.id] && r.name === ren[r.id][0]) r.name = ren[r.id][1]; }); c.pv = 3; migrated = true; }
   return c; }
 var PLATE_COLORS = ["var(--plate)","var(--p-blue)","var(--p-yellow)","var(--p-green)"];
 
@@ -623,7 +636,7 @@ var S = {
   active: ls.get("active") || null,
   activeAt: ls.get("activeAt") || 0,
   pend: ls.get("pend") || { cfg:false, add:[], del:[] },
-  openRoutine: null,
+  openRoutine: null, pick: false,
   progressEx: null
 };
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
@@ -767,6 +780,7 @@ function startWorkout(r){
   var hist = histIndex();
   S.active = { id:uid(), routineId: r ? r.id : null, name: r ? r.name : "Open workout", startedAt:Date.now(), restEnd:null, restTotal:0,
     exercises: (r ? r.exercises : []).filter(function(x){ return key(x.name); }).map(function(x){ return mkEx(x, hist); }) };
+  S.pick = false;
   saveActive(); location.hash = "#today"; render(); $("#view").scrollTop = 0;
 }
 function toggleSet(ei, si){
@@ -1006,26 +1020,17 @@ function fitAll(){
     el.style.width = ""; }
 }
 function renderToday(){
-  if(S.active) return renderWorkout();
-  var ws0 = weekStart(Date.now()), t = new Date(); t.setHours(0,0,0,0); var today0 = t.getTime(), ws = weekStats(), pl = todayPlan(), rows = "", n = 0;
-  for(var i = 0; i < 7; i++){
-    var d = new Date(ws0); d.setDate(d.getDate() + i); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1); var t1 = e.getTime(), dow = d.getDay();
-    var r = S.cfg.routines.filter(function(q){ return q.day === dow; })[0], isToday = t0 === today0;
-    var done = S.sessions.some(function(q){ return q.startedAt >= t0 && q.startedAt < t1; });
-    var cells = '<span class="mono">' + pad2(++n) + '</span><span class="mono">' + DAYS[dow].slice(0,3) + '</span>';
-    if(r) rows += '<button type="button" class="tr' + (isToday ? " now" : "") + (done ? " fin" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + DAYS[dow] + ', ' + esc(r.name) + (done ? ", trained" : ", " + setsOf(r) + " sets") + '">' + cells + '<span class="nm">' + esc(r.name) + '</span><span class="mono">' + (done ? "Done" : setsOf(r)) + '</span></button>';
-    else rows += '<div class="tr off' + (isToday ? " now" : "") + '">' + cells + '<span class="nm">Rest &amp; Mobility</span><span class="mono">—</span></div>';
-  }
-  S.cfg.routines.filter(function(q){ return q.day == null; }).forEach(function(r){
-    rows += '<button type="button" class="tr" data-act="start" data-id="' + esc(r.id) + '"><span class="mono">' + pad2(++n) + '</span><span class="mono">Any</span><span class="nm">' + esc(r.name) + '</span><span class="mono">' + setsOf(r) + '</span></button>'; });
-  var doneToday = pl.r && S.sessions.some(function(q){ return q.routineId === pl.r.id && q.startedAt >= today0; });
-  var h = '<section class="hd">' + fitHead(pl.rest ? "Rest" : pl.title, 230) +
-    (pl.r ? '<button type="button" class="bar" data-act="start" data-id="' + esc(pl.r.id) + '" aria-label="Start ' + esc(pl.r.name) + ', ' + pl.r.exercises.length + ' exercises, ' + setsOf(pl.r) + ' sets"><span>' + (doneToday ? "Again" : "Start") + '</span><span class="num">' + pad2(pl.r.exercises.length) + ' / ' + setsOf(pl.r) + '</span></button>'
-      : '<div class="bar ghost"><span>' + (pl.rest ? "Mobility" : "No routine") + '</span><span>' + (pl.rest ? "No lifting" : "") + '</span></div>') + '</section>';
-  h += '<div class="rule"></div><div class="ledger">' + rows + '</div>';
-  h += '<div class="cells mono"><span>This week<b class="num">' + ws.thisWeek + ' / ' + S.cfg.weeklyGoal + '</b></span><span>Week streak<b class="num">' + ws.streak + '</b></span><span>All time<b class="num">' + S.sessions.length + '</b></span></div>';
-  h += '<div class="links mono"><button type="button" data-act="start-open">Open workout →</button><button type="button" data-act="plates">What&#39;s on the bar →</button></div>';
-  return h;
+  if(S.active && !S.pick) return renderWorkout();
+  var ws0 = weekStart(Date.now()), t = new Date(); t.setHours(0,0,0,0); var today0 = t.getTime(), today = t.getDay(), rows = "", a = S.active;
+  var order = S.cfg.routines.slice().sort(function(x, y){ var dx = x.day == null ? 9 : (x.day + 6) % 7, dy = y.day == null ? 9 : (y.day + 6) % 7; return dx - dy; });
+  order.forEach(function(r){
+    var isToday = r.day === today, live = a && a.routineId === r.id, done = false;
+    if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
+      done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
+    rows += '<button type="button" class="wr' + (isToday ? " today" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span><span class="mono' + (live || isToday ? " hi" : "") + '">' + (live ? "Resume →" : done ? "Done" : isToday ? "Today" : r.day != null ? DAYS[r.day].slice(0,3) : "") + '</span></button>'; });
+  if(a && !a.routineId) rows = '<button type="button" class="wr today" data-act="resume"><span class="wn">' + esc(a.name) + '</span><span class="mono hi">Resume →</span></button>' + rows;
+  return '<div class="mono pk">Workouts</div><div class="ledger">' + rows + '</div>' +
+    '<div class="links mono" style="padding-top:18px"><button type="button" data-act="start-open">Open workout →</button><button type="button" data-act="plates">What&#39;s on the bar →</button></div>';
 }
 
 function exState(x){ var dn = x.sets.filter(function(q){ return q.done; }).length, pn = Math.max(x.plan || 0, x.sets.length); return { dn:dn, pn:pn, all: dn > 0 && dn >= pn }; }
@@ -1060,7 +1065,7 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
     '</div>';
 }
 function renderWorkout(){
-  var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), h = "", rows = "";
+  var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), h = '<button type="button" class="mono back" data-act="to-list">← Workouts · ' + esc(a.name) + '</button>', rows = "";
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
   if(!grp.length) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
   a.exercises.forEach(function(x, ei){ if(grp.indexOf(ei) >= 0) return; var s = exState(x);
@@ -1100,7 +1105,7 @@ function chart(series, u){
 }
 function renderGoals(hist){
   var u = S.cfg.units, gs = S.cfg.goals;
-  var h = '<section class="hd"><span class="fit" data-max="200">Progress</span></section><h2>Goals</h2><div class="list">' + (gs.length ? gs.map(function(g){
+  var wsP = weekStats(), h = '<section class="hd"><span class="fit" data-max="200">Progress</span></section><div class="cells mono" style="margin-top:6px;border-top:1px solid var(--chalk)"><span>This week<b class="num">' + wsP.thisWeek + ' / ' + S.cfg.weeklyGoal + '</b></span><span>Week streak<b class="num">' + wsP.streak + '</b></span><span>All time<b class="num">' + S.sessions.length + '</b></span></div><h2>Goals</h2><div class="list">' + (gs.length ? gs.map(function(g){
     var tg = e1rm(num(g.w), num(g.r)), hh = hist[key(g.name)], best = hh ? hh.best : 0, pct = tg > 0 ? Math.min(100, Math.round(best/tg*100)) : 0, hit = tg > 0 && best >= tg;
     return '<div class="card goal"><div class="rt"><div class="t"><b>' + esc(g.name) + '</b><span class="num">Target ' + fmtW(num(g.w)) + ' ' + esc(u) + ' × ' + esc(g.r) + (hh && hh.bestSet ? ' · best so far ' + fmtW(hh.bestSet.w) + ' × ' + hh.bestSet.r : ' · not logged yet') + '</span></div>' + (hit ? '<span class="pill">Reached</span>' : '<b class="pct num">' + pct + '%</b>') + '<button class="iconbtn" type="button" aria-label="Delete goal ' + esc(g.name) + '" data-act="goal-del" data-id="' + esc(g.id) + '">×</button></div><div class="gbar"><i style="width:' + pct + '%' + (hit ? ';background:var(--chalk)' : '') + '"></i></div></div>'; }).join("")
     : '<div class="empty">Set a target for a lift, like Bench Press 225 × 5, and track how close you are.</div>') + '</div>' +
@@ -1173,8 +1178,14 @@ document.addEventListener("click", function(ev){
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
-    case "start": (function(r0){ cut(function(){ startWorkout(r0); }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
-    case "start-open": cut(function(){ startWorkout(null); }); break;
+    case "start": (function(r0){
+        if(a && a.routineId === r0.id){ cut(function(){ S.pick = false; render(); $("#view").scrollTop = 0; }); return; }
+        if(a){ ask("Start " + r0.name + "?", "Your " + a.name + " workout in progress will be thrown away.", "Start " + r0.name, function(){ cut(function(){ startWorkout(r0); }); }); return; }
+        cut(function(){ startWorkout(r0); }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
+    case "start-open": if(a){ ask("Start an open workout?", "Your " + a.name + " workout in progress will be thrown away.", "Start open workout", function(){ cut(function(){ startWorkout(null); }); }); break; }
+      cut(function(){ startWorkout(null); }); break;
+    case "resume": cut(function(){ S.pick = false; render(); $("#view").scrollTop = 0; }); break;
+    case "to-list": cut(function(){ S.pick = true; if(location.hash !== "#today") location.hash = "#today"; render(); $("#view").scrollTop = 0; }); break;
     case "enter": cut(endIntro); break;
     case "plates": plateSheet(null); break;
     case "sheet-close": closeSheet(); break;
@@ -1281,8 +1292,8 @@ function cut(fn){
   w.hidden = false; w.classList.remove("run"); void w.offsetWidth; w.classList.add("run");
   setTimeout(fn, 400); clearTimeout(timers.wipe); timers.wipe = setTimeout(function(){ w.hidden = true; w.classList.remove("run"); }, 880);
 }
-function endIntro(){ var el = $("#intro"); if(el.hidden) return; el.hidden = true;
-  if(viewName() === "today" && !S.active){ var m = $("#view"); m.scrollTop = 0; m.classList.add("enter"); setTimeout(function(){ m.classList.remove("enter"); }, 1700); } }
+function endIntro(){ var el = $("#intro"); if(el.hidden) return; el.hidden = true; S.pick = true; render();
+  if(viewName() === "today"){ var m = $("#view"); m.scrollTop = 0; m.classList.add("enter"); setTimeout(function(){ m.classList.remove("enter"); }, 1700); } }
 (function(){ if(S.active) return;
   var pl = todayPlan(); $("#i-day").textContent = new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
   $("#i-title").textContent = "Time to train"; $("#i-sub").textContent = "Today · " + pl.title;
