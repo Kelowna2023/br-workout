@@ -783,7 +783,7 @@ var ls = {
 };
 
 /* ---------- starter program (shown until you edit it) ---------- */
-var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:3, goals:[], notes:{}, routines:[
+var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:4, goals:[], notes:{}, routines:[
   { id:"mon", day:1, name:"Posterior Chain", focus:"Rows, RDLs, pulldowns, shrugs", exercises:[
     {name:"Low Cable Row", sets:4, reps:"12-15", rest:75},
     {name:"RDL", sets:4, reps:"10-12", rest:90},
@@ -791,7 +791,7 @@ var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:3, goals:[], notes:{},
     {name:"Hamstring Curl", sets:3, reps:"15", rest:60},
     {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:60}
   ]},
-  { id:"tue", day:2, name:"Chest & Shoulders", focus:"Incline press, Arnold press, triceps", exercises:[
+  { id:"tue", day:2, name:"Push", focus:"Incline press, Arnold press, triceps", exercises:[
     {name:"Incline Press", sets:4, reps:"8-12", rest:90},
     {name:"Seated Arnold Press", sets:3, reps:"10-12", rest:90},
     {name:"Lateral Raise", sets:4, reps:"15-20", rest:60},
@@ -829,6 +829,7 @@ function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars 
   if((c.pv || 0) < 2){ c.routines = clone(STARTER.routines); c.weeklyGoal = 5; c.pv = 2; migrated = true; }
   if((c.pv || 0) < 3){ var ren = { mon:["Back & Hamstrings","Posterior Chain"], thu:["Legs","Lower Body"], fri:["Upper Supersets","Upper Density"] };
     c.routines.forEach(function(r){ if(ren[r.id] && r.name === ren[r.id][0]) r.name = ren[r.id][1]; }); c.pv = 3; migrated = true; }
+  if((c.pv || 0) < 4){ c.routines.forEach(function(r){ if(r.id === "tue" && r.name === "Chest & Shoulders") r.name = "Push"; }); c.pv = 4; migrated = true; }
   return c; }
 var PLATE_COLORS = ["var(--plate)","var(--p-blue)","var(--p-yellow)","var(--p-green)"];
 
