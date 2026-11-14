@@ -722,6 +722,12 @@ button.addp{background:none;border:0;border-radius:0;padding:0;min-height:44px}
 #rf-next{padding:30px 0 0!important;text-align:center!important;align-items:center}
 #rf-next b{font:500 22px/1.15 var(--display)!important}
 .rmin{display:block;margin:26px auto 0;background:none;border:0;color:var(--dust);font:400 14px/1 var(--body)!important;letter-spacing:0!important;text-transform:none!important;min-height:44px}
+
+/* ---- one exercise per screen; rest button right under the sets ---- */
+.inl-rest{display:flex;align-items:center;justify-content:space-between;width:100%;height:64px;margin-top:30px;padding:0 20px;border:0;border-radius:0;background:var(--plate);color:var(--ink);font:500 17px/1 var(--body)}
+.inl-rest b{font:500 26px/1 var(--display);font-variant-numeric:tabular-nums}
+.inl-rest.run{background:transparent;color:var(--chalk);border:1px solid var(--plate)}
+.inl-rest.run b{color:var(--plate)}
 </style>
 </head>
 <body>
@@ -1085,7 +1091,9 @@ function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 function tick(){
   var a = S.active, el = $("#elapsed"), dock = $("#rest"), full = $("#restfull");
   if(a && el) el.textContent = fmtDur((Date.now() - a.startedAt)/1000);
-  var rg = $("#restgo"); if(rg){ var rdy = !!(a && a.restReady && !a.restEnd); rg.hidden = !rdy; if(rdy) $("#restgo-t").textContent = fmtClock(a.restReady.total); }
+  var inl = $("#inl-rest"), rg = $("#restgo"); if(rg){ var rdy = !!(a && a.restReady && !a.restEnd && !inl); rg.hidden = !rdy; if(rdy) $("#restgo-t").textContent = fmtClock(a.restReady.total); }
+  if(inl && a && a.restEnd && $("#inl-t")) $("#inl-t").textContent = fmtClock(Math.max(0, (a.restEnd - Date.now())/1000));
+  if(inl && a && !a.restEnd && inl.classList.contains("run") && !a.restReady){ setTimeout(render, 0); }
   if(a && a.restEnd){
     var rem = (a.restEnd - Date.now())/1000;
     if(rem <= 0){ a.restEnd = null; ls.set("active", a); restFlash = Date.now() + 2500; beep(); buzz([200,100,200]);
@@ -1099,7 +1107,7 @@ function tick(){
       $("#rf-lab").textContent = "Rest"; $("#rf-time").textContent = fmtClock(rem); $("#rf-of").textContent = "of " + fmtClock(tot);
       $("#rf-bar").style.width = (100 - frac*100).toFixed(1) + "%";
       if($("#rf-next").dataset.t !== (a.restNext || "")){ $("#rf-next").dataset.t = a.restNext || ""; $("#rf-next").innerHTML = a.restNext ? '<span class="mono">Up next</span><b>' + esc(a.restNext) + '</b>' : ""; }
-      dock.hidden = !restMin; full.hidden = restMin; }
+      dock.hidden = !restMin || !!$("#inl-rest"); full.hidden = restMin; }
   } else if(Date.now() > restFlash){ dock.hidden = true; full.hidden = true; }
 }
 
@@ -1447,6 +1455,11 @@ function renderWorkout(){
   var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), rows = "", allDone = a.exercises.length > 0 && a.exercises.every(function(x){ return exState(x).all; }),
     h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button>' : '<button type="button" class="mono back" data-act="to-list">← Workouts · ' + esc(a.name) + '</button>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
+  if(grp.length){
+    if(a.restEnd) h += '<button type="button" class="inl-rest run" id="inl-rest" data-act="rest-max"><span>Resting · show timer</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now())/1000)) + '</b></button>';
+    else if(a.restReady) h += '<button type="button" class="inl-rest" id="inl-rest" data-act="rest-start"><span>Start rest</span><b>' + fmtClock(a.restReady.total) + '</b></button>';
+    return h;
+  }
   if(!grp.length && allDone) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
   a.exercises.forEach(function(x, ei){ if(grp.indexOf(ei) >= 0) return; var s = exState(x);
     rows += '<button type="button" class="tr' + (s.all ? " fin" : "") + '" data-act="ex-toggle" data-e="' + ei + '" aria-label="' + esc(x.name) + ', ' + s.dn + ' of ' + s.pn + ' sets done. Open"><span class="mono">' + pad2(ei+1) + '</span><span class="nm" style="grid-column:2/4">' + esc(x.name) + '</span><span class="mono">' + (s.all ? "Done" : s.dn + " / " + s.pn) + '</span></button>'; });
@@ -1629,8 +1642,8 @@ document.addEventListener("click", function(ev){
     case "rest-add": if(a && a.restEnd){ var d = +b.dataset.v * 1000; a.restEnd += d; a.restTotal = Math.max(1, a.restTotal + d/1000); ls.set("active", a); tick(); } break;
     case "rest-min": restMin = true; tick(); break;
     case "rest-max": restMin = false; tick(); break;
-    case "rest-skip": if(a){ a.restEnd = null; a.restReady = null; ls.set("active", a); } restFlash = 0; tick(); break;
-    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); tick(); } break;
+    case "rest-skip": if(a){ a.restEnd = null; a.restReady = null; ls.set("active", a); } restFlash = 0; render(); break;
+    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); } break;
     case "del-session": ask("Delete this workout?", "It will be removed from your history and records.", "Delete", function(){
       var id = b.dataset.id; S.sessions = S.sessions.filter(function(s){ return s.id !== id; }); ls.set("sessions", S.sessions);
       S.pend.add = S.pend.add.filter(function(i){ return i !== id; }); S.pend.del.push(id); savePend(); pushDelete(id); render(); }); break;
@@ -1687,7 +1700,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", render);
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "20";
+var BUILD = "21";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
