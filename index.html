@@ -828,6 +828,28 @@ main.leaving>*{transition:opacity .4s ease,filter .4s ease,transform .4s ease;op
 .ec-in .btn.go{min-height:60px;font:400 20px/1 var(--poster)!important;letter-spacing:.14em!important;text-transform:uppercase!important;box-shadow:0 0 44px rgba(157,107,255,.4)}
 @media (prefers-reduced-motion: reduce){#aura,#restfull::before,.bl,.rv,.mp,.moment *,#endcard,.morphg{animation:none!important;transition:none!important}}
 #endcard.bye{animation:mout .6s ease both}
+/* ===== FX layer (GSAP) ===== */
+html.gs .bl,html.gs .rv{animation:none!important}
+#aura{left:0!important;top:0!important;width:0!important;height:0!important;margin:0!important;background:none!important;animation:none!important;transform:translate3d(195px,140px,0);will-change:transform;--glow:157,107,255}
+#aura .af{position:absolute;left:0;top:var(--sy,0px);will-change:transform}
+#aura i{position:absolute;border-radius:50%;mix-blend-mode:screen;will-change:transform,opacity}
+#aura .b1{width:520px;height:520px;left:-260px;top:-260px;background:radial-gradient(closest-side,rgba(var(--glow),.34),rgba(var(--glow),.10) 55%,rgba(var(--glow),0));animation:b1 9s ease-in-out infinite;transition:background 1.6s}
+#aura .b2{width:300px;height:300px;left:-60px;top:-40px;background:radial-gradient(closest-side,rgba(90,70,255,.28),rgba(90,70,255,0));animation:b2 12s ease-in-out infinite}
+@keyframes b1{0%,100%{transform:translate(0,0) scale(.92);opacity:.75}50%{transform:translate(-30px,24px) scale(1.08);opacity:1}}
+@keyframes b2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-120px,60px) scale(1.25)}66%{transform:translate(40px,120px) scale(.85)}}
+.wr{overflow:visible}
+.wx{position:absolute;right:var(--g);top:50%;margin-top:-.52em;font:400 104px/1 var(--poster);color:transparent;-webkit-text-stroke:1px rgba(157,107,255,.38);pointer-events:none;z-index:-1;letter-spacing:-.02em;will-change:transform}
+.wr .wn{position:relative}
+.xbig{position:absolute;right:-18px;top:34px;font:400 280px/.8 var(--poster);color:transparent;-webkit-text-stroke:1px rgba(157,107,255,.32);pointer-events:none;z-index:0;letter-spacing:-.04em;will-change:transform}
+main{position:relative}
+main>*{position:relative}
+main>.xbig{position:absolute}
+.ch{display:inline-block;will-change:transform}
+.wr,.tr,.bg-r,details.card{translate:var(--px,0px) 0}
+.wr.rvl::after,.tr.rvl::after{animation:draw 1.8s cubic-bezier(.19,1,.22,1) var(--d,0ms) both}
+.tabs a{position:relative;display:inline-block}
+.tabs a[aria-current="page"]{text-shadow:0 0 18px rgba(157,107,255,.7)}
+.morphg.gone{transition:opacity .45s ease,transform 1s cubic-bezier(.7,0,.16,1),filter .45s;filter:blur(8px)}
 </style>
 </head>
 <body>
@@ -879,7 +901,10 @@ main.leaving>*{transition:opacity .4s ease,filter .4s ease,transform .4s ease;op
   <div id="toast"></div>
 </div>
 <datalist id="exnames"></datalist>
-
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -1513,13 +1538,13 @@ function fitAll(){
 }
 function renderToday(){
   if(S.active && !S.pick) return renderWorkout();
-  var ws0 = weekStart(Date.now()), t = new Date(); t.setHours(0,0,0,0); var today0 = t.getTime(), today = t.getDay(), rows = "", a = S.active;
+  var wxn = 0, ws0 = weekStart(Date.now()), t = new Date(); t.setHours(0,0,0,0); var today0 = t.getTime(), today = t.getDay(), rows = "", a = S.active;
   var order = S.cfg.routines.slice().sort(function(x, y){ var dx = x.day == null ? 9 : (x.day + 6) % 7, dy = y.day == null ? 9 : (y.day + 6) % 7; return dx - dy; });
   order.forEach(function(r){
     var isToday = r.day === today, live = (a && a.routineId === r.id) || S.parked.some(function(w){ return w.routineId === r.id; }), done = false;
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
-    rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wn">' + esc(r.name) + '</span></button>'; });
+    rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wx" aria-hidden="true">' + pad2(++wxn) + '</span><span class="wn">' + esc(r.name) + '</span></button>'; });
   return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><h1 class="pick-h">What are we training today?</h1><div class="ledger">'  + rows + '</div>' +
     '<div class="links mono" style="padding-top:18px"><span></span><a href="#routines">Edit workouts →</a></div>';
 }
@@ -1558,7 +1583,7 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
 }
 function renderWorkout(){
   var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), rows = "", allDone = a.exercises.length > 0 && a.exercises.every(function(x){ return exState(x).all; }),
-    h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button><div class="mono xi">' + pad2(grp[0] + 1) + ' of ' + pad2(a.exercises.length) + '</div>' : '<button type="button" class="mono back" data-act="to-list">← Workouts</button><h1 class="pick-h" style="margin:4px 0 0">' + esc(a.name) + '</h1>';
+    h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button><div class="xbig" aria-hidden="true">' + pad2(grp[0] + 1) + '</div><div class="mono xi">' + pad2(grp[0] + 1) + ' of ' + pad2(a.exercises.length) + '</div>' : '<button type="button" class="mono back" data-act="to-list">← Workouts</button><h1 class="pick-h" style="margin:4px 0 0">' + esc(a.name) + '</h1>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
   if(grp.length){
     if(a.restEnd) h += '<button type="button" class="inl-rest run" id="inl-rest" data-act="rest-max"><span>Resting · show timer</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now())/1000)) + '</b></button>';
@@ -1711,14 +1736,17 @@ function landGhost(main){
   tgt.classList.add("landing");
   requestAnimationFrame(function(){ g.classList.add("fly");
     g.style.transform = "translate(" + (tr.left - g.dataset.x) + "px," + (tr.top - g.dataset.y) + "px) scale(" + s + ")"; g.style.color = "var(--chalk)"; });
-  setTimeout(function(){ tgt.classList.remove("landing"); tgt.classList.add("landed"); g.classList.add("gone"); }, 880);
+  setTimeout(function(){ g.classList.add("gone"); }, FX ? 520 : 880);
+  setTimeout(function(){ if(tgt.classList.contains("landing")){ tgt.classList.remove("landing"); tgt.classList.add("landed"); } }, 880);
   setTimeout(function(){ g.remove(); }, 1400);
   return tgt;
 }
 function afterRender(main){
   var k = screenKey();
-  if(k !== lastScreen){ lastScreen = k; var skip = ghost ? landGhost(main) : null; choreo(main, skip ? 500 : 0, skip); }
+  var changed = k !== lastScreen, skip = null;
+  if(changed){ lastScreen = k; skip = ghost ? landGhost(main) : null; if(!FX) choreo(main, skip ? 500 : 0, skip); else if(skip){ skip.classList.remove("landing"); skip.classList.add("fxland"); skip = null; } }
   else if(ghost){ ghost.remove(); ghost = null; }
+  if(FX) fxAfterRender(main, changed, skip);
   if(justLogged && !calm){ var inp = $("#s-" + justLogged + "-r"), row = inp && inp.closest(".sr");
     if(row){ row.classList.add("just"); var nx = row.nextElementSibling; while(nx && !nx.matches(".sr")) nx = nx.nextElementSibling; if(nx){ nx.style.setProperty("--d", "260ms"); nx.classList.add("rv"); } }
     var ir = $("#inl-rest"); if(ir){ ir.style.setProperty("--d", "420ms"); ir.classList.add("rv"); } }
@@ -1740,7 +1768,89 @@ function endCard(html){
   inn.querySelectorAll(".fs-st b").forEach(function(b, k){ countUp(b, 2300 + k * 260); });
 }
 
+/* ---------- FX: GSAP layer. Light that travels, type that assembles, depth on scroll, things that lean into your thumb. ---------- */
+var FX = !!(window.gsap && window.ScrollTrigger && !calm), fxTriggers = [], auraTo = null, fingerTo = null, lenis = null;
+if(FX){
+  gsap.registerPlugin(ScrollTrigger); if(window.SplitText) gsap.registerPlugin(SplitText);
+  document.documentElement.classList.add("gs");
+  ScrollTrigger.defaults({ scroller:"#view" });
+  try{ if(window.Lenis && matchMedia("(pointer:fine)").matches){
+    var vw = document.getElementById("view");
+    lenis = new Lenis({ wrapper:vw, content:vw, lerp:0.085, smoothWheel:true });
+    lenis.on("scroll", ScrollTrigger.update); gsap.ticker.add(function(t){ lenis.raf(t * 1000); }); gsap.ticker.lagSmoothing(0);
+  } }catch(e){ lenis = null; }
+}
+var GLOW = { today:"157,107,255", routines:"157,107,255", history:"118,104,255", progress:"196,96,255", body:"214,106,240" };
+function auraEls(){ var a = $("#aura"); if(a && !a.dataset.ok){ a.dataset.ok = 1; a.innerHTML = '<div class="af"><i class="b1"></i><i class="b2"></i></div>';
+    auraTo = { x:gsap.quickTo(a, "x", { duration:1.8, ease:"expo.inOut" }), y:gsap.quickTo(a, "y", { duration:1.8, ease:"expo.inOut" }) };
+    var f = a.querySelector(".af"); fingerTo = { x:gsap.quickTo(f, "x", { duration:1.4, ease:"power3.out" }), y:gsap.quickTo(f, "y", { duration:1.4, ease:"power3.out" }) }; }
+  return a; }
+/* move the light to whatever this screen is about */
+function auraFocus(main){
+  var a = auraEls(); if(!a) return; var app = $("#app").getBoundingClientRect();
+  var f = main.querySelector(".xbig,.pick-h,.xn,.cal-h,.bmap,.chartwrap,h2") || main.firstElementChild, r = f ? f.getBoundingClientRect() : { left:app.width/2, top:120, width:0, height:0 };
+  auraTo.x(r.left - app.left + r.width * 0.55); auraTo.y(r.top - app.top + r.height * 0.5 + main.scrollTop * 0.0);
+  a.style.setProperty("--glow", GLOW[viewName()] || GLOW.today);
+}
+function splitHead(h){
+  if(!window.SplitText) return [h];
+  try{ var s = SplitText.create(h, { type:"chars,words", mask:"words", charsClass:"ch" }); return s.chars; }catch(e){ return [h]; }
+}
+function fxEnter(main, skip){
+  var tl = gsap.timeline({ defaults:{ ease:"expo.out" } }), heads = main.querySelectorAll(".pick-h,.xn,.fs-h,h2"), t0 = skip ? 0.55 : 0;
+  heads.forEach(function(h, k){ if(h === skip) return; var ch = splitHead(h);
+    tl.from(ch, { yPercent:120, rotation:7, opacity:0, duration:1.35, stagger:{ each:0.028 }, transformOrigin:"0% 100%" }, t0 + 0.08 + k * 0.18); });
+  var big = main.querySelectorAll(".xbig"); if(big.length) tl.from(big, { xPercent:45, opacity:0, filter:"blur(18px)", duration:2.2, ease:"expo.out" }, t0);
+  var rows = [], small = [];
+  Array.prototype.forEach.call(main.children, function(c){
+    if(c.matches(".pick-h,.xn,.fs-h,h2,.xbig")) return;
+    var inner = c.querySelectorAll(".wr,.tr,.sr,.bg-r,.fs-r,details.card,.ph-strip button,.ph-cmp button,.links,.wk-foot,.cells span,.inl-rest,.ms");
+    if(inner.length) Array.prototype.push.apply(rows, inner); else if(c.matches(".mono,.back,.xi,.xt")) small.push(c); else rows.push(c);
+  });
+  if(small.length) tl.from(small, { opacity:0, y:12, duration:1.1, stagger:0.06 }, t0 + 0.05);
+  if(rows.length) tl.from(rows, { opacity:0, y:54, filter:"blur(10px)", duration:1.4, stagger:{ each:0.065, from:"start" }, clearProps:"filter,transform,opacity" }, t0 + 0.18);
+  rows.forEach(function(r, i){ if(r.matches(".wr,.tr")){ r.style.setProperty("--d", Math.round((t0 + 0.45 + i * 0.075) * 1000) + "ms"); r.classList.add("rvl"); } });
+  var nums = main.querySelectorAll(".wx"); if(nums.length) tl.from(nums, { xPercent:80, opacity:0, duration:1.9, stagger:0.09, ease:"expo.out" }, t0 + 0.4);
+  var days = main.querySelectorAll(".cal b,.cal span"); if(days.length) tl.from(days, { scale:0.3, opacity:0, duration:1.1, stagger:{ grid:"auto", from:"start", amount:0.7 }, ease:"back.out(2)" }, t0 + 0.35);
+  var paths = main.querySelectorAll(".bmap path"); if(paths.length) tl.from(paths, { opacity:0, duration:1.2, stagger:{ each:0.02, from:"random" }, ease:"power2.out" }, t0 + 0.4);
+  var bars = main.querySelectorAll(".bg-b i"); if(bars.length) tl.from(bars, { scaleX:0, transformOrigin:"0 50%", duration:1.8, stagger:0.08 }, t0 + 0.7);
+  main.querySelectorAll(".bg-n,.cells b").forEach(function(n, k){ countUp(n, (t0 + 0.8 + k * 0.1) * 1000); });
+  return tl;
+}
+/* depth while you scroll: headline lifts away, numerals drift, light follows */
+function fxScroll(main){
+  fxTriggers.forEach(function(t){ t.kill(); }); fxTriggers = [];
+  var head = main.querySelector(".pick-h,.xn");
+  if(head) fxTriggers.push(gsap.to(head, { yPercent:-40, opacity:0.12, scale:0.86, transformOrigin:"0% 100%", ease:"none", scrollTrigger:{ trigger:head, start:"top top+=70", end:"bottom top-=40", scrub:0.8 } }).scrollTrigger);
+  var big = main.querySelector(".xbig");
+  if(big) fxTriggers.push(gsap.to(big, { y:220, rotation:-4, ease:"none", scrollTrigger:{ trigger:main.firstElementChild, start:"top top", end:"+=900", scrub:1.2 } }).scrollTrigger);
+  main.querySelectorAll(".wx").forEach(function(n, i){ fxTriggers.push(gsap.fromTo(n, { y:24 + i * 4 }, { y:-36 - i * 6, ease:"none", scrollTrigger:{ trigger:n.parentNode, start:"top bottom", end:"bottom top", scrub:1 } }).scrollTrigger); });
+  main.querySelectorAll(".tr,.wr,.bg-r,details.card").forEach(function(r, i){ fxTriggers.push(gsap.fromTo(r, { "--px":"0px" }, { "--px":"-14px", ease:"none", scrollTrigger:{ trigger:r, start:"top bottom", end:"bottom top", scrub:true } }).scrollTrigger); });
+  var a = $("#aura"); if(a){ var af = a.querySelector(".af");
+    fxTriggers.push(ScrollTrigger.create({ trigger:main.firstElementChild || main, start:0, end:"max", onUpdate:function(st){ gsap.to(af, { scale:1 + Math.min(0.35, st.scroll() / 1600), duration:0.8, overwrite:"auto" }); a.style.setProperty("--sy", (-st.scroll() * 0.35) + "px"); } })); }
+}
+function fxAfterRender(main, changed, skip){
+  if(changed){ gsap.killTweensOf(main.querySelectorAll("*")); fxEnter(main, skip); auraFocus(main); }
+  fxScroll(main); ScrollTrigger.refresh();
+}
+/* things lean toward your thumb, then spring back */
+if(FX){
+  var MAG = ".wr,.tr,.btn,.logbtn,.inl-rest,#restgo,.ck,.stk-t,.rir button,.tabs a,.rbtns button,.cal-h button";
+  document.addEventListener("pointerdown", function(e){ var el = e.target.closest(MAG); if(!el) return; var r = el.getBoundingClientRect();
+    gsap.to(el, { x:(e.clientX - (r.left + r.width/2)) * 0.08, y:(e.clientY - (r.top + r.height/2)) * 0.18, scale:0.975, duration:0.28, ease:"power3.out", overwrite:"auto" }); }, { passive:true });
+  var release = function(e){ document.querySelectorAll(MAG).forEach(function(el){ if(el._gsap && (el._gsap.x !== "0px" || el._gsap.scaleX !== 1)) gsap.to(el, { x:0, y:0, scale:1, duration:1.1, ease:"elastic.out(1,0.35)", overwrite:"auto" }); }); };
+  document.addEventListener("pointerup", release, { passive:true }); document.addEventListener("pointercancel", release, { passive:true });
+  document.addEventListener("pointermove", function(e){
+    if(fingerTo){ var app = $("#app").getBoundingClientRect(), a = $("#aura"), ax = gsap.getProperty(a, "x"), ay = gsap.getProperty(a, "y");
+      fingerTo.x((e.clientX - app.left - ax) * 0.35); fingerTo.y((e.clientY - app.top - ay) * 0.35); }
+    if(e.pointerType !== "mouse") return; var el = e.target.closest(".btn,.logbtn,.inl-rest,#restgo,.ck,.tabs a"); if(!el) return; var r = el.getBoundingClientRect();
+    gsap.to(el, { x:(e.clientX - (r.left + r.width/2)) * 0.3, y:(e.clientY - (r.top + r.height/2)) * 0.3, duration:0.6, ease:"power3.out", overwrite:"auto" });
+  }, { passive:true });
+  document.addEventListener("pointerout", function(e){ if(e.pointerType !== "mouse") return; var el = e.target.closest(".btn,.logbtn,.inl-rest,#restgo,.ck,.tabs a"); if(el && !el.contains(e.relatedTarget)) gsap.to(el, { x:0, y:0, duration:1, ease:"elastic.out(1,0.3)" }); });
+}
+
 function render(){
+  window.__lr = Date.now();
   var v = viewName(), main = $("#view"), top = main.scrollTop;
   main.innerHTML = { today:renderToday, history:renderHistory, progress:renderProgress, body:renderBody, routines:renderRoutines }[v]();
   if(main.dataset.v === v) main.scrollTop = top; else main.scrollTop = 0;
@@ -1879,10 +1989,10 @@ document.addEventListener("focusout", function(ev){
   setTimeout(function(){ if(wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
     if(btn && btn.isConnected){ btn.classList.toggle("has", has); btn.setAttribute("aria-expanded", "false"); btn.textContent = has ? "Note ●" : "+ Note"; } }, 280);
 });
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "23";
+var BUILD = "24";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
