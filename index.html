@@ -14,7 +14,7 @@
 <title>BR</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* Layout: one phone-width column (max 560px), bottom tab bar; a full-screen ring timer takes over during rest.
    One visual world, dark by choice: graphite, off-white, a single champagne accent, Oswald throughout. */
@@ -589,6 +589,91 @@ main[data-v="routines"]{padding-top:0}
 .ph-strip button{flex:none;width:28%}
 .ph-strip img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
 .ph-full{width:100%;max-height:62vh;object-fit:contain;display:block;background:#000}
+/* ===== C: stripped back. Bold condensed headlines; everything else quiet Inter; no boxes; room. ===== */
+:root{--body:Inter,-apple-system,"Helvetica Neue",Arial,sans-serif;--g:24px;--hair:#1e1e21}
+body{font-family:var(--body);font-weight:400;-webkit-font-smoothing:antialiased}
+main{padding-left:var(--g);padding-right:var(--g);gap:24px}
+.mono,.eyebrow{font:400 13px/1.35 var(--body);letter-spacing:0;text-transform:none;color:var(--dust)}
+.tabs{border-bottom:0!important;padding:env(safe-area-inset-top) 14px 0!important;gap:22px!important}
+.tabs a{font:500 11px/1 var(--mono)!important;letter-spacing:.14em!important;text-transform:uppercase;color:#5f5d59!important;padding:24px 4px 18px!important}
+.tabs a[aria-current="page"]{color:var(--chalk)!important;box-shadow:none!important}
+h2{font:500 20px/1.1 var(--display);letter-spacing:.02em}
+.back{font:400 13px/1 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:var(--dust)}
+.links{font:400 13px/1 var(--body)!important;letter-spacing:0;text-transform:none}
+.links button,.links a{color:var(--dust)}
+.links a[href="#routines"]{color:var(--dust)}
+/* workouts list */
+.pk{padding:18px 0 4px}
+.ledger,.back + .ledger{margin:8px calc(-1*var(--g)) 0;border:0!important}
+.wr{padding:20px var(--g)!important;border:0!important}
+.wr .wn{font:500 26px/1.05 var(--display)!important;letter-spacing:.01em}
+main[data-v="today"] > .links{padding-top:28px}
+/* exercise list inside a workout */
+.tr{grid-template-columns:30px 0 minmax(0,1fr) auto!important;column-gap:0;min-height:0!important;padding:16px var(--g)!important;border:0!important;font:500 18px/1.15 var(--display);letter-spacing:.01em}
+.tr > .mono:first-child{font-size:13px}
+.tr .mono{font-size:13px}
+.tr.fin .nm{color:var(--dust)!important}.tr.fin .mono:last-child{color:var(--plate)!important}
+/* open exercise */
+.act2{margin:0 calc(-1*var(--g));padding:28px var(--g) 36px;border:0!important}
+.xn{font:500 30px/1.02 var(--display)!important;letter-spacing:.01em}
+.xt{margin-top:10px}
+.more{font:400 20px/1 var(--body);letter-spacing:.1em;color:#5f5d59}
+.st{margin-top:34px;gap:2px}
+.sr{grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 30px 60px;gap:12px}
+.sr.hdr{font-size:12px;margin-bottom:4px}
+.sr.hdr span:nth-child(2),.sr.hdr span:nth-child(3){text-align:left}
+.si{height:58px;border:0!important;border-bottom:1px solid transparent!important;text-align:left;font:400 30px/1 var(--display)!important;padding:0 0 4px}
+.si::placeholder{font-size:22px;color:#3d3c39}
+.sr.cur .si{border-bottom-color:var(--chalk)!important}
+.sr.cur .si:focus{border-bottom-color:var(--plate)!important}
+.sr.done .si{color:#5f5d59}
+.ck{height:44px;border:1px solid var(--knurl)!important;background:transparent!important;color:var(--dust)!important;font:500 13px/1 var(--body)!important;letter-spacing:0!important;text-transform:none}
+.sr.cur .ck{border-color:var(--plate)!important;color:var(--plate)!important}
+.sr.done .ck{border:0!important;color:var(--plate)!important;font:400 20px/1 var(--body)!important}
+.nt{color:#3d3c39}
+.sl{padding-top:26px}
+.wk-foot{padding-top:36px;gap:4px}
+.logbtn{height:52px;background:transparent;color:var(--chalk);border:1px solid var(--knurl);font:500 15px/1 var(--body);letter-spacing:0;text-transform:none}
+.logbtn.ghost{border-color:var(--knurl)}
+/* rest strip */
+#rest{border-top:1px solid var(--hair)!important;padding:12px var(--g) 14px}
+#rest .lab{font:400 12px/1 var(--body);letter-spacing:0;text-transform:none}
+#rest .time{font:400 28px/1.1 var(--display)}
+#rest button{border-color:var(--knurl);font:500 13px/1 var(--body)}
+#rest .bar{height:2px}
+/* sheets */
+#sheet .panel{border-top:0;padding:26px var(--g) calc(26px + env(safe-area-inset-bottom))!important;gap:18px}
+.btn{border:1px solid var(--knurl);font:500 15px/1 var(--body);text-transform:none;letter-spacing:0}
+.btn.go{background:var(--plate);border:0;color:var(--ink);font:500 16px/1 var(--body);letter-spacing:0;text-transform:none;min-height:52px}
+.btn.danger,.danger{color:var(--danger)}
+.field{border:0;border-bottom:1px solid var(--knurl);padding:0 2px;background:transparent}
+.field:focus{outline:0;border-bottom-color:var(--plate)}
+.seg{border:0;gap:4px}
+.seg button{border:1px solid var(--knurl);font:500 13px/1 var(--body);min-height:40px}
+.seg button[aria-pressed="true"]{border-color:var(--plate)}
+.stk-t{border-color:var(--hair)}
+.gearsw button{border-color:var(--hair);font:500 13px/1 var(--body);letter-spacing:0;text-transform:none}
+/* history + progress */
+.cal{gap:4px}
+.cal b{font:400 15px/1 var(--display)}
+.card,.card.restday{border:0!important;padding:16px 0}
+.hs b{font:500 18px/1.1 var(--display)}
+.hs .meta{font:400 13px/1.4 var(--body)}
+.cells{margin:0 calc(-1*var(--g));padding:0 var(--g);border:0!important;gap:20px}
+.cells span{border:0!important;padding:0}
+.cells b{font:400 28px/1 var(--display)}
+.ph-strip{margin:0 calc(-1*var(--g));padding:0 var(--g) 6px}
+.strip,.strip div,.chart{border:0!important}
+.addp{font:400 13px/1 var(--body);letter-spacing:0;text-transform:none}
+.rt .t b{font:500 20px/1.1 var(--display)}
+.disc{font:400 13px/1 var(--body);letter-spacing:0;text-transform:none}
+.exedit{border-top:1px solid var(--hair)}
+.exedit label{font:400 12px/1.3 var(--body);text-transform:none;letter-spacing:0}
+.pill{font:500 11px/1 var(--body);letter-spacing:0;text-transform:none;border-radius:99px;padding:4px 8px}
+#intro .btn.go{font:400 26px/1 var(--poster)!important;letter-spacing:.08em!important;text-transform:uppercase!important}
+.tr .mono:last-child{padding-left:12px}
+main h2{margin-top:18px}
+main .ph-h h2{margin-top:0}
 </style>
 </head>
 <body>
