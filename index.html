@@ -561,6 +561,34 @@ main:not([data-v="today"]){padding-top:24px}
 .cal b.on{background:var(--plate);color:var(--ink);box-shadow:none}
 .cal b.on.td{box-shadow:inset 0 0 0 2px var(--chalk)}
 main[data-v="routines"]{padding-top:0}
+
+/* ---- weight stack + photos ---- */
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.stk-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.stk-w{font:500 52px/1 Oswald,'Arial Narrow',sans-serif;margin-top:10px;font-variant-numeric:tabular-nums}
+.stk-w small{font:400 14px/1 var(--mono);letter-spacing:.1em;color:var(--dust);text-transform:uppercase}
+.stk-pin{color:var(--plate);padding-bottom:6px}
+.stk-g{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.stk-t{height:52px;border:1px solid var(--knurl);border-radius:0;background:transparent;color:var(--chalk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0}
+.stk-t b{font:500 17px/1 Oswald,'Arial Narrow',sans-serif;font-variant-numeric:tabular-nums}
+.stk-t span{font:400 9px/1 var(--mono);color:var(--dust);letter-spacing:.08em}
+.stk-t[aria-pressed="true"]{background:var(--plate);border-color:var(--plate);color:var(--ink)}
+.stk-t[aria-pressed="true"] span{color:var(--ink)}
+.stk-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stk-row .seg button{padding:10px 12px}
+.gearsw{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.gearsw button{min-height:44px;border:1px solid var(--knurl);border-radius:0;background:transparent;color:var(--chalk);font:400 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.gearsw button[aria-pressed="true"]{border-color:var(--plate);background:var(--plate);color:var(--ink)}
+.ph-h{display:flex;align-items:baseline;justify-content:space-between}
+.addp{color:var(--plate);min-height:44px;display:flex;align-items:center;cursor:pointer}
+.ph-cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px}
+.ph-cmp button,.ph-strip button{background:none;border:0;border-radius:0;padding:0;color:var(--dust);text-align:left;display:flex;flex-direction:column;gap:6px}
+.ph-cmp img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.ph-strip{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px 6px;scrollbar-width:none}
+.ph-strip::-webkit-scrollbar{display:none}
+.ph-strip button{flex:none;width:28%}
+.ph-strip img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.ph-full{width:100%;max-height:62vh;object-fit:contain;display:block;background:#000}
 </style>
 </head>
 <body>
@@ -680,7 +708,7 @@ var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:3, goals:[], notes:{},
   ]}
 ]};
 var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], migrated = false;
-function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars = c.bars || {}; c.weeklyGoal = c.weeklyGoal || 5; c.routines = c.routines || [];
+function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars = c.bars || {}; c.gear = c.gear || {}; c.stack = c.stack || {}; c.weeklyGoal = c.weeklyGoal || 5; c.routines = c.routines || [];
   if((c.pv || 0) < 2){ c.routines = clone(STARTER.routines); c.weeklyGoal = 5; c.pv = 2; migrated = true; }
   if((c.pv || 0) < 3){ var ren = { mon:["Back & Hamstrings","Posterior Chain"], thu:["Legs","Lower Body"], fri:["Upper Supersets","Upper Density"] };
     c.routines.forEach(function(r){ if(ren[r.id] && r.name === ren[r.id][0]) r.name = ren[r.id][1]; }); c.pv = 3; migrated = true; }
@@ -943,6 +971,72 @@ function toast(msg){ var t = $("#toast"); t.innerHTML = "<div>" + esc(msg) + "</
 
 /* ---------- plate calculator ---------- */
 var plSide = [], plCtx = null;
+/* ---------- equipment: barbell plates, cable / machine stack, dumbbells ---------- */
+var GEAR = { bar:"Barbell", cable:"Cable", machine:"Machine", db:"Dumbbells", body:"Bodyweight" };
+function gearOf(name){
+  var o = S.cfg.gear && S.cfg.gear[key(name)]; if(o && GEAR[o]) return o;
+  var n = String(name || "").toLowerCase();
+  if(/cable|pulldown|pushdown|face ?pull|crossover|pull-?through/.test(n)) return "cable";
+  if(/goblet|dumbbell|\bdb\b|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
+  if(/machine|leg press|leg curl|hamstring curl|leg extension|pec deck|hack squat|seated calf/.test(n)) return "machine";
+  if(/pull-?up|chin-?up|\bdips?\b|push-?up|plank|hanging|sit-?up/.test(n)) return "body";
+  return "bar";
+}
+function stackSteps(){ return S.cfg.units === "kg" ? [2.5,5,7.5,10] : [5,10,12.5,15]; }
+function stackAddons(){ return S.cfg.units === "kg" ? [0,1.25,2.5] : [0,2.5,5]; }
+var stk = null;
+function stackSheet(ctx){
+  var x = S.active.exercises[ctx.e], st = x.sets[ctx.s], k = key(x.name), u = S.cfg.units;
+  if(!stk || stk.e !== ctx.e || stk.s !== ctx.s){
+    var c = S.cfg.stack[k] || {}, step = c.step || (u === "kg" ? 5 : 10), w = num(st.w), add = 0, base = w;
+    if(w > 0){ var rem = Math.round((w % step) * 100) / 100; if(stackAddons().indexOf(rem) > 0){ add = rem; base = w - rem; } }
+    stk = { e:ctx.e, s:ctx.s, step:step, n:c.n || 20, base:base, add:add };
+  }
+  var tiles = "", total = stk.base + stk.add, pin = stk.base > 0 && stk.base % stk.step === 0 ? stk.base / stk.step : 0;
+  for(var i = 1; i <= stk.n; i++){ var v = Math.round(i * stk.step * 100) / 100;
+    tiles += '<button type="button" class="stk-t" data-act="stk-pick" data-v="' + v + '" aria-pressed="' + (v === stk.base) + '"><b>' + fmtW(v) + '</b><span>' + i + '</span></button>'; }
+  sheet('<div class="stk-top"><div><div class="eyebrow">' + esc(x.name) + ' · set ' + (ctx.s+1) + '</div><div class="stk-w num">' + (total > 0 ? fmtW(total) : "—") + ' <small>' + esc(u) + '</small></div></div><div class="eyebrow stk-pin">' + (pin ? "Pin " + pin : "") + (stk.add ? " + " + fmtW(stk.add) : "") + '</div></div>' +
+    '<div class="eyebrow">Tap where the pin goes</div><div class="stk-g">' + tiles + '</div>' +
+    '<div class="stk-row"><span class="eyebrow">Add-on</span><div class="seg">' + stackAddons().map(function(v){ return '<button type="button" data-act="stk-add" data-v="' + v + '" aria-pressed="' + (v === stk.add) + '">' + (v ? "+" + fmtW(v) : "None") + '</button>'; }).join("") + '</div></div>' +
+    '<div class="stk-row"><span class="eyebrow">Each plate</span><div class="seg">' + stackSteps().map(function(v){ return '<button type="button" data-act="stk-step" data-v="' + v + '" aria-pressed="' + (v === stk.step) + '">' + fmtW(v) + '</button>'; }).join("") + '</div></div>' +
+    '<button class="btn go" type="button" data-act="stk-use">Use ' + (total > 0 ? fmtW(total) + " " + esc(u) : "this weight") + '</button>');
+}
+
+/* ---------- progress photos, kept on this device ---------- */
+var PDB = null; S.photos = []; S.photosOff = false;
+function pdb(){ return PDB || (PDB = new Promise(function(res, rej){ try{ var r = indexedDB.open("br-photos", 1);
+  r.onupgradeneeded = function(){ r.result.createObjectStore("p", { keyPath:"id" }); };
+  r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); }; }catch(e){ rej(e); } })); }
+function pTx(mode, fn){ return pdb().then(function(db){ return new Promise(function(res, rej){
+  var t = db.transaction("p", mode), q = fn(t.objectStore("p")); t.oncomplete = function(){ res(q && q.result); }; t.onerror = function(){ rej(t.error); }; }); }); }
+function loadPhotos(){
+  return pTx("readonly", function(st){ return st.getAll(); }).then(function(list){
+    S.photos.forEach(function(p){ try{ URL.revokeObjectURL(p.url); }catch(e){} });
+    S.photos = (list || []).sort(function(a, b){ return b.at - a.at; }).map(function(p){ return { id:p.id, at:p.at, url:URL.createObjectURL(p.blob) }; });
+    if(viewName() === "progress") render();
+  }).catch(function(){ S.photosOff = true; if(viewName() === "progress") render(); });
+}
+function shrink(file){ return new Promise(function(res, rej){
+  var img = new Image(), url = URL.createObjectURL(file);
+  img.onload = function(){ var m = 1400, sc = Math.min(1, m / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url); c.toBlob(function(b){ b ? res(b) : rej(new Error("no blob")); }, "image/jpeg", 0.85); };
+  img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("bad image")); }; img.src = url; }); }
+function addPhoto(file){
+  var at = file.lastModified && file.lastModified < Date.now() + 60000 ? file.lastModified : Date.now();
+  toast("Saving photo…");
+  shrink(file).then(function(blob){ return pTx("readwrite", function(st){ return st.put({ id:uid(), at:at, blob:blob }); }); })
+    .then(function(){ toast("Photo saved"); return loadPhotos(); })
+    .catch(function(){ toast("Couldn't save that photo"); });
+}
+function photoBlock(){
+  var p = S.photos, h = '<div class="ph-h"><h2>Photos</h2>' + (S.photosOff ? "" : '<label class="mono addp" for="ph-file">+ Add photo</label><input id="ph-file" type="file" accept="image/*" class="vh">') + '</div>';
+  if(S.photosOff) return h + '<div class="empty">Progress photos save in the BR app on your phone.</div>';
+  if(!p.length) return h + '<div class="empty">One every few weeks — same spot, same light. They stay on this phone.</div>';
+  var cmp = p.length > 1 ? '<div class="ph-cmp"><button type="button" data-act="ph-view" data-id="' + p[p.length-1].id + '"><img src="' + p[p.length-1].url + '" alt="First photo, ' + esc(fmtDate(p[p.length-1].at)) + '"><span class="mono">First · ' + esc(fmtShort(p[p.length-1].at)) + '</span></button><button type="button" data-act="ph-view" data-id="' + p[0].id + '"><img src="' + p[0].url + '" alt="Latest photo, ' + esc(fmtDate(p[0].at)) + '"><span class="mono">Latest · ' + esc(fmtShort(p[0].at)) + '</span></button></div>' : "";
+  return h + cmp + '<div class="ph-strip">' + p.map(function(q){ return '<button type="button" data-act="ph-view" data-id="' + q.id + '"><img src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '" loading="lazy"><span class="mono">' + esc(fmtShort(q.at)) + '</span></button>'; }).join("") + '</div>';
+}
+
 function plateSet(){ return S.cfg.units === "kg"
   ? { sizes:[25,20,15,10,5,2.5,1.25], colors:["var(--p-red)","var(--p-blue)","var(--p-yellow)","var(--p-green)","var(--chalk)","var(--p-red)","var(--p-grey)"], bar:20 }
   : { sizes:[45,35,25,10,5,2.5], colors:["var(--p-blue)","var(--p-yellow)","var(--p-green)","var(--chalk)","var(--p-red)","var(--p-grey)"], bar:45 }; }
@@ -1111,10 +1205,11 @@ function openGroup(a){
   return [];
 }
 function actBlock(a, ei, hist, u, inSS, gi, gn){
-  var x = a.exercises[ei], s = exState(x), cs = -1, rows = "", rl = x.repLabel || "Reps";
+  var x = a.exercises[ei], g = gearOf(x.name), s = exState(x), cs = -1, rows = "", rl = x.repLabel || "Reps";
   for(var i = 0; i < x.sets.length; i++) if(!x.sets[i].done){ cs = i; break; }
   var ref = x.sets[cs < 0 ? x.sets.length - 1 : cs], line = [], line2 = [];
   if(x.target) line.push((x.plan || s.pn) + " sets · " + esc(String(x.target).replace("-", "–")) + " " + esc(rl.toLowerCase()));
+  line.push(GEAR[g]);
   if(ref.prev) line2.push("Last time " + ref.prev.r + " × " + fmtW(ref.prev.w) + " " + esc(u));
   if(x.bump) line2.push("go up " + x.bump + " " + esc(u));
   x.sets.forEach(function(st, si){
@@ -1131,8 +1226,8 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
     '<div class="xh"><h3 class="xn" style="font-size:' + (x.name.length > 26 ? 26 : 34) + 'px">' + esc(x.name) + '</h3><button type="button" class="more" aria-label="More options for ' + esc(x.name) + '" data-act="ex-more" data-e="' + ei + '">···</button></div>' +
     (line.length ? '<div class="mono xt">' + line.join(" · ") + '</div>' : "") +
     (line2.length ? '<div class="mono xt" style="margin-top:8px">' + line2.join(" · ") + '</div>' : "") +
-    '<div class="st"><div class="sr hdr mono" aria-hidden="true"><span>Set</span><span>' + esc(rl) + '</span><span>' + esc(u) + '</span><span></span><span></span></div>' + rows + '</div>' +
-    '<div class="links mono sl"><button type="button" data-act="add-set" data-e="' + ei + '">+ Add set</button><button type="button" data-act="weight" data-e="' + ei + '" data-s="' + (cs < 0 ? x.sets.length - 1 : cs) + '">What&#39;s on the bar →</button></div>' +
+    '<div class="st"><div class="sr hdr mono" aria-hidden="true"><span>Set</span><span>' + esc(rl) + '</span><span>' + esc(g === "db" ? u + " each" : g === "body" ? "+ " + u : u) + '</span><span></span><span></span></div>'  + rows + '</div>' +
+    '<div class="links mono sl"><button type="button" data-act="add-set" data-e="' + ei + '">+ Add set</button>' + (g === "bar" || g === "cable" || g === "machine" ? '<button type="button" data-act="weight" data-e="' + ei + '" data-s="' + (cs < 0 ? x.sets.length - 1 : cs) + '">' + (g === "bar" ? "What&#39;s on the bar →" : "Weight stack →") + '</button>' : '<span></span>') + '</div>' +
     '</div>';
 }
 function renderWorkout(){
@@ -1197,7 +1292,7 @@ function renderGoals(hist){
 }
 function renderProgress(){
   var hist = histIndex(), u = S.cfg.units, keys = Object.keys(hist).filter(function(k){ return hist[k].series.length; });
-  var goals = renderGoals(hist);
+  var goals = photoBlock() + renderGoals(hist);
   if(!keys.length) return goals + '<h2>Strength</h2><div class="empty">Your strength curve for each lift appears here after your first logged workout.</div>';
   keys.sort(function(a,b){ return hist[b].series.length - hist[a].series.length || a.localeCompare(b); });
   if(!S.progressEx || keys.indexOf(S.progressEx) < 0) S.progressEx = keys[0];
@@ -1252,6 +1347,7 @@ function render(){
   tick(); fitAll();
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+setTimeout(loadPhotos, 300);
 window.addEventListener("resize", fitAll); setTimeout(fitAll, 1500);
 
 /* ---------- events ---------- */
@@ -1275,7 +1371,16 @@ document.addEventListener("click", function(ev){
         pst.w = pv === "" ? "" : num(pv); pst.pl = plSide.slice(); pst.bar = pb;
         if(plSide.length && S.cfg.bars[key(px.name)] !== pb){ S.cfg.bars[key(px.name)] = pb; saveCfg(); }
         saveActive(); closeSheet(); render(); } break;
-    case "weight": plateSheet({ e:ei, s:si }); break;
+    case "weight": if(gearOf(a.exercises[ei].name) === "bar") plateSheet({ e:ei, s:si }); else { stk = null; stackSheet({ e:ei, s:si }); } break;
+    case "stk-pick": stk.base = +b.dataset.v; stackSheet(stk); break;
+    case "stk-add": stk.add = +b.dataset.v; stackSheet(stk); break;
+    case "stk-step": (function(){ var ns = +b.dataset.v, pin = stk.base > 0 ? Math.round(stk.base / stk.step) : 0; stk.step = ns; stk.base = pin ? Math.round(pin * ns * 100) / 100 : 0; })(); stackSheet(stk); break;
+    case "stk-use": if(a && stk){ var sx = a.exercises[stk.e], tot = stk.base + stk.add; sx.sets[stk.s].w = tot > 0 ? tot : "";
+        S.cfg.stack[key(sx.name)] = { step:stk.step, n:stk.n }; saveCfg(); saveActive(); stk = null; closeSheet(); render(); } break;
+    case "gear": (function(){ var gx = a.exercises[ei]; S.cfg.gear[key(gx.name)] = b.dataset.v; saveCfg(); closeSheet(); render(); toast(gx.name + ": " + GEAR[b.dataset.v]); })(); break;
+    case "ph-view": (function(){ var q = S.photos.filter(function(z){ return z.id === b.dataset.id; })[0]; if(!q) return;
+        sheet('<div class="eyebrow">' + esc(fmtDate(q.at)) + '</div><img class="ph-full" src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '"><div class="row"><button class="btn ghost danger grow" type="button" data-act="ph-del" data-id="' + esc(q.id) + '">Delete photo</button><button class="btn grow" type="button" data-act="sheet-close">Close</button></div>'); })(); break;
+    case "ph-del": (function(id){ ask("Delete this photo?", "It's removed from the app. The copy in your camera roll stays.", "Delete photo", function(){ pTx("readwrite", function(st){ return st.delete(id); }).then(loadPhotos); }); })(b.dataset.id); break;
     case "set-note": var ns = a.exercises[ei].sets[si];
       if(noteBlur.k === ei + "-" + si && Date.now() - noteBlur.t < 600) ns.open = false; else ns.open = !ns.open;
       saveActive(); render(); if(ns.open){ var nt = $("#s-" + ei + "-" + si + "-n"); if(nt) nt.focus(); } break;
@@ -1284,6 +1389,7 @@ document.addEventListener("click", function(ev){
     case "ex-more": var mx = a.exercises[ei];
       sheet('<div><div class="eyebrow">' + esc(mx.name) + '</div><h2>Options</h2></div>' +
         '<label class="eyebrow" for="lift-note">Note for this lift, kept for next time<input class="field" id="lift-note" data-note="' + esc(key(mx.name)) + '" value="' + esc(S.cfg.notes[key(mx.name)] || "") + '" placeholder="Seat height, grip, cues"></label>' +
+        '<div class="eyebrow">Equipment</div><div class="gearsw">' + Object.keys(GEAR).map(function(gk){ return '<button type="button" data-act="gear" data-e="' + ei + '" data-v="' + gk + '" aria-pressed="' + (gearOf(mx.name) === gk) + '">' + GEAR[gk] + '</button>'; }).join("") + '</div>' +
         '<div class="row"><button class="btn grow" type="button" data-act="add-set" data-e="' + ei + '">Add a set</button><button class="btn grow" type="button" data-act="del-set" data-e="' + ei + '">Remove last set</button></div>' +
         '<button class="btn ghost danger" type="button" data-act="del-ex" data-e="' + ei + '">Remove this lift</button><button class="btn" type="button" data-act="sheet-close">Done</button>'); break;
     case "add-ex-open": sheet('<h2>Add an exercise</h2><input class="field" id="new-ex" list="exnames" placeholder="Exercise name" aria-label="Exercise name"><div class="row"><button class="btn ghost grow" type="button" data-act="sheet-close">Back</button><button class="btn go grow" type="button" data-act="add-ex">Add</button></div>'); $("#new-ex").focus(); break;
@@ -1340,6 +1446,7 @@ document.addEventListener("input", function(ev){
   }
 });
 document.addEventListener("change", function(ev){ if(ev.target.id === "pg-ex"){ S.progressEx = ev.target.value; render(); }
+  if(ev.target.id === "ph-file" && ev.target.files && ev.target.files[0]){ addPhoto(ev.target.files[0]); ev.target.value = ""; }
   if(ev.target.id === "restore-file" && ev.target.files && ev.target.files[0]){ var fr = new FileReader();
     fr.onload = function(){ try{ var d = JSON.parse(fr.result); if(!d || !d.cfg || !Array.isArray(d.sessions)) throw 0;
         ask("Restore this backup?", "It replaces the routines and " + S.sessions.length + " workouts on this phone with the " + d.sessions.length + " workouts in the file.", "Restore", function(){
