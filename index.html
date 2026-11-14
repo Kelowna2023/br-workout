@@ -1652,7 +1652,19 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", render);
 
 /* ---------- installed app: offline copy and storage ---------- */
-try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js"); }catch(e){}
+var BUILD = "16";
+try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
+/* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
+(function(){ var away = 0;
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden){ away = Date.now(); return; }
+    if(!away || Date.now() - away < 20000 || location.protocol !== "https:") return;
+    fetch("index.html?b=" + Date.now(), { cache:"no-store" }).then(function(r){ return r.ok ? r.text() : ""; }).then(function(t){
+      var m = t.match(/var BUILD = "(\d+)"/); if(!m || m[1] === BUILD) return;
+      var busy = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+      if(!busy && $("#sheet").hidden) location.reload(); }).catch(function(){}); });
+})();
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 /* ---------- boot ---------- */
