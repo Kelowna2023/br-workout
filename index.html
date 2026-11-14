@@ -830,6 +830,13 @@ function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars 
   if((c.pv || 0) < 3){ var ren = { mon:["Back & Hamstrings","Posterior Chain"], thu:["Legs","Lower Body"], fri:["Upper Supersets","Upper Density"] };
     c.routines.forEach(function(r){ if(ren[r.id] && r.name === ren[r.id][0]) r.name = ren[r.id][1]; }); c.pv = 3; migrated = true; }
   if((c.pv || 0) < 4){ c.routines.forEach(function(r){ if(r.id === "tue" && r.name === "Chest & Shoulders") r.name = "Push"; }); c.pv = 4; migrated = true; }
+  if((c.pv || 0) < 5){ var addEx = function(id, ex, after){ c.routines.forEach(function(r){ if(r.id !== id) return; var ks = r.exercises.map(function(x){ return key(x.name); }); if(ks.indexOf(key(ex.name)) >= 0) return; var i = after ? ks.indexOf(after) : -1; if(i >= 0 && !r.exercises[i].link) r.exercises.splice(i + 1, 0, ex); else r.exercises.push(ex); }); };
+    c.routines.forEach(function(r){ if(r.id === "mon" || r.id === "sat") r.exercises.forEach(function(x){ if(key(x.name) === "dumbbell shrug") x.name = "Smith Shrug"; }); });
+    addEx("mon", {name:"Lat Pulldown", sets:4, reps:"10-12", rest:75}, "low cable row");
+    addEx("mon", {name:"Dumbbell Curl", sets:3, reps:"10-12", rest:60}, null);
+    addEx("tue", {name:"Machine Chest Press", sets:3, reps:"10-12", rest:90}, "incline press");
+    addEx("sat", {name:"Hammer Curl", sets:3, reps:"12-15", rest:60}, "smith shrug");
+    c.pv = 5; migrated = true; }
   return c; }
 var PLATE_COLORS = ["var(--plate)","var(--p-blue)","var(--p-yellow)","var(--p-green)"];
 
@@ -844,6 +851,7 @@ var S = {
   openRoutine: null, pick: false, histMonth: 0,
   progressEx: null
 };
+if(migrated && S.active && !hasWork(S.active)){ S.active = null; ls.set("active", null); }
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
 var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = true;
 
@@ -1239,7 +1247,12 @@ var MM = {
   "smith calf raise": [["calves"],[]],
   "cable curl": [["biceps"],["forearms"]],
   "cable chest fly": [["chest"],["delts"]],
-  "farmer carry": [["forearms","traps"],["abs","obliques","calves"]]
+  "farmer carry": [["forearms","traps"],["abs","obliques","calves"]],
+  "lat pulldown": [["lats"],["biceps","upperback"]],
+  "dumbbell curl": [["biceps"],["forearms"]],
+  "hammer curl": [["biceps","forearms"],[]],
+  "machine chest press": [["chest"],["delts","triceps"]],
+  "smith shrug": [["traps"],["forearms"]]
 };
 var MM_GUESS = [
   [/calf/, [["calves"],[]]], [/shrug/, [["traps"],["forearms"]]], [/carry/, [["forearms","traps"],["abs"]]],
