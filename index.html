@@ -850,6 +850,26 @@ main>.xbig{position:absolute}
 .tabs a{position:relative;display:inline-block}
 .tabs a[aria-current="page"]{text-shadow:0 0 18px rgba(157,107,255,.7)}
 .morphg.gone{transition:opacity .45s ease,transform 1s cubic-bezier(.7,0,.16,1),filter .45s;filter:blur(8px)}
+
+/* ---- set rows: done + note + delete; a timer button with wheels ---- */
+.sr{grid-template-columns:16px minmax(0,1fr) minmax(0,1fr) 36px 60px 26px!important;gap:8px!important}
+.nt{flex-direction:column;gap:3px;height:56px;color:#5f5d59!important;font:400 9px/1 var(--body);letter-spacing:.04em}
+.nt svg{width:16px;height:16px}
+.nt.has{color:var(--plate)!important}
+.sx{height:44px;margin:0;padding:0;background:none;border:0;border-radius:0;color:#4a4845;font:400 18px/1 var(--body)}
+.sr.hdr span:last-child{display:none}
+.tmr{display:flex;align-items:center;justify-content:space-between;width:100%;height:64px;margin-top:30px;padding:0 20px;border:1px solid var(--plate);border-radius:0;background:transparent;color:var(--chalk);font:500 17px/1 var(--body)}
+.tmr b{font:400 28px/1 var(--poster);color:var(--plate);font-variant-numeric:tabular-nums}
+.tmr.ready{background:var(--plate);color:var(--ink);box-shadow:0 0 40px rgba(157,107,255,.35)}
+.tmr.ready b{color:var(--ink)}
+.whs{position:relative;display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;height:220px;margin:4px 0 8px}
+.whs::before{content:"";position:absolute;left:0;right:0;top:88px;height:44px;border-top:1px solid var(--knurl);border-bottom:1px solid var(--knurl);pointer-events:none}
+.wh{height:220px;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:88px 0;-webkit-mask:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
+.wh::-webkit-scrollbar{display:none}
+.wh div{height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font:400 30px/1 var(--poster);color:#4a4845;transition:color .2s,transform .2s}
+.wh div.sel{color:var(--chalk);transform:scale(1.15)}
+.whc{text-align:center;font:400 30px/1 var(--poster);color:var(--plate)}
+.whl{display:grid;grid-template-columns:1fr 18px 1fr;text-align:center;margin-bottom:-4px}
 </style>
 </head>
 <body>
@@ -1219,7 +1239,7 @@ function tick(){
   if(a && el) el.textContent = fmtDur((Date.now() - a.startedAt)/1000);
   var inl = $("#inl-rest"), rg = $("#restgo"); if(rg){ var rdy = !!(a && a.restReady && !a.restEnd && !inl); rg.hidden = !rdy; if(rdy) $("#restgo-t").textContent = fmtClock(a.restReady.total); }
   if(inl && a && a.restEnd && $("#inl-t")) $("#inl-t").textContent = fmtClock(Math.max(0, (a.restEnd - Date.now())/1000));
-  if(inl && a && !a.restEnd && inl.classList.contains("run") && !a.restReady){ setTimeout(render, 0); }
+  if(inl && a && !a.restEnd && inl.classList.contains("run")){ setTimeout(render, 0); }
   if(a && a.restEnd){
     var rem = (a.restEnd - Date.now())/1000;
     if(rem <= 0){ a.restEnd = null; ls.set("active", a); restFlash = Date.now() + 2500; beep(); buzz([200,100,200]);
@@ -1554,6 +1574,18 @@ function openGroup(a){
   if(a.openEx != null && a.exercises[a.openEx]) return groupOf(a, a.openEx);
   return [];
 }
+
+/* scroll-wheel timer: minutes on the left, seconds on the right */
+function wheelSheet(ei){
+  var a = S.active, x = a.exercises[ei], cur = Math.max(0, Math.round(x.rest || 90)), m0 = Math.min(10, Math.floor(cur / 60)), s0 = Math.round((cur % 60) / 5) * 5;
+  var mins = "", secs = ""; for(var i = 0; i <= 10; i++) mins += '<div>' + i + '</div>'; for(var j = 0; j < 60; j += 5) secs += '<div>' + pad2(j) + '</div>';
+  sheet('<h2>Rest timer</h2><div class="whl mono"><span>min</span><span></span><span>sec</span></div><div class="whs"><div class="wh" id="wh-m">' + mins + '</div><div class="whc">:</div><div class="wh" id="wh-s">' + secs + '</div></div>' +
+    '<button class="btn go" type="button" data-act="wh-go" data-e="' + ei + '">Start timer</button>');
+  [["#wh-m", m0], ["#wh-s", s0 / 5]].forEach(function(p){ var w = $(p[0]); w.scrollTop = p[1] * 44; var mark = function(){ var k = Math.round(w.scrollTop / 44); Array.prototype.forEach.call(w.children, function(d, n){ d.classList.toggle("sel", n === k); }); };
+    mark(); w.addEventListener("scroll", mark, { passive:true });
+    w.addEventListener("click", function(e){ var d = e.target.closest(".wh div"); if(d) w.scrollTo({ top:Array.prototype.indexOf.call(w.children, d) * 44, behavior:"smooth" }); }); });
+}
+function wheelValue(){ return Math.round($("#wh-m").scrollTop / 44) * 60 + Math.round($("#wh-s").scrollTop / 44) * 5; }
 function actBlock(a, ei, hist, u, inSS, gi, gn){
   var x = a.exercises[ei], g = gearOf(x.name), s = exState(x), cs = -1, rows = "", rl = x.repLabel || "Reps";
   for(var i = 0; i < x.sets.length; i++) if(!x.sets[i].done){ cs = i; break; }
@@ -1567,8 +1599,8 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
     rows += '<div class="sr' + (st.done ? " done" : si === cs ? " cur" : "") + '"><span class="mono sn">' + n + '</span>' +
       '<input class="num si" id="' + id + '-r" inputmode="numeric" autocomplete="off" aria-label="Set ' + n + ' ' + esc(rl.toLowerCase()) + '" data-e="' + ei + '" data-s="' + si + '" data-k="r" value="' + esc(String(st.r == null ? "" : st.r)) + '" placeholder="' + esc(String(x.target || "0").replace("-", "–")) + '">' +
       '<input class="num si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="0">' +
-      '<button type="button" class="nt' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" aria-label="' + (hasNote ? "Note on set " + n : "Add a note to set " + n) + '" data-act="set-note" data-e="' + ei + '" data-s="' + si + '"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg></button>' +
-      '<button type="button" class="ck" data-act="check" data-e="' + ei + '" data-s="' + si + '" aria-label="' + (st.done ? "Set " + n + " logged. Undo it" : "Log set " + n) + '">' + (st.done ? "✓" : "Log") + '</button></div>' +
+      '<button type="button" class="nt' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" aria-label="' + (hasNote ? "Note on set " + n : "Add a note to set " + n) + '" data-act="set-note" data-e="' + ei + '" data-s="' + si + '"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg><span>Note</span></button>' +
+      '<button type="button" class="ck" data-act="check" data-e="' + ei + '" data-s="' + si + '" aria-label="' + (st.done ? "Set " + n + " done. Undo it" : "Set " + n + " done") + '">' + (st.done ? "✓" : "Done") + '</button><button type="button" class="sx" data-act="set-x" data-e="' + ei + '" data-s="' + si + '" aria-label="Delete set ' + n + '">×</button></div>' +
       (!st.open && st.rir ? '<div class="rir-l">' + rirLabel(st.rir) + '</div>' : "") +
       (st.open ? '<div class="setnote"><div class="rir" role="group" aria-label="How hard was set ' + n + '">' + RIR.map(function(q){ return '<button type="button" data-act="rir" data-e="' + ei + '" data-s="' + si + '" data-v="' + q[0] + '" aria-pressed="' + (st.rir === q[0]) + '">' + q[1] + '</button>'; }).join("") + '</div><textarea class="field" id="' + id + '-n" rows="2" aria-label="Note for set ' + n + '" data-e="' + ei + '" data-s="' + si + '" data-k="note" placeholder="Note for set ' + n + '">' + esc(st.note || "") + '</textarea></div>' : "");
   });
@@ -1577,7 +1609,7 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
     '<div class="xh"><h3 class="xn" style="font-size:' + (x.name.length > 26 ? 26 : 34) + 'px">' + esc(x.name) + '</h3><button type="button" class="more" aria-label="More options for ' + esc(x.name) + '" data-act="ex-more" data-e="' + ei + '">···</button></div>' +
     (line.length ? '<div class="mono xt">' + line.join(" · ") + '</div>' : "") +
     (line2.length ? '<div class="mono xt" style="margin-top:8px">' + line2.join(" · ") + '</div>' : "") +
-    '<div class="st"><div class="sr hdr mono" aria-hidden="true"><span>Set</span><span>' + esc(rl) + '</span><span>' + esc(g === "db" ? u + " each" : g === "body" ? "+ " + u : u) + '</span><span></span><span></span></div>'  + rows + '</div>' +
+    '<div class="st"><div class="sr hdr mono" aria-hidden="true"><span>Set</span><span>' + esc(rl) + '</span><span>' + esc(g === "db" ? u + " each" : g === "body" ? "+ " + u : u) + '</span><span></span><span></span><span></span></div>'  + rows + '</div>' +
     '<div class="links mono sl"><button type="button" data-act="add-set" data-e="' + ei + '">+ Add set</button>' + (g === "bar" || g === "cable" || g === "machine" ? '<button type="button" data-act="weight" data-e="' + ei + '" data-s="' + (cs < 0 ? x.sets.length - 1 : cs) + '">' + (g === "bar" ? "What&#39;s on the bar →" : "Weight stack →") + '</button>' : '<span></span>') + '</div>' +
     '</div>';
 }
@@ -1586,8 +1618,9 @@ function renderWorkout(){
     h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button><div class="xbig" aria-hidden="true">' + pad2(grp[0] + 1) + '</div><div class="mono xi">' + pad2(grp[0] + 1) + ' of ' + pad2(a.exercises.length) + '</div>' : '<button type="button" class="mono back" data-act="to-list">← Workouts</button><h1 class="pick-h" style="margin:4px 0 0">' + esc(a.name) + '</h1>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
   if(grp.length){
-    if(a.restEnd) h += '<button type="button" class="inl-rest run" id="inl-rest" data-act="rest-max"><span>Resting · show timer</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now())/1000)) + '</b></button>';
-    else if(a.restReady) h += '<button type="button" class="inl-rest" id="inl-rest" data-act="rest-start"><span>Start rest</span><b>' + fmtClock(a.restReady.total) + '</b></button>';
+    var tx = a.exercises[grp[0]];
+    if(a.restEnd) h += '<button type="button" class="tmr inl-rest run" id="inl-rest" data-act="rest-max"><span>Resting · show timer</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now())/1000)) + '</b></button>';
+    else h += '<button type="button" class="tmr inl-rest' + (a.restReady ? " ready" : "") + '" id="inl-rest" data-act="wheel" data-e="' + grp[0] + '"><span>Timer</span><b>' + fmtClock(tx.rest || 90) + '</b></button>';
     return h;
   }
   if(!grp.length && allDone) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
@@ -1895,6 +1928,10 @@ document.addEventListener("click", function(ev){
     case "stk-use": if(a && stk){ var sx = a.exercises[stk.e], tot = stk.base + stk.add; sx.sets[stk.s].w = tot > 0 ? tot : "";
         S.cfg.stack[key(sx.name)] = { step:stk.step, n:stk.n }; saveCfg(); saveActive(); stk = null; closeSheet(); render(); } break;
     case "end-done": (function(){ var e = $("#endcard"); e.classList.add("bye"); setTimeout(function(){ e.hidden = true; e.classList.remove("bye"); }, 600); })(); break;
+    case "set-x": (function(){ var xs = a.exercises[ei].sets; if(xs.length <= 1){ xs[0] = { r:"", w:xs[0].w, done:false }; } else xs.splice(si, 1); a.restReady = null; saveActive(); render(); })(); break;
+    case "wheel": wheelSheet(ei); break;
+    case "wh-go": (function(){ var secs = wheelValue(); if(secs < 5){ toast("Pick a time first"); return; } a.exercises[ei].rest = secs; closeSheet(); primeAudio();
+        a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); })(); break;
     case "rir": (function(){ var rs2 = a.exercises[ei].sets[si]; rs2.rir = rs2.rir === b.dataset.v ? "" : b.dataset.v; saveActive(); render(); })(); break;
     case "meas-log": measSheet(); break;
     case "meas-save": (function(){ var v = {}, any = false; MEAS.forEach(function(m){ var x = $("#ms-" + m[0]).value.trim(); if(x !== "" && num(x) > 0){ v[m[0]] = num(x); any = true; } });
@@ -1992,7 +2029,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "24";
+var BUILD = "25";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
