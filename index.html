@@ -728,6 +728,36 @@ button.addp{background:none;border:0;border-radius:0;padding:0;min-height:44px}
 .inl-rest b{font:500 26px/1 var(--display);font-variant-numeric:tabular-nums}
 .inl-rest.run{background:transparent;color:var(--chalk);border:1px solid var(--plate)}
 .inl-rest.run b{color:var(--plate)}
+/* ===== motion ===== */
+.wm{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .02em .08em;margin:0 -.02em -.08em}
+.wi{display:inline-block;animation:wup 1s cubic-bezier(.16,1,.3,1) var(--d,0ms) both}
+@keyframes wup{from{transform:translateY(112%)}}
+.rv{animation:rise .9s cubic-bezier(.16,1,.3,1) var(--d,0ms) both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
+.wr.rv,.tr.rv{animation-name:slidein}
+@keyframes slidein{from{opacity:0;transform:translateX(-34px)}}
+.bg-b.rv i{animation:grow 1.2s cubic-bezier(.16,1,.3,1) calc(var(--d,0ms) + 200ms) both;transform-origin:left}
+@keyframes grow{from{transform:scaleX(0)}}
+.cal .rv{animation-name:pop;animation-duration:.6s}
+@keyframes pop{from{opacity:0;transform:scale(.6)}}
+.bmap path.mp{animation:glow .9s ease var(--d,0ms) both}
+@keyframes glow{from{opacity:0}}
+.wr,.tr,.inl-rest,.btn,.logbtn,.ck,#restgo,.stk-t,.rir button{transition:transform .18s cubic-bezier(.3,1.4,.5,1),opacity .18s}
+.wr:active,.tr:active{transform:translateX(8px);opacity:.7}
+.inl-rest:active,.btn:active,.logbtn:active,.ck:active,#restgo:active,.stk-t:active,.rir button:active{transform:scale(.96)}
+.sr{position:relative}
+.sr.just .ck{animation:tick .55s cubic-bezier(.3,1.7,.5,1) both}
+@keyframes tick{0%{transform:scale(.3);opacity:0}100%{transform:scale(1)}}
+.sr.just::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:2px;background:var(--plate);transform-origin:left;animation:sweep .9s cubic-bezier(.7,0,.2,1) both;pointer-events:none}
+@keyframes sweep{0%{transform:scaleX(0)}55%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+#restfull:not([hidden]){animation:iris .75s cubic-bezier(.7,0,.2,1) both}
+@keyframes iris{from{clip-path:circle(0% at 50% 100%)}to{clip-path:circle(150% at 50% 100%)}}
+#restfull:not([hidden]) #rf-time{animation:rise 1s cubic-bezier(.16,1,.3,1) .25s both}
+#restfull:not([hidden]) .rbtns,#restfull:not([hidden]) #rf-next,#restfull:not([hidden]) .rmin{animation:rise .9s cubic-bezier(.16,1,.3,1) .45s both}
+#sheet:not([hidden]) .panel{animation:sheetup .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes sheetup{from{transform:translateY(100%)}}
+.tabs a{transition:color .4s}
+@media (prefers-reduced-motion: reduce){.wi,.rv,.mp,.sr.just .ck,.sr.just::after,#restfull,#sheet .panel{animation:none!important}}
 </style>
 </head>
 <body>
@@ -1027,7 +1057,7 @@ function toggleSet(ei, si){
   if(st.done){ st.done = false; delete st.pr; saveActive(); render(); return; }
   if(!(num(st.r) > 0)){ toast("Enter reps first"); return; }
   primeAudio();
-  st.w = num(st.w); st.r = num(st.r); st.done = true; st.open = false;
+  st.w = num(st.w); st.r = num(st.r); st.done = true; st.open = false; justLogged = ei + "-" + si;
   var h = histIndex()[key(x.name)], e = e1rm(st.w, st.r);
   if(h && h.best > 0){
     var bar = h.best; x.sets.forEach(function(o){ if(o !== st && o.done){ var oe = e1rm(num(o.w), num(o.r)); if(oe > bar) bar = oe; } });
@@ -1376,6 +1406,7 @@ function finishSheet(s){
     '<h2 style="margin-top:8px">' + (prev ? "Against last time" : "Your sets") + '</h2><div>' + lines + '</div>' +
     (prev ? "" : '<div class="mono">First time logging this workout. Next time you&#39;ll see how you compare.</div>') +
     '<button class="btn go" type="button" data-act="sheet-close">Done</button>');
+  setTimeout(function(){ choreo($("#sheet .panel")); }, 0);
 }
 
 /* ---------- views ---------- */
@@ -1559,6 +1590,46 @@ function renderRoutines(){
   return h;
 }
 
+/* ---------- motion: every new screen arrives like the intro ---------- */
+var lastScreen = "", justLogged = null;
+function screenKey(){
+  var v = viewName(), a = S.active;
+  if(v === "today"){ if(a && !S.pick){ var g = openGroup(a); return "w:" + a.id + ":" + (g.length ? g.join(",") : "list"); } return "pick"; }
+  return v + (v === "history" ? ":" + S.histMonth : "") + (v === "routines" ? ":" + S.openRoutine : "");
+}
+var HEADS = ".pick-h,.xn,.fs-h,h2";
+var ROWS = ".wr,.tr,.sr,.bg-r,.bg-b,.fs-r,details.card,.cal span,.cal b,.ph-strip button,.ph-cmp button,.stk-t,.inl-rest,.links,.wk-foot,.cells span,.ms-in,.rir";
+function splitWords(el, base){
+  if(el.dataset.split) return; el.dataset.split = 1;
+  var words = el.textContent.trim().split(/\s+/);
+  el.innerHTML = words.map(function(w, i){ return '<span class="wm"><span class="wi" style="--d:' + (base + i * 70) + 'ms">' + esc(w) + '</span></span>'; }).join(" ");
+}
+function countUp(el){
+  var t = el.textContent.trim(), m = t.match(/^([+−-]?)(\d+(?:\.\d+)?)(.*)$/); if(!m || +m[2] === 0) return;
+  var to = +m[2], dec = (m[2].split(".")[1] || "").length, t0 = performance.now();
+  (function f(n){ var p = Math.min(1, (n - t0) / 1000), e = 1 - Math.pow(1 - p, 3); el.textContent = m[1] + (to * e).toFixed(dec) + m[3]; if(p < 1) requestAnimationFrame(f); })(t0);
+}
+function choreo(root){
+  if(calm || !root) return;
+  var i = 0, step = function(el, gap){ el.style.setProperty("--d", Math.min(1100, 140 + i * (gap || 55)) + "ms"); el.classList.add("rv"); i++; };
+  root.querySelectorAll(HEADS).forEach(function(h, k){ splitWords(h, 60 + k * 90); });
+  Array.prototype.forEach.call(root.children, function(c){
+    if(c.matches(HEADS) || c.matches(".panel")) return;
+    if(c.querySelector(ROWS)){ c.querySelectorAll(ROWS).forEach(function(r){ step(r, r.matches(".cal b,.cal span") ? 9 : r.matches(".bg-b") ? 0 : 55); }); }
+    else step(c);
+  });
+  root.querySelectorAll(".bmap path").forEach(function(p, k){ p.style.setProperty("--d", (250 + (k % 23) * 28) + "ms"); p.classList.add("mp"); });
+  setTimeout(function(){ root.querySelectorAll(".bg-n,.fs-st b,.cells b").forEach(countUp); }, 260);
+}
+function afterRender(main){
+  var k = screenKey();
+  if(k !== lastScreen){ lastScreen = k; choreo(main); }
+  if(justLogged && !calm){ var inp = $("#s-" + justLogged + "-r"), row = inp && inp.closest(".sr");
+    if(row){ row.classList.add("just"); var nx = row.nextElementSibling; while(nx && !nx.matches(".sr")) nx = nx.nextElementSibling; if(nx){ nx.style.setProperty("--d", "180ms"); nx.classList.add("rv"); } }
+    var ir = $("#inl-rest"); if(ir){ ir.style.setProperty("--d", "260ms"); ir.classList.add("rv"); } }
+  justLogged = null;
+}
+
 function render(){
   var v = viewName(), main = $("#view"), top = main.scrollTop;
   main.innerHTML = { today:renderToday, history:renderHistory, progress:renderProgress, body:renderBody, routines:renderRoutines }[v]();
@@ -1570,7 +1641,7 @@ function render(){
   var names = {}; S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ if(key(x.name)) names[key(x.name)] = x.name; }); });
   S.sessions.forEach(function(s){ s.exercises.forEach(function(x){ names[key(x.name)] = x.name; }); });
   $("#exnames").innerHTML = Object.keys(names).sort().map(function(k){ return '<option value="' + esc(names[k]) + '">'; }).join("");
-  tick(); fitAll();
+  tick(); fitAll(); afterRender(main);
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
 setTimeout(loadPhotos, 300);
@@ -1700,7 +1771,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", render);
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "21";
+var BUILD = "22";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
