@@ -705,6 +705,23 @@ main[data-v="today"] .pick-h ~ .ledger .wn{color:var(--dust)!important}
 .rir-l{font-size:12px;color:var(--plate);margin:-2px 0 8px 30px}
 button.addp{background:none;border:0;border-radius:0;padding:0;min-height:44px}
 .bg-b i.short{background:#5f5d59}
+
+/* ---- rest: start it yourself, then it fills the screen ---- */
+#restgo{display:flex;align-items:center;justify-content:space-between;margin:0;padding:0 var(--g);height:64px;border:0;border-radius:0;background:var(--plate);color:var(--ink);font:500 17px/1 var(--body);flex:none}
+#restgo[hidden]{display:none}
+#restgo b{font:500 24px/1 var(--display);font-variant-numeric:tabular-nums}
+#restfull{justify-content:center!important;padding:calc(env(safe-area-inset-top) + 20px) var(--g) calc(env(safe-area-inset-bottom) + 20px)!important}
+#restfull .rtop{border:0;padding:0;justify-content:center;gap:10px}
+#rf-lab,#rf-of{font:400 15px/1.3 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:var(--dust)!important}
+#rf-time{font:400 clamp(130px,44vw,200px)/1 var(--display)!important;color:var(--chalk)!important;text-align:center;padding:18px 0 10px!important;letter-spacing:-.01em}
+#restfull.go #rf-time{color:var(--plate)!important}
+.rtrack{height:3px!important;border:0!important;background:#1e1e21;margin:0 0 34px!important}
+.rbtns{grid-template-columns:1fr 1fr!important;gap:10px;border:0!important;margin:0!important}
+.rbtns button{height:56px!important;border:1px solid var(--knurl)!important;background:transparent!important;color:var(--chalk)!important;font:500 16px/1 var(--body)!important;letter-spacing:0!important;text-transform:none!important}
+.rbtns button:last-child{grid-column:1/-1;background:var(--plate)!important;border-color:var(--plate)!important;color:var(--ink)!important;height:60px!important}
+#rf-next{padding:30px 0 0!important;text-align:center!important;align-items:center}
+#rf-next b{font:500 22px/1.15 var(--display)!important}
+.rmin{display:block;margin:26px auto 0;background:none;border:0;color:var(--dust);font:400 14px/1 var(--body)!important;letter-spacing:0!important;text-transform:none!important;min-height:44px}
 </style>
 </head>
 <body>
@@ -714,6 +731,7 @@ button.addp{background:none;border:0;border-radius:0;padding:0;min-height:44px}
     <div class="sync" id="sync" data-s="local">Saved on this device</div>
   </header>
   <main id="view"></main>
+  <button type="button" id="restgo" data-act="rest-start" hidden><span>Start rest</span><b id="restgo-t">1:30</b></button>
   <div id="rest" hidden>
     <div class="r1">
       <div><div class="lab" id="restlab">Rest</div><div class="time num" id="resttime">0:00</div></div>
@@ -729,9 +747,9 @@ button.addp{background:none;border:0;border-radius:0;padding:0;min-height:44px}
     <div class="rtop mono"><span id="rf-lab">Rest</span><span id="rf-of" class="num"></span></div>
     <div class="rclock" id="rf-time" role="timer">0:00</div>
     <div class="rtrack"><i id="rf-bar"></i></div>
-    <div class="rbtns"><button type="button" data-act="rest-add" data-v="-15">−15</button><button type="button" data-act="rest-add" data-v="30">+30</button><button type="button" data-act="rest-skip">Skip →</button></div>
+    <div class="rbtns"><button type="button" data-act="rest-add" data-v="-15">−15 s</button><button type="button" data-act="rest-add" data-v="30">+30 s</button><button type="button" data-act="rest-skip">Skip rest</button></div>
     <div class="rnext" id="rf-next"></div>
-    <button class="mono rmin" type="button" data-act="rest-min">← Back to my sets</button>
+    <button class="mono rmin" type="button" data-act="rest-min">Hide timer</button>
   </div>
   <nav class="tabs" aria-label="Sections">
     <a href="#today" id="tab-today">Workouts</a>
@@ -1016,7 +1034,8 @@ function toggleSet(ei, si){
   var later = x.sets.slice(si+1).some(function(o){ return !o.done; }) || a.exercises.slice(ei+1).some(function(o){ return o.sets.some(function(q){ return !q.done; }); });
   var chained = x.link && a.exercises[ei+1];
   if(chained){ toast("Straight into " + a.exercises[ei+1].name); }
-  else if(later){ a.restTotal = x.rest; a.restEnd = Date.now() + x.rest*1000; restFlash = 0; restMin = true; a.restNext = nextUp(a); }
+  else if(later){ a.restEnd = null; a.restReady = { total:x.rest }; }
+  else a.restReady = null;
   saveActive(); render();
 }
 function nextUp(a){
@@ -1066,6 +1085,7 @@ function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 function tick(){
   var a = S.active, el = $("#elapsed"), dock = $("#rest"), full = $("#restfull");
   if(a && el) el.textContent = fmtDur((Date.now() - a.startedAt)/1000);
+  var rg = $("#restgo"); if(rg){ var rdy = !!(a && a.restReady && !a.restEnd); rg.hidden = !rdy; if(rdy) $("#restgo-t").textContent = fmtClock(a.restReady.total); }
   if(a && a.restEnd){
     var rem = (a.restEnd - Date.now())/1000;
     if(rem <= 0){ a.restEnd = null; ls.set("active", a); restFlash = Date.now() + 2500; beep(); buzz([200,100,200]);
@@ -1609,7 +1629,8 @@ document.addEventListener("click", function(ev){
     case "rest-add": if(a && a.restEnd){ var d = +b.dataset.v * 1000; a.restEnd += d; a.restTotal = Math.max(1, a.restTotal + d/1000); ls.set("active", a); tick(); } break;
     case "rest-min": restMin = true; tick(); break;
     case "rest-max": restMin = false; tick(); break;
-    case "rest-skip": if(a){ a.restEnd = null; ls.set("active", a); } restFlash = 0; tick(); break;
+    case "rest-skip": if(a){ a.restEnd = null; a.restReady = null; ls.set("active", a); } restFlash = 0; tick(); break;
+    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); tick(); } break;
     case "del-session": ask("Delete this workout?", "It will be removed from your history and records.", "Delete", function(){
       var id = b.dataset.id; S.sessions = S.sessions.filter(function(s){ return s.id !== id; }); ls.set("sessions", S.sessions);
       S.pend.add = S.pend.add.filter(function(i){ return i !== id; }); S.pend.del.push(id); savePend(); pushDelete(id); render(); }); break;
@@ -1666,7 +1687,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", render);
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "16";
+var BUILD = "20";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
