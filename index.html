@@ -872,6 +872,75 @@ details.card>summary{padding:16px 0}details.card>*:not(summary){margin-left:0;ma
 #intro.v2 .i-cue i{height:26px}
 #intro.v2.has-photo .kx-row.s .kx-t{mix-blend-mode:normal}
 #intro.v2 .i-photo::after{background:linear-gradient(180deg,rgba(9,9,10,.55),rgba(9,9,10,.3) 40%,rgba(9,9,10,.7))!important}
+
+/* ================= the opening's language, through the whole app ================= */
+:root{--mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace}
+/* display type: heavy, tight, upper case */
+.lt,.pick-h,.xn,.fs-h,main[data-v="progress"]::before{font-family:var(--font)!important;font-size:46px!important;font-weight:900!important;letter-spacing:-.06em!important;line-height:.88!important;text-transform:uppercase!important;text-wrap:balance}
+.xn{font-size:42px!important}
+h2,#sheet h2,.cal-t b,.pgd-h b{font-weight:900!important;letter-spacing:-.045em!important;text-transform:uppercase}
+h2{font-size:24px;line-height:.95}
+.wn,.nm{font-weight:900!important;text-transform:uppercase;letter-spacing:-.045em!important}
+.nm{font-size:19px;line-height:1}
+.pgpick b{font-weight:900;text-transform:uppercase;letter-spacing:-.045em}
+.si,.restc b,.beat b,.pgst b,.big,.pgd-r b,.pgb .v,.fs-st b,.cells b,.strip b,.xc{font-weight:800!important}
+/* readouts: small, mono, tracked */
+.cap,.eyebrow,.hm-top span,.hm-top .wk,.hrow .meta,.tr .meta,.hd,.beat span,.beat small,.pgst span,.pgc-h,.pgpick small,.pgl .cap,.pgb .d,.pgd-h small,.pgd-f,.pglog button span:first-child,.dl,.pr,.win,.badge,.chip,.back,.tabs a,.pgd-r>span:first-child,.links a,.links button,.restc .cap,.rlab,#rf-lab,#rf-of,.fs-st span,.cells span,.strip span,.xnum,.hrow .ix,.sr .n,.cal .cd,.bg-n,.mo-n,.mo-t,.bkrow i,.bkrow small,.pgsc span,.pglog.sc small{font-family:var(--mono)!important;text-transform:uppercase;letter-spacing:.1em!important}
+.cap,.eyebrow,.hm-top span,.hrow .meta,.tr .meta,.beat span,.pgst span,.pgc-h,.pgpick small,.pgd-h small,.pgd-f,.rlab,.fs-st span,.cells span,.strip span,.bkrow small,.pgsc span,.pglog.sc small,.beat small{font-size:10.5px!important;font-weight:600!important;line-height:1.35!important}
+.back{font-size:11px!important;font-weight:600!important}
+.links a,.links button{font-size:11px!important;font-weight:600!important}
+.tabs a{font-size:9px!important;letter-spacing:.14em!important;gap:6px}
+.chip,.dl,.pr,.badge,.win{font-size:10px!important;letter-spacing:.1em!important}
+.hrow .ix,.xnum{font-size:11px!important;letter-spacing:.06em!important}
+/* running headline */
+.mq{overflow:hidden;margin:2px calc(var(--g) * -1) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0 6px}
+.mq div{display:flex;width:max-content;white-space:nowrap;font:900 62px/.86 var(--font);letter-spacing:-.06em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.2px var(--text);animation:mqrun 26s linear infinite;will-change:transform}
+.mq span{padding-right:.22em}.mq i{font-style:normal;padding-right:.22em;-webkit-text-stroke:0;color:var(--acc)}
+@keyframes mqrun{to{transform:translate3d(-50%,0,0)}}
+@media (prefers-reduced-motion:reduce){.mq div{animation:none}}
+/* lists run edge to edge and invert under the finger */
+.hlist,.xlist,.pglog,.pgl{margin:0 calc(var(--g) * -1)!important}
+.hrow{padding:18px var(--g)!important;min-height:84px;gap:16px;transition:none}
+.hrow .wn{font-size:min(38px,calc((100vw - 2 * var(--g) - 70px) / (var(--n) * .62)))!important;line-height:.9}
+.hrow .hm{gap:8px}.hrow .chev{font:400 22px/1 var(--font);color:var(--dim)}
+.tr{padding:18px var(--g)!important;transition:none}
+.pglog button{padding:0 var(--g)!important}.pgl button,.pgl .cap{padding-left:var(--g)!important;padding-right:var(--g)!important}
+.hrow:active,.tr:active,.pglog button:active,.pgl button:active,.hrow.live{background:var(--acc)!important;color:#09090a!important}
+.hrow:active *,.tr:active *,.pglog button:active *,.pgl button:active *,.hrow.live *{color:#09090a!important;border-color:#09090a!important;-webkit-text-stroke-color:#09090a}
+.hrow.live .badge,.hrow:active .badge{background:#09090a!important;color:var(--acc)!important}
+.tr.fin .nm{color:var(--dim);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--acc)}
+/* buttons: hard orange blocks with black type */
+.btn.go,.nextb{color:#09090a!important;font:900 15px/1 var(--font)!important;letter-spacing:-.01em!important;text-transform:uppercase!important;min-height:64px!important;border-radius:0!important}
+.nextb{margin:0 calc(var(--g) * -1);padding:0 var(--g)!important;width:auto!important}
+.nextb span:last-child{font-size:22px}
+.btn{border-radius:0!important;text-transform:uppercase;font:700 12px/1 var(--mono)!important;letter-spacing:.1em!important}
+.si,.field,.pgseg,.pgseg button,.seg,.seg button,.tpre button,.gearsw button,.chip,.dl,.pr,.badge,.more,.disc{border-radius:0!important}
+.pgseg button,.seg button{font:700 11px/1 var(--mono)!important;letter-spacing:.1em!important;text-transform:uppercase}
+.sr.done .ck{color:#09090a}.restc .rbtn,.restc.run .rbtn.pp{color:#09090a}
+.cal .cd.on{color:#09090a;border-radius:0}.cal .cd{border-radius:0}
+.tabs a svg{stroke-width:1.5}
+/* rest, full screen: the last ten seconds turn the screen */
+#rf-time{font:900 min(47vw,250px)/.84 var(--font)!important;letter-spacing:-.08em!important;margin:6px -10px 0}
+#restfull .rbtns button{border-radius:0;font:700 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase}
+#restfull #rf-pause{color:#09090a}
+#restfull{transition:background .5s ease}
+#restfull.late{background:var(--acc)!important}
+#restfull.late #rf-time,#restfull.late #rf-lab,#restfull.late #rf-of,#restfull.late .rlab,#restfull.late [data-act="rest-min"]{color:#09090a!important}
+#restfull.late .rbtns button{background:none!important;border-color:#09090a!important;color:#09090a!important}
+#restfull.late #rf-pause{background:#09090a!important;color:var(--acc)!important}
+#restfull.late .rbar{background:rgba(9,9,10,.25)}#restfull.late .rbar i{background:#09090a}
+#restfull.go{background:var(--text)!important}#restfull.go #rf-time{color:#09090a!important}#restfull.go::after{display:none}
+/* a record takes the whole screen */
+.moment{background:var(--acc)!important;align-items:flex-start!important;text-align:left!important;justify-content:flex-end!important;padding:0 24px calc(env(safe-area-inset-bottom) + 90px)!important}
+.moment .burst{display:none}
+.mo-h{background:none!important;-webkit-text-fill-color:#09090a;color:#09090a!important;font:900 min(31vw,150px)/.8 var(--font)!important;letter-spacing:-.08em!important;text-transform:uppercase!important;margin:0 0 6px -4px}
+.mo-n,.mo-t{color:#09090a!important;font-size:11px!important}.mo-v{color:#09090a!important;font:900 44px/1 var(--font)!important;letter-spacing:-.05em}
+.mo-h{font-size:min(23.5vw,118px)!important}
+#rf-time{font-size:min(38vw,200px)!important;margin:6px 0 0!important;font-variant-numeric:tabular-nums}
+.hs .l1,.hs b,.bg-r>span:first-child,.rt .t b{font-weight:900!important;text-transform:uppercase;letter-spacing:-.04em!important}
+.hs .meta,.leg,.hs .l2{font-family:var(--mono)!important;text-transform:uppercase;letter-spacing:.1em!important;font-size:10.5px!important}
+/* finish */
+.ec-in .fs-h{font-size:min(24vw,104px)!important;line-height:.8!important}
 </style>
 </head>
 <body>
@@ -2783,6 +2852,35 @@ function bkRestore(file){ var fr = new FileReader();
     }catch(e){ toast("That file is not a workout backup"); } };
   fr.readAsText(file); }
 document.addEventListener("change", function(ev){ if(ev.target.id === "restore-file2" && ev.target.files && ev.target.files[0]){ bkRestore(ev.target.files[0]); ev.target.value = ""; } });
+
+/* ---- the opening's language on the home screen ---- */
+function renderToday(){
+  if(S.active && !S.pick) return renderWorkout();
+  var a = S.active, st = weekStats(), goal = Math.max(1, +S.cfg.weeklyGoal || 5), n = new Date(), up = function(t){ return String(t).toUpperCase(); };
+  var run = '<span>What are we training</span><i>/</i><span>' + up(n.toLocaleDateString("en-US", { weekday:"long" })) + '</span><i>/</i>';
+  var h = '<div class="hm-top"><span class="cap">' + n.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</span><span class="wk">' + ("0" + st.thisWeek).slice(-2) + ' / ' + ("0" + goal).slice(-2) + ' this week</span></div>' +
+    '<h1 class="vh">Choose a workout</h1><div class="mq" aria-hidden="true"><div>' + run + run + run + run + '</div></div><div class="hlist">';
+  var order = S.cfg.routines.slice().sort(function(x, y){ var dx = x.day == null ? 9 : (x.day + 6) % 7, dy = y.day == null ? 9 : (y.day + 6) % 7; return dx - dy; });
+  order.forEach(function(r, i){
+    var logged = function(w){ return w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done; }); }); }, live = (a && a.routineId === r.id && logged(a)) || S.parked.some(function(w){ return w.routineId === r.id && logged(w); }), last = 0;
+    S.sessions.forEach(function(q){ if(q.routineId === r.id && q.startedAt > last) last = q.startedAt; });
+    h += '<button type="button" class="hrow' + (live ? " live" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (live ? ", in progress" : "") + '"><span class="ix">' + (i < 9 ? "0" : "") + (i + 1) + '</span>' +
+      '<span class="hm"><span class="wn" style="--n:' + Math.max(6, r.name.length) + '">' + esc(r.name) + '</span><span class="meta">' + chipsFor(r.exercises).join(" / ") + (last ? ' — ' + relDay(last) : '') + '</span></span>' +
+      (live ? '<span class="badge">In progress</span>' : '<span class="chev" aria-hidden="true">→</span>') + '</button>'; });
+  var bn = bkNeed(); return h + '</div>' + (bn ? '<button type="button" class="bkrow" data-act="backup"><span><b>Back up your history</b><small>' + (bkInfo() ? bn + (bn === 1 ? ' workout' : ' workouts') + ' since your last backup' : 'Your workouts live on this phone only') + '</small></span><i>Back up</i></button>' : '') + '<div class="links">' + (STANDALONE ? '<a href="#" data-act="backup">Backup</a>' : '<span></span>') + '<a href="#routines">Edit workouts</a></div>';
+}
+/* screens arrive the way the opening does: titles rise from behind a mask, rows wipe in from the edge */
+function fxAfterRender(main, changed){
+  if(NV.quiet){ navDir = 1; return; }
+  if(!changed) return; navDir = 1;
+  var kids = Array.prototype.slice.call(main.children), rows = main.querySelectorAll(".hrow,.xlist>.tr,.pglog button"), heads = main.querySelectorAll(".lt,.xn,.mq");
+  gsap.killTweensOf(main); gsap.killTweensOf(kids); gsap.set(main, { clearProps:"transform,opacity,filter" });
+  gsap.fromTo(kids, { opacity:0 }, { opacity:1, duration:0.35, stagger:0.03, ease:"power2.out", clearProps:"opacity" });
+  if(heads.length) gsap.fromTo(heads, { clipPath:"inset(0% 0% 100% 0%)", y:26 }, { clipPath:"inset(0% 0% 0% 0%)", y:0, duration:0.75, ease:"expo.out", stagger:0.05, clearProps:"clipPath,transform" });
+  if(rows.length) gsap.fromTo(rows, { clipPath:"inset(0% 100% 0% 0%)", x:-14 }, { clipPath:"inset(0% 0% 0% 0%)", x:0, duration:0.62, stagger:0.045, delay:0.08, ease:"expo.out", clearProps:"clipPath,transform" });
+  main.querySelectorAll(".pbar i,.bg-b i,.gbar i").forEach(function(b, k){ gsap.from(b, { scaleX:0, transformOrigin:"0 50%", duration:0.9, ease:"expo.out", delay:0.2 + k * 0.04 }); });
+  var ln = main.querySelector(".chart polyline"); if(ln && ln.getTotalLength){ var len = ln.getTotalLength(); gsap.fromTo(ln, { strokeDasharray:len, strokeDashoffset:len }, { strokeDashoffset:0, duration:1.4, ease:"power2.inOut", delay:0.25 }); }
+}
 render();
 setInterval(tick, 250);
 connect();
