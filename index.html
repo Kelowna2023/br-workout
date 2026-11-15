@@ -654,6 +654,52 @@ main>h1.lt{will-change:transform,opacity}
 #intro.v2 .brmark{width:min(46vw,190px)}
 #intro.v2 .i-veil::after{content:"";position:absolute;left:0;right:0;bottom:0;height:170px;background:linear-gradient(180deg,rgba(9,9,10,0),#09090a 80%)}
 @media (max-height:620px){#intro.v2 .i-mark{height:46%}#intro.v2 .brmark{width:min(38vw,150px)}}
+
+/* ---- progress: one exercise, one bar per session ---- */
+.pgpick{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:64px;padding:0 20px;border:1px solid rgba(255,150,110,.2);border-radius:18px;background:linear-gradient(155deg,rgba(255,106,61,.12),rgba(20,20,24,.74) 60%);color:var(--text);text-align:left}
+.pgpick span{display:flex;flex-direction:column;gap:4px;min-width:0}.pgpick small{font:500 12px/1 var(--font);color:var(--dim)}
+.pgpick b{font:700 20px/1.15 var(--font);letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgpick svg{flex:none;width:20px;height:20px;fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s}
+.pgpick[aria-expanded="true"] svg{transform:rotate(180deg)}
+.pgl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:18px;background:var(--card);overflow:hidden;margin-top:-8px}
+.pgl .cap{padding:16px 18px 6px;color:var(--acc);font:600 12px/1 var(--font)}
+.pgl button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;padding:0 18px;border:0;border-top:1px solid var(--line);background:none;color:var(--text);font:600 16px/1.2 var(--font);text-align:left}
+.pgl .cap+button{border-top:0}.pgl button[aria-current="true"]{color:var(--acc-text);background:rgba(255,106,61,.08)}
+.pgl button span:last-child{flex:none;font:500 13px/1 var(--font);color:var(--dim)}
+.pgseg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--card2)}
+.pgseg button{min-height:40px;border:0;border-radius:10px;background:none;color:var(--dim);font:600 14px/1 var(--font)}
+.pgseg button[aria-pressed="true"]{background:var(--grad);color:#fff}
+.pgst{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pgst div{display:flex;flex-direction:column;gap:6px;padding:16px 18px;border:1px solid rgba(255,150,110,.13);border-radius:16px;background:linear-gradient(155deg,rgba(255,106,61,.085),rgba(20,20,24,.74) 55%)}
+.pgst b{font:700 22px/1 var(--font);letter-spacing:-.03em;font-variant-numeric:tabular-nums}.pgst span{font:500 12px/1 var(--font);color:var(--dim)}
+.pgst b.up{color:#7fe0ae}.pgst b.dn{color:#ff9d8a}
+.pgc{position:relative;padding:18px 0 14px;border:1px solid rgba(255,150,110,.13);border-radius:20px;background:linear-gradient(180deg,rgba(255,106,61,.07),rgba(20,20,24,.74) 60%);overflow:hidden}
+.pgc-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 18px 6px;font:500 12px/1 var(--font);color:var(--dim)}
+.pgs{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x}.pgs::-webkit-scrollbar{display:none}
+.pgbars{display:flex;align-items:flex-end;gap:8px;min-width:100%;width:max-content;height:236px;padding:0 18px;box-sizing:border-box;background:repeating-linear-gradient(180deg,transparent 0 46px,rgba(255,255,255,.045) 46px 47px) 0 30px/100% 188px no-repeat}
+.pgb{flex:1 0 44px;max-width:72px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;padding:0;border:0;background:none;color:var(--dim)}
+.pgb .v{font:700 13px/1 var(--font);font-variant-numeric:tabular-nums;color:var(--text);opacity:.75}
+.pgb .pr{font:700 9px/1 var(--font);letter-spacing:.04em;padding:3px 5px;border-radius:6px;background:rgba(127,224,174,.16);color:#7fe0ae}
+.pgb i{display:block;width:100%;height:calc(var(--h) * 1.5px);border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#ff9b78,#f04a26);opacity:.42;transform-origin:50% 100%;animation:pgrow .7s cubic-bezier(.2,.9,.3,1) both;animation-delay:var(--d)}
+.pgb.eq i{background:linear-gradient(180deg,#c9c4bf,#77736f)}
+.pgb .d{font:500 11px/1 var(--font);white-space:nowrap}
+.pgb.sel i{opacity:1;box-shadow:0 0 22px -4px rgba(255,106,61,.7)}.pgb.sel .v{opacity:1}.pgb.sel .d{color:var(--acc-text)}
+.pgc.noanim .pgb i{animation:none}
+@keyframes pgrow{from{transform:scaleY(.02)}}
+.pgc.ghost .pgb i{background:var(--card2);opacity:1}.pgc.ghost .pgbars{height:150px}.pgc.ghost .pgbars{width:100%;min-width:0}.pgc.ghost .pgb{flex:1 1 0;min-width:0}
+.pgc .pge{padding:14px 18px 2px;color:var(--dim);font:400 15px/1.4 var(--font)}
+.pgd{gap:0!important;padding:18px 20px 14px!important}
+.pgd-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:12px}
+.pgd-h span:first-child{display:flex;flex-direction:column;gap:5px}.pgd-h b{font:700 18px/1 var(--font);letter-spacing:-.02em}.pgd-h small{font:500 13px/1 var(--font);color:var(--dim)}
+.dl{flex:none;display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:99px;font:600 12px/1 var(--font);background:var(--card2);color:var(--dim);font-variant-numeric:tabular-nums}
+.dl.up{background:rgba(127,224,174,.14);color:#7fe0ae}.dl.dn{background:rgba(255,120,100,.12);color:#ff9d8a}
+.pgd-r{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:10px;min-height:44px;border-top:1px solid var(--line);font:500 14px/1.2 var(--font);color:var(--dim)}
+.pgd-r b{font:700 17px/1 var(--font);color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pgd-f{padding-top:12px;border-top:1px solid var(--line);font:500 13px/1.3 var(--font);color:var(--dim)}
+.pglog{display:flex;flex-direction:column;margin:0 calc(var(--g) * -1)}
+.pglog button{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:10px;min-height:58px;padding:0 var(--g);border:0;border-top:1px solid var(--line);background:none;color:var(--text);text-align:left;font:600 15px/1.2 var(--font);font-variant-numeric:tabular-nums}
+.pglog button:last-child{border-bottom:1px solid var(--line)}.pglog button span:first-child{font:500 13px/1 var(--font);color:var(--dim)}
+.pglog button[aria-current="true"]{background:rgba(255,106,61,.07)}
 </style>
 </head>
 <body>
@@ -1723,6 +1769,10 @@ document.addEventListener("click", function(ev){
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
+    case "pg-open": S.pgOpen = !S.pgOpen; S.pgNoAnim = true; render(); break;
+    case "pg-pick": S.progressEx = b.dataset.k; S.pgOpen = false; S.pgBar = null; S.pgNoAnim = false; render(); $("#view").scrollTop = 0; break;
+    case "pg-met": S.pgMet = b.dataset.v; S.pgNoAnim = false; render(); break;
+    case "pg-bar": (function(){ var sc = $("#pg-scroll"), mv = $("#view"), st = mv.scrollTop; S.pgScroll = sc ? sc.scrollLeft : null; S.pgBar = +b.dataset.i; S.pgNoAnim = true; render(); mv.scrollTop = st; })(); break;
     case "start": (function(r0){ morphFrom(b.querySelector(".wn"), function(){ goWorkout(r0); }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
     case "start-open": cut(function(){ goWorkout(null); }); break;
     case "to-home": cut(function(){ var el = $("#intro"); fillIntro(); el.hidden = false; introFX(true); }); break;
@@ -1856,7 +1906,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "46";
+var BUILD = "47";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2377,6 +2427,52 @@ function nvScroll(){ var main = $("#view"), bar = $("#nvbar"); if(!main || !bar)
 (function(){ var tk = false; $("#view").addEventListener("scroll", function(){ if(tk) return; tk = true; requestAnimationFrame(function(){ tk = false; nvScroll(); }); }, { passive:true }); })();
 var render0 = render; render = function(){ render0(); nvScroll(); };
 
+
+/* ---- progress: pick an exercise, one bar per session ---- */
+function pgData(k){
+  var out = [];
+  for(var i = S.sessions.length - 1; i >= 0; i--){ var s = S.sessions[i];
+    (s.exercises || []).forEach(function(x){ if(key(x.name) !== k || !x.sets || !x.sets.length) return;
+      var top = 0, topR = 0, vol = 0, reps = 0;
+      x.sets.forEach(function(st){ var w = num(st.w), r = num(st.r); vol += w * r; reps += r; if(w > top || (w === top && r > topR)){ top = w; topR = r; } });
+      out.push({ t:s.startedAt, wk:s.name || "", sets:x.sets, top:top, topR:topR, vol:vol, reps:reps }); }); }
+  return out;
+}
+function pgDelta(d, unit){ if(d == null) return '<span class="dl">First</span>'; if(Math.abs(d) < 0.05) return '<span class="dl">Same</span>';
+  return '<span class="dl ' + (d > 0 ? "up" : "dn") + '">' + (d > 0 ? "▲ +" : "▼ −") + fmtVol(Math.abs(d)).replace(/^0$/, fmtW(Math.abs(d))) + ' ' + unit + '</span>'; }
+function renderProgress(){
+  var u = S.cfg.units, groups = [], seen = {}, names = {}, counts = {};
+  S.sessions.forEach(function(s){ (s.exercises || []).forEach(function(x){ if(x.sets && x.sets.length){ var k = key(x.name); counts[k] = (counts[k] || 0) + 1; names[k] = x.name; } }); });
+  S.cfg.routines.forEach(function(r){ var g = { name:r.name, items:[] }; r.exercises.forEach(function(x){ var k = key(x.name); if(!k) return; seen[k] = 1; names[k] = x.name; g.items.push(k); }); if(g.items.length) groups.push(g); });
+  var other = Object.keys(counts).filter(function(k){ return !seen[k]; }); if(other.length) groups.push({ name:"Other", items:other });
+  if(!groups.length) return '<div class="empty">Add a workout and its exercises show up here.</div>';
+  if(!S.progressEx || !names[S.progressEx]){ var withData = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; }); S.progressEx = withData[0] || groups[0].items[0]; }
+  var k = S.progressEx, data = pgData(k), met = S.pgMet || "w";
+  if(met === "w" && data.length && !data.some(function(d){ return d.top > 0; })) met = "r";
+  var val = function(d){ return met === "w" ? d.top : met === "r" ? d.reps : d.vol; }, unit = met === "r" ? "reps" : u;
+  var h = '<button type="button" class="pgpick" data-act="pg-open" aria-expanded="' + !!S.pgOpen + '"><span><small>Exercise</small><b>' + esc(names[k]) + '</b></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
+  if(S.pgOpen){ h += '<div class="pgl">' + groups.map(function(g){ return '<div class="cap">' + esc(g.name) + '</div>' + g.items.map(function(q){ var c = counts[q] || 0;
+      return '<button type="button" data-act="pg-pick" data-k="' + esc(q) + '" aria-current="' + (q === k) + '"><span>' + esc(names[q]) + '</span><span>' + (c ? c + (c === 1 ? " session" : " sessions") : "No sessions") + '</span></button>'; }).join(""); }).join("") + '</div>'; return h; }
+  h += '<div class="pgseg" role="group" aria-label="What the bars show">' + [["w","Top weight"],["r","Total reps"],["v","Volume"]].map(function(m){ return '<button type="button" data-act="pg-met" data-v="' + m[0] + '" aria-pressed="' + (met === m[0]) + '">' + m[1] + '</button>'; }).join("") + '</div>';
+  if(!data.length){
+    return h + '<div class="pgc ghost"><div class="pgs"><div class="pgbars">' + [30,42,40,55,62,60,78].map(function(p){ return '<span class="pgb" style="--h:' + p + ';--d:0s"><i></i></span>'; }).join("") + '</div></div><div class="pge">No sessions for ' + esc(names[k]) + ' yet. Finish a workout with it and its first bar lands here.</div></div>';
+  }
+  var vals = data.map(val), mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals), lo = Math.max(0, mn - (mx - mn)), run = -1, sel = S.pgBar == null || S.pgBar >= data.length ? data.length - 1 : S.pgBar;
+  var best = data.slice().sort(function(a, b){ return b.top - a.top || b.topR - a.topR; })[0], last = data[data.length - 1], firstV = vals[0], lastV = vals[vals.length - 1], tot = lastV - firstV;
+  h += '<div class="pgst"><div><b>' + fmtW(last.top) + ' × ' + last.topR + '</b><span>Latest top set · ' + fmtShort(last.t) + '</span></div><div><b>' + fmtW(best.top) + ' × ' + best.topR + '</b><span>Best set · ' + fmtShort(best.t) + '</span></div>' +
+    '<div><b class="' + (tot > 0 ? "up" : tot < 0 ? "dn" : "") + '">' + (tot > 0 ? "+" : tot < 0 ? "−" : "") + fmtVol(Math.abs(tot)) + ' ' + unit + '</b><span>Since first session</span></div><div><b>' + data.length + '</b><span>' + (data.length === 1 ? "Session logged" : "Sessions logged") + '</span></div></div>';
+  h += '<div class="pgc' + (S.pgNoAnim ? " noanim" : "") + '"><div class="pgc-h"><span>' + (met === "w" ? "Heaviest set each session, " + esc(u) : met === "r" ? "Total reps each session" : "Weight × reps each session, " + esc(u)) + '</span><span>' + (data.length > 6 ? "Swipe for older" : "") + '</span></div><div class="pgs" id="pg-scroll"><div class="pgbars">' +
+    data.map(function(d, i){ var v = vals[i], rec = i > 0 && v > run, prev = i ? vals[i - 1] : null, pct = mx === lo ? 70 : 22 + 78 * (v - lo) / (mx - lo); if(v > run) run = v;
+      return '<button type="button" class="pgb' + (i === sel ? " sel" : "") + (prev != null && Math.abs(v - prev) < 0.05 ? " eq" : "") + '" data-act="pg-bar" data-i="' + i + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (data.length - 8)) * 0.05).toFixed(2) + 's" aria-label="' + fmtShort(d.t) + ', ' + fmtVol(v) + ' ' + unit + (rec ? ", new best" : "") + '">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + (met === "v" && v >= 10000 ? (v / 1000).toFixed(1) + "k" : fmtVol(v)) + '</span><i></i><span class="d">' + fmtShort(d.t) + '</span></button>'; }).join("") + '</div></div></div>';
+  var d = data[sel], dv = sel ? vals[sel] - vals[sel - 1] : null;
+  h += '<div class="card pgd"><div class="pgd-h"><span><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" }) + '</b><small>' + esc(d.wk) + '</small></span>' + pgDelta(dv, unit) + '</div>' +
+    d.sets.map(function(st, n){ return '<div class="pgd-r"><span>Set ' + (n + 1) + '</span><b>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</b><span>' + esc(st.note || "") + '</span></div>'; }).join("") +
+    '<div class="pgd-f">' + d.sets.length + (d.sets.length === 1 ? ' set' : ' sets') + ' · ' + d.reps + ' reps' + (d.vol > 0 ? ' · ' + fmtVol(d.vol) + ' ' + esc(u) + ' moved' : '') + '</div></div>';
+  h += '<h2>Every session</h2><div class="pglog">' + data.map(function(q, i){ return [q, i]; }).reverse().map(function(p){ var q = p[0], i = p[1];
+      return '<button type="button" data-act="pg-bar" data-i="' + i + '" aria-current="' + (i === sel) + '"><span>' + fmtShort(q.t) + '</span><span>' + (q.top > 0 ? fmtW(q.top) + ' ' + esc(u) + ' · ' : '') + q.sets.map(function(st){ return num(st.r); }).join(", ") + ' reps</span>' + pgDelta(i ? vals[i] - vals[i - 1] : null, unit) + '</button>'; }).join("") + '</div>';
+  var keep = S.pgScroll; S.pgScroll = null; setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = keep != null ? keep : e.scrollWidth; }, 0);
+  return h;
+}
 render();
 setInterval(tick, 250);
 connect();
