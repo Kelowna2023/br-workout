@@ -1740,11 +1740,11 @@ document.addEventListener("click", function(ev){
     case "end-done": (function(){ var e = $("#endcard"); e.classList.add("bye"); setTimeout(function(){ e.hidden = true; e.classList.remove("bye"); }, 600); })(); break;
     case "set-x": (function(){ var xs = a.exercises[ei].sets; if(xs.length <= 1){ xs[0] = { r:"", w:xs[0].w, done:false }; } else xs.splice(si, 1); a.restReady = null; saveActive(); render(); })(); break;
     case "wheel": wheelSheet(ei); break;
-    case "rest-go": (function(){ var secs = Math.round(a.exercises[ei].rest || 150); primeAudio(); a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); })(); break;
+    case "rest-go": (function(){ var secs = Math.round(a.exercises[ei].rest || 150); primeAudio(); a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = true; saveActive(); render(); })(); break;
     case "wh-pre": (function(v){ $("#wh-m").scrollTo({ top:Math.floor(v / 60) * 44, behavior:"smooth" }); $("#wh-s").scrollTo({ top:(v % 60) / 5 * 44, behavior:"smooth" });
         document.querySelectorAll(".tpre button").forEach(function(q){ q.setAttribute("aria-pressed", q === b); }); })(+b.dataset.v); break;
     case "wh-go": (function(){ var secs = wheelValue(); if(secs < 5){ toast("Pick a time first"); return; } a.exercises[ei].rest = secs; closeSheet(); primeAudio();
-        a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); })(); break;
+        a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = true; saveActive(); render(); })(); break;
     case "bsel": bodySel(b.dataset.g); if($(".bmap")) $("#view").scrollTo({ top:Math.max(0, $(".bmap").offsetTop - 80), behavior:"smooth" }); break;
     case "bmus": (function(){ var g = BODY_GROUPS.filter(function(x){ return x[1].indexOf(b.dataset.m) >= 0; })[0]; if(g) bodySel(g[0]); })(); break;
     case "cal-day": daySheet(+b.dataset.t); break;
@@ -1790,7 +1790,7 @@ document.addEventListener("click", function(ev){
     case "rest-min": restMin = true; tick(); break;
     case "rest-max": restMin = false; tick(); break;
     case "rest-skip": if(a){ a.restEnd = null; a.restReady = null; delete a.restPaused; ls.set("active", a); } restFlash = 0; render(); break;
-    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); } break;
+    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = true; saveActive(); render(); } break;
     case "del-session": ask("Delete this workout?", "It will be removed from your history and records.", "Delete", function(){
       var id = b.dataset.id; S.sessions = S.sessions.filter(function(s){ return s.id !== id; }); ls.set("sessions", S.sessions);
       S.pend.add = S.pend.add.filter(function(i){ return i !== id; }); S.pend.del.push(id); savePend(); pushDelete(id); render(); }); break;
@@ -1848,7 +1848,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "42";
+var BUILD = "43";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */

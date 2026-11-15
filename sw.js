@@ -1,7 +1,7 @@
 /* Offline copy of the app.
    The app page itself: always try the network first (so a new version shows the moment you open it),
    fall back to the saved copy when there's no signal. Everything else: saved copy first. */
-var CACHE = "br-workout-v42";
+var CACHE = "br-workout-v43";
 var CORE = ["./", "index.html", "manifest.webmanifest", "icon-e-180.png", "icon-e-192.png", "icon-e-512.png", "vendor/gsap.min.js", "vendor/ScrollTrigger.min.js", "vendor/SplitText.min.js", "vendor/lenis.min.js"];
 self.addEventListener("install", function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){
