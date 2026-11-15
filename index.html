@@ -941,6 +941,28 @@ h2{font-size:24px;line-height:.95}
 .hs .meta,.leg,.hs .l2{font-family:var(--mono)!important;text-transform:uppercase;letter-spacing:.1em!important;font-size:10.5px!important}
 /* finish */
 .ec-in .fs-h{font-size:min(24vw,104px)!important;line-height:.8!important}
+
+/* ================= quieter: same ideas, lower volume, more air ================= */
+.lt,.pick-h,.xn,.fs-h,main[data-v="progress"]::before{font-size:38px!important;font-weight:800!important;letter-spacing:-.045em!important;line-height:1!important;text-transform:none!important}
+.xn{font-size:34px!important}
+h2,#sheet h2,.cal-t b,.pgd-h b,.pgpick b,.hs .l1,.hs b,.bg-r>span:first-child,.rt .t b{font-weight:800!important;letter-spacing:-.035em!important;text-transform:none!important}
+h2{font-size:22px;line-height:1.1}
+.wn,.nm{font-weight:700!important;text-transform:none!important;letter-spacing:-.03em!important}
+.hrow .wn{font-size:25px!important;line-height:1.05}.nm{font-size:18px;line-height:1.15}
+.tr.fin .nm{text-decoration:none;color:var(--dim)}
+main{gap:26px!important;padding-top:34px!important}
+.hm-top{margin-bottom:22px}
+.hrow{padding:24px var(--g)!important;min-height:0}.hrow .hm{gap:9px}
+.tr{padding:22px var(--g)!important}
+.btn.go,.nextb{font:700 12px/1 var(--mono)!important;letter-spacing:.14em!important;min-height:60px!important}
+.nextb span:last-child{font:400 20px/1 var(--font)!important;letter-spacing:0!important}
+/* opening: one line of type crossing an empty screen */
+.kx{--fs:min(21vw,92px)}
+.kx-rows{top:0;bottom:0;justify-content:center;padding-bottom:10vh}
+.kx-row{flex:none;border:0!important;overflow:visible;padding:8px 0}
+.kx-row.one .kx-t{color:var(--text);-webkit-text-stroke:0;font-weight:800;text-transform:none;letter-spacing:-.05em;line-height:1}
+.kx-t b{display:flex;font-weight:inherit}.kx-t i{color:var(--acc);opacity:1;padding:0 .26em 0 .06em;font-weight:300}
+.kx-t span{padding-right:.2em}.kx-t span.q{color:var(--dim)}
 </style>
 </head>
 <body>
@@ -2185,21 +2207,21 @@ function endIntro(){ var el = $("#intro"); if(el.hidden) return; el.hidden = tru
 var KX = { rows:[], el:null, raf:0, last:0, imp:0, v:0, boost:0, px:null, pv:0, shown:false,
   build:function(lines){ var io = document.getElementById("intro"), el = io.querySelector(".kx"), cls = ["o","s","a","o","s","o"];
     if(!el){ el = document.createElement("div"); el.className = "kx"; el.setAttribute("aria-hidden", "true"); io.insertBefore(el, io.querySelector(".mid")); }
-    var rep = function(t){ var s = ""; for(var k = 0; k < 8; k++) s += '<span>' + esc(t) + '</span><i>/</i>'; return s; };
-    el.innerHTML = '<span class="kx-h k1" id="kx-tl"></span><span class="kx-h k2" id="kx-tr"></span><div class="kx-rows">' + lines.map(function(t, i){ return '<div class="kx-row ' + cls[i % 6] + '"><div class="kx-t">' + rep(t) + '</div></div>'; }).join("") + '</div><span class="kx-h k3" id="kx-bl"></span><span class="kx-h k4" id="kx-br"></span>';
+    var rep = function(segs){ var c = '<b>' + segs.map(function(t, j){ return '<span' + (j ? ' class="q"' : '') + '>' + esc(t) + '</span><i>/</i>'; }).join("") + '</b>', s = ""; for(var k = 0; k < 4; k++) s += c; return s; };
+    el.innerHTML = '<span class="kx-h k1" id="kx-tl"></span><span class="kx-h k2" id="kx-tr"></span><div class="kx-rows">' + '<div class="kx-row one"><div class="kx-t">' + rep(lines) + '</div></div>' + '</div><span class="kx-h k3" id="kx-bl"></span><span class="kx-h k4" id="kx-br"></span>';
     KX.el = el; KX.shown = false; KX.pv = 0; KX.imp = 0; KX.v = 0;
-    KX.rows = Array.prototype.map.call(el.querySelectorAll(".kx-row"), function(r, i){ return { row:r, t:r.firstChild, w:0, x:i * 137, dir:i % 2 ? 1 : -1, sp:[30, 20, 44, 26, 38, 22][i % 6] }; });
+    KX.rows = Array.prototype.map.call(el.querySelectorAll(".kx-row"), function(r, i){ return { row:r, t:r.firstChild, w:0, x:0, dir:1, sp:24 }; });
     if(!KX.raf) KX.raf = requestAnimationFrame(KX.tick); },
   p:function(p){ KX.pv = p; },
   tick:function(ts){ var io = document.getElementById("intro"); if(!io || io.hidden || !KX.el || !KX.el.isConnected){ KX.raf = 0; KX.last = 0; return; }
     KX.raf = requestAnimationFrame(KX.tick); var dt = KX.last ? Math.min(0.05, (ts - KX.last) / 1000) : 0.016; KX.last = ts;
-    if(!KX.shown){ var ok = true; KX.rows.forEach(function(r){ var s = r.t.firstChild, sep = s && s.nextSibling; r.w = s ? s.offsetWidth + (sep ? sep.offsetWidth : 0) : 0; if(!r.w) ok = false; }); if(!ok) return; KX.shown = true; KX.boost = 1;
-      if(window.gsap && !calm){ KX.rows.forEach(function(r, i){ gsap.fromTo(r.row, { clipPath: i % 2 ? "inset(0% 0% 0% 100%)" : "inset(0% 100% 0% 0%)" }, { clipPath:"inset(0% 0% 0% 0%)", duration:1.05, delay:i * 0.07, ease:"expo.inOut", clearProps:"clipPath" }); });
+    if(!KX.shown){ var ok = true; KX.rows.forEach(function(r){ var s = r.t.firstChild; r.w = s ? s.offsetWidth : 0; if(!r.w) ok = false; }); if(!ok) return; KX.shown = true; KX.boost = 1;
+      if(window.gsap && !calm){ KX.rows.forEach(function(r, i){ gsap.fromTo(r.row, { clipPath:"inset(0% 0% 100% 0%)", y:40 }, { clipPath:"inset(0% 0% 0% 0%)", y:0, duration:1.1, ease:"expo.out", clearProps:"clipPath,transform" }); });
         gsap.fromTo(KX.el.querySelectorAll(".kx-h"), { opacity:0 }, { opacity:1, duration:0.8, delay:0.7, stagger:0.06 }); } }
     KX.boost *= Math.pow(0.02, dt); KX.v *= Math.pow(0.004, dt); var imp = KX.imp; KX.imp = 0;
-    var W = io.clientWidth || 390, p = KX.pv, sk = Math.max(-20, Math.min(20, -KX.v * 26)) - KX.boost * 14;
-    KX.rows.forEach(function(r, i){ r.x += r.dir * (r.sp + KX.boost * 1500) * dt - imp * (1 + i * 0.12) - KX.v * 420 * dt; var m = ((r.x % r.w) + r.w) % r.w, ex = (i % 2 ? 1 : -1) * p * p * W * 1.35;
-      r.t.style.transform = "translate3d(" + (-m + ex).toFixed(1) + "px,0,0) skewX(" + (sk * (i % 2 ? 1 : -1) * (i === 2 ? 0.6 : 1)).toFixed(2) + "deg)"; r.row.style.opacity = p > 0.6 ? String(Math.max(0, 1 - (p - 0.6) / 0.3)) : ""; });
+    var W = io.clientWidth || 390, p = KX.pv, sk = Math.max(-12, Math.min(12, -KX.v * 16));
+    KX.rows.forEach(function(r, i){ r.x += r.dir * (r.sp + KX.boost * 260) * dt - imp - KX.v * 420 * dt; var m = ((r.x % r.w) + r.w) % r.w, ex = 0;
+      r.t.style.transform = "translate3d(" + (-m).toFixed(1) + "px," + (-p * (io.clientHeight || 800) * 0.34).toFixed(1) + "px,0) skewX(" + sk.toFixed(2) + "deg)"; r.row.style.opacity = p > 0 ? String(Math.max(0, 1 - p * 1.6)) : ""; });
     var h = KX.el.querySelectorAll(".kx-h"), o = String(Math.max(0, 1 - p * 3)); for(var k = 0; k < h.length; k++) if(p > 0) h[k].style.opacity = o;
     var c = document.getElementById("kx-tr"), n = new Date(), tx = ("0" + n.getHours()).slice(-2) + ":" + ("0" + n.getMinutes()).slice(-2) + ":" + ("0" + n.getSeconds()).slice(-2); if(c && c.textContent !== tx) c.textContent = tx; } };
 (function(){ var io = document.getElementById("intro"); if(!io) return;
@@ -2238,7 +2260,7 @@ function fillIntro(){
     if(p && p.url){ if(!ph){ ph = document.createElement("div"); ph.className = "i-photo"; bg.appendChild(ph); } if(ph.dataset.id !== String(p.id)){ ph.dataset.id = String(p.id); ph.style.backgroundImage = 'url("' + p.url + '")'; } io.classList.add("has-photo"); }
     else { if(ph) ph.remove(); io.classList.remove("has-photo"); }
     (function(){ var n = new Date(), wkn = (function(){ var d = new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())), dn = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dn); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 864e5) + 1) / 7); })(), up = function(t){ return String(t).toUpperCase(); };
-      KX.build([say.join(" ").replace(/\.$/, ""), up(n.toLocaleDateString("en-US", { weekday:"short" })) + " " + n.getDate() + " " + up(n.toLocaleDateString("en-US", { month:"short" })), say.join(" ").replace(/\.$/, ""), st.thisWeek + " OF " + goal + " THIS WEEK", last && last.name ? last.name : "NO SESSIONS YET", last ? "LAST TRAINED " + up(when) : "DAY ONE"]);
+      KX.build([say.join(" "), st.thisWeek + " of " + goal + " this week", last && last.name ? last.name + ", " + when : "Nothing logged yet"]);
       var q = function(id, h){ var e = document.getElementById(id); if(e) e.innerHTML = h; };
       q("kx-tl", "WK <b>" + wkn + "</b> / " + n.getFullYear()); q("kx-bl", "<b>" + ("0" + st.thisWeek).slice(-2) + "</b> / " + ("0" + goal).slice(-2)); q("kx-br", "SESSION <b>" + ("00" + (S.sessions.length + (did ? 0 : 1))).slice(-3) + "</b>"); })(); })();
 }
@@ -2859,7 +2881,7 @@ function renderToday(){
   var a = S.active, st = weekStats(), goal = Math.max(1, +S.cfg.weeklyGoal || 5), n = new Date(), up = function(t){ return String(t).toUpperCase(); };
   var run = '<span>What are we training</span><i>/</i><span>' + up(n.toLocaleDateString("en-US", { weekday:"long" })) + '</span><i>/</i>';
   var h = '<div class="hm-top"><span class="cap">' + n.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</span><span class="wk">' + ("0" + st.thisWeek).slice(-2) + ' / ' + ("0" + goal).slice(-2) + ' this week</span></div>' +
-    '<h1 class="vh">Choose a workout</h1><div class="mq" aria-hidden="true"><div>' + run + run + run + run + '</div></div><div class="hlist">';
+    '<h1 class="lt">What are we<br>training?</h1><div class="hlist">';
   var order = S.cfg.routines.slice().sort(function(x, y){ var dx = x.day == null ? 9 : (x.day + 6) % 7, dy = y.day == null ? 9 : (y.day + 6) % 7; return dx - dy; });
   order.forEach(function(r, i){
     var logged = function(w){ return w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done; }); }); }, live = (a && a.routineId === r.id && logged(a)) || S.parked.some(function(w){ return w.routineId === r.id && logged(w); }), last = 0;
