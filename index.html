@@ -649,6 +649,11 @@ main>h1.lt{will-change:transform,opacity}
 .restc.paused b{color:var(--dim)}
 .gearchip{border:0;height:32px;padding:0 12px;gap:6px}.gearchip span{font-size:10px;opacity:.7}
 .gearsw.big{grid-template-columns:1fr 1fr;gap:10px}.gearsw.big button{min-height:56px;font-size:16px;border-radius:14px}
+/* ---- opening: room between the mark and the words, no seam at the bottom edge ---- */
+#intro.v2 .i-mark{height:50%}
+#intro.v2 .brmark{width:min(46vw,190px)}
+#intro.v2 .i-veil::after{content:"";position:absolute;left:0;right:0;bottom:0;height:170px;background:linear-gradient(180deg,rgba(9,9,10,0),#09090a 80%)}
+@media (max-height:620px){#intro.v2 .i-mark{height:46%}#intro.v2 .brmark{width:min(38vw,150px)}}
 </style>
 </head>
 <body>
@@ -1851,7 +1856,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "45";
+var BUILD = "46";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
