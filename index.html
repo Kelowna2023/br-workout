@@ -700,6 +700,16 @@ main>h1.lt{will-change:transform,opacity}
 .pglog button{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:10px;min-height:58px;padding:0 var(--g);border:0;border-top:1px solid var(--line);background:none;color:var(--text);text-align:left;font:600 15px/1.2 var(--font);font-variant-numeric:tabular-nums}
 .pglog button:last-child{border-bottom:1px solid var(--line)}.pglog button span:first-child{font:500 13px/1 var(--font);color:var(--dim)}
 .pglog button[aria-current="true"]{background:rgba(255,106,61,.07)}
+
+/* ---- progress: overall view ---- */
+.pgseg.two{grid-template-columns:1fr 1fr}
+.pgsc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pgsc div{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.pgsc b{font:700 28px/1 var(--font);letter-spacing:-.03em}.pgsc span{font:500 12px/1 var(--font);color:var(--dim)}
+.pgsc .up b{color:#7fe0ae}.pgsc .dn b{color:#ff9d8a}
+.pglog.sc button{grid-template-columns:1fr auto}
+.pglog.sc button span:first-child{display:flex;flex-direction:column;gap:5px;font:600 16px/1.2 var(--font);color:var(--text)}
+.pglog.sc button small{font:500 13px/1 var(--font);color:var(--dim);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -1769,6 +1779,9 @@ document.addEventListener("click", function(ev){
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
+    case "pg-tab": S.pgTab = b.dataset.v; S.pgOpen = false; S.pgNoAnim = false; render(); $("#view").scrollTop = 0; break;
+    case "pg-week": (function(){ var sc = $("#pg-scroll"), mv = $("#view"), st = mv.scrollTop; S.pgScroll = sc ? sc.scrollLeft : null; S.pgWeek = +b.dataset.i; S.pgNoAnim = true; render(); mv.scrollTop = st; })(); break;
+    case "pg-go": S.progressEx = b.dataset.k; S.pgTab = "ex"; S.pgBar = null; S.pgNoAnim = false; render(); $("#view").scrollTop = 0; break;
     case "pg-open": S.pgOpen = !S.pgOpen; S.pgNoAnim = true; render(); break;
     case "pg-pick": S.progressEx = b.dataset.k; S.pgOpen = false; S.pgBar = null; S.pgNoAnim = false; render(); $("#view").scrollTop = 0; break;
     case "pg-met": S.pgMet = b.dataset.v; S.pgNoAnim = false; render(); break;
@@ -1906,7 +1919,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "47";
+var BUILD = "48";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2440,7 +2453,7 @@ function pgData(k){
 }
 function pgDelta(d, unit){ if(d == null) return '<span class="dl">First</span>'; if(Math.abs(d) < 0.05) return '<span class="dl">Same</span>';
   return '<span class="dl ' + (d > 0 ? "up" : "dn") + '">' + (d > 0 ? "▲ +" : "▼ −") + fmtVol(Math.abs(d)).replace(/^0$/, fmtW(Math.abs(d))) + ' ' + unit + '</span>'; }
-function renderProgress(){
+function pgExercise(){
   var u = S.cfg.units, groups = [], seen = {}, names = {}, counts = {};
   S.sessions.forEach(function(s){ (s.exercises || []).forEach(function(x){ if(x.sets && x.sets.length){ var k = key(x.name); counts[k] = (counts[k] || 0) + 1; names[k] = x.name; } }); });
   S.cfg.routines.forEach(function(r){ var g = { name:r.name, items:[] }; r.exercises.forEach(function(x){ var k = key(x.name); if(!k) return; seen[k] = 1; names[k] = x.name; g.items.push(k); }); if(g.items.length) groups.push(g); });
@@ -2472,6 +2485,42 @@ function renderProgress(){
       return '<button type="button" data-act="pg-bar" data-i="' + i + '" aria-current="' + (i === sel) + '"><span>' + fmtShort(q.t) + '</span><span>' + (q.top > 0 ? fmtW(q.top) + ' ' + esc(u) + ' · ' : '') + q.sets.map(function(st){ return num(st.r); }).join(", ") + ' reps</span>' + pgDelta(i ? vals[i] - vals[i - 1] : null, unit) + '</button>'; }).join("") + '</div>';
   var keep = S.pgScroll; S.pgScroll = null; setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = keep != null ? keep : e.scrollWidth; }, 0);
   return h;
+}
+
+/* ---- progress: overall trends ---- */
+function pgOverall(){
+  var u = S.cfg.units, wk = {}, order = [];
+  for(var i = S.sessions.length - 1; i >= 0; i--){ var s = S.sessions[i], w0 = weekStart(s.startedAt); if(!wk[w0]){ wk[w0] = { t:w0, vol:0, n:0, sets:0, list:[] }; order.push(w0); }
+    var W = wk[w0], v = 0, c = 0; (s.exercises || []).forEach(function(x){ (x.sets || []).forEach(function(st){ v += num(st.w) * num(st.r); c++; }); }); W.vol += v; W.sets += c; W.n++; W.list.push({ t:s.startedAt, name:s.name || "Workout", vol:v, sets:c }); }
+  if(!order.length) return '<div class="pgc ghost"><div class="pgs"><div class="pgbars">' + [30,42,40,55,62,60].map(function(p){ return '<span class="pgb" style="--h:' + p + ';--d:0s"><i></i></span>'; }).join("") + '</div></div><div class="pge">Finish your first workout and your weekly trend starts here.</div></div>';
+  order.sort(function(a, b){ return a - b; }); var weeks = [], cur = weekStart(Date.now());
+  for(var t = order[0]; t <= cur; t = weekStart(t + 8 * 864e5)) weeks.push(wk[t] || { t:t, vol:0, n:0, sets:0, list:[] });
+  var vals = weeks.map(function(w){ return w.vol; }), mx = Math.max.apply(null, vals), sel = S.pgWeek == null || S.pgWeek >= weeks.length ? weeks.length - 1 : S.pgWeek, run = -1;
+  var last = weeks[weeks.length - 1], prev = weeks.length > 1 ? weeks[weeks.length - 2] : null, best = weeks.slice().sort(function(a, b){ return b.vol - a.vol; })[0], dw = prev ? last.vol - prev.vol : null;
+  var kf = function(n){ return n >= 10000 ? (n / 1000).toFixed(1) + "k" : fmtVol(n); };
+  var h = '<div class="pgst"><div><b>' + kf(last.vol) + ' ' + esc(u) + '</b><span>This week · ' + last.n + (last.n === 1 ? " workout" : " workouts") + '</span></div>' +
+    '<div><b class="' + (dw > 0 ? "up" : dw < 0 ? "dn" : "") + '">' + (dw == null ? "—" : (dw > 0 ? "+" : dw < 0 ? "−" : "") + kf(Math.abs(dw)) + ' ' + esc(u)) + '</b><span>Against last week</span></div>' +
+    '<div><b>' + kf(best.vol) + ' ' + esc(u) + '</b><span>Best week · ' + fmtShort(best.t) + '</span></div><div><b>' + S.sessions.length + '</b><span>Workouts logged</span></div></div>';
+  h += '<div class="pgc' + (S.pgNoAnim ? " noanim" : "") + '"><div class="pgc-h"><span>Weight moved each week, ' + esc(u) + '</span><span>' + (weeks.length > 6 ? "Swipe for older" : "") + '</span></div><div class="pgs" id="pg-scroll"><div class="pgbars">' +
+    weeks.map(function(w, i){ var rec = i > 0 && w.vol > run && w.vol > 0, pv = i ? vals[i - 1] : null, pct = mx > 0 ? Math.max(3, 100 * w.vol / mx) : 3; if(w.vol > run) run = w.vol;
+      return '<button type="button" class="pgb' + (i === sel ? " sel" : "") + (pv != null && w.vol <= pv ? " eq" : "") + '" data-act="pg-week" data-i="' + i + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (weeks.length - 8)) * 0.05).toFixed(2) + 's" aria-label="Week of ' + fmtShort(w.t) + ', ' + fmtVol(w.vol) + ' ' + esc(u) + '">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + kf(w.vol) + '</span><i></i><span class="d">' + fmtShort(w.t) + '</span></button>'; }).join("") + '</div></div></div>';
+  var d = weeks[sel];
+  h += '<div class="card pgd"><div class="pgd-h"><span><b>Week of ' + fmtShort(d.t) + '</b><small>' + d.n + (d.n === 1 ? " workout" : " workouts") + ' · ' + d.sets + ' sets</small></span>' + pgDelta(sel ? d.vol - vals[sel - 1] : null, u) + '</div>' +
+    (d.list.length ? d.list.map(function(q){ return '<div class="pgd-r" style="grid-template-columns:64px 1fr auto"><span>' + new Date(q.t).toLocaleDateString("en-US", { weekday:"short" }) + '</span><b>' + esc(q.name) + '</b><span>' + kf(q.vol) + ' ' + esc(u) + '</span></div>'; }).join("") : '<div class="pgd-f">No workouts this week.</div>') + '</div>';
+  var names = {}, st = [], seenK = {};
+  S.sessions.forEach(function(s){ (s.exercises || []).forEach(function(x){ var k = key(x.name); if(!seenK[k] && x.sets && x.sets.length){ seenK[k] = 1; names[k] = x.name; } }); });
+  Object.keys(names).forEach(function(k){ var dd = pgData(k), a = dd[dd.length - 1], b = dd.length > 1 ? dd[dd.length - 2] : null, byW = !!(b && a.top !== b.top), diff = b ? (byW ? a.top - b.top : a.topR - b.topR) : null;
+    st.push({ k:k, name:names[k], a:a, b:b, diff:diff, unit: byW || !b ? u : "reps", rank: diff == null ? 3 : diff > 0 ? 0 : diff === 0 ? 1 : 2 }); });
+  st.sort(function(x, y){ return x.rank - y.rank || (y.diff || 0) - (x.diff || 0) || x.name.localeCompare(y.name); });
+  var cnt = [0, 0, 0, 0]; st.forEach(function(x){ cnt[x.rank]++; });
+  h += '<h2>Exercises, last session against the one before</h2><div class="pgsc"><div class="up"><b>' + cnt[0] + '</b><span>Up</span></div><div><b>' + cnt[1] + '</b><span>Same</span></div><div class="dn"><b>' + cnt[2] + '</b><span>Down</span></div></div>' +
+    '<div class="pglog sc">' + st.map(function(x){ return '<button type="button" data-act="pg-go" data-k="' + esc(x.k) + '"><span>' + esc(x.name) + '<small>' + (x.b ? fmtW(x.b.top) + ' × ' + x.b.topR + '  →  ' : '') + fmtW(x.a.top) + ' × ' + x.a.topR + '</small></span>' + pgDelta(x.diff, x.unit) + '</button>'; }).join("") + '</div>';
+  var keep = S.pgScroll; S.pgScroll = null; setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = keep != null ? keep : e.scrollWidth; }, 0);
+  return h;
+}
+function renderProgress(){
+  var tab = S.pgTab === "all" ? "all" : "ex";
+  return '<div class="pgseg two" role="group" aria-label="Progress view">' + [["ex","By exercise"],["all","Overall"]].map(function(m){ return '<button type="button" data-act="pg-tab" data-v="' + m[0] + '" aria-pressed="' + (tab === m[0]) + '">' + m[1] + '</button>'; }).join("") + '</div>' + (tab === "all" ? pgOverall() : pgExercise());
 }
 render();
 setInterval(tick, 250);
