@@ -511,6 +511,30 @@ button.bg-r{cursor:pointer;transition:color .25s}
 .wr:has(.badge)::before{animation-duration:2.4s;background:conic-gradient(from var(--ang),rgba(157,107,255,0) 0 55%,#9d6bff 78%,#fff 90%,rgba(157,107,255,0) 100%)}
 .wr:nth-child(2)::before,.tr:nth-child(2)::before{animation-delay:-.9s}.wr:nth-child(3)::before,.tr:nth-child(3)::before{animation-delay:-1.8s}.wr:nth-child(4)::before,.tr:nth-child(4)::before{animation-delay:-2.7s}.wr:nth-child(5)::before,.tr:nth-child(5)::before{animation-delay:-3.6s}.wr:nth-child(6)::before,.tr:nth-child(6)::before{animation-delay:-4.5s}.wr:nth-child(7)::before,.tr:nth-child(7)::before{animation-delay:-1.3s}.tr:nth-child(8)::before{animation-delay:-3.1s}
 .tr.fin::before{display:none}
+/* ---- room to breathe ---- */
+:root{--g:22px}
+main{padding-top:26px;gap:20px;padding-bottom:48px}
+.back{font-size:16px!important;padding:12px 14px 12px 0;margin:-12px 0}
+.ex-top{margin-bottom:14px}
+.exb{gap:18px}
+.xh{align-items:center}
+.lt,.pick-h,.xn,.fs-h{line-height:1.04!important}
+.setc{padding:14px 16px 6px;margin-top:8px}
+.sr{padding:11px 0;gap:10px}
+.sr.hdr{padding:6px 0 4px}
+.si{height:54px}
+.ck{width:44px;height:44px}
+.sr{grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) 34px 44px 24px!important}
+.setfoot{margin-top:10px}
+.setfoot button{padding:18px 4px}
+.restc{padding:20px 18px 20px 22px}
+.nextb{min-height:62px}
+.card{padding:20px}
+.tr{padding:18px 18px}
+.wlist,.xlist{gap:14px}
+.wr{gap:12px}
+.hm-top{margin-bottom:6px}
+.sec{margin-top:16px}
 </style>
 </head>
 <body>
@@ -1706,7 +1730,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "34";
+var BUILD = "36";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
