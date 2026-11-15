@@ -969,7 +969,7 @@ main{gap:26px!important;padding-top:34px!important}
 .sp{pointer-events:none}
 .sp-top{position:absolute;left:24px;right:24px;top:calc(env(safe-area-inset-top) + 66px);will-change:transform,opacity}
 .sp-h{display:flex;justify-content:space-between;font:600 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-variant-numeric:tabular-nums}.sp-h b{color:var(--text);font-weight:600}
-.sp-say{margin-top:12vh;font-family:var(--font);font-weight:900;letter-spacing:-.065em;line-height:.86;color:var(--text)}
+.sp-say{margin-top:12vh;font-family:var(--font);font-weight:900;letter-spacing:-.045em;line-height:.9;color:var(--text)}
 .sp-say .ln{display:block;overflow:hidden;padding:.05em 0 .16em;margin:-.05em 0 -.16em}.sp-say .ln>span{display:block}
 .sp-blk{position:absolute;left:0;right:0;bottom:0;height:36%;min-height:264px;color:#09090a}
 .sp-bg{position:absolute;inset:0;background:var(--acc);transform-origin:50% 100%;will-change:transform}
@@ -2224,7 +2224,7 @@ var KX = { el:null, raf:0, pv:0, px:null, imp:0, v:0, pt:0,
     if(!el){ el = document.createElement("div"); el.className = "kx sp"; el.setAttribute("aria-hidden", "true"); io.insertBefore(el, io.querySelector(".mid")); }
     var avail = Math.min(window.innerWidth || 390, 560) - 48, size = 96;
     try{ var cx = document.createElement("canvas").getContext("2d"); cx.font = '900 100px -apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,"Helvetica Neue",Arial,sans-serif';
-      var wmax = Math.max.apply(null, d.say.map(function(t){ return cx.measureText(t).width - 6.5 * (t.length - 1); })); size = Math.max(60, Math.min(108, Math.floor(100 * avail * 0.8 / wmax))); }catch(e){}
+      var wmax = Math.max.apply(null, d.say.map(function(t){ return cx.measureText(t).width - 4.5 * (t.length - 1); })); size = Math.max(58, Math.min(108, Math.floor(100 * avail * 0.9 / wmax))); }catch(e){}
     el.innerHTML = '<div class="sp-top"><div class="sp-h"><span>' + d.tl + '</span><span>' + esc(d.tr) + '</span></div><div class="sp-say" style="font-size:' + size + 'px">' + d.say.map(function(t){ return '<span class="ln"><span>' + esc(t) + '</span></span>'; }).join("") + '</div></div>' +
       '<div class="sp-blk"><i class="sp-bg"></i><div class="sp-in"><span class="sp-m">This week</span><div class="sp-row"><div><div class="sp-wk">' + esc(d.wk) + '</div><div class="sp-m">' + esc(d.last) + '</div></div><span class="sp-ar"><svg viewBox="0 0 44 52" aria-hidden="true"><path d="M22 50V4M4 22L22 4l18 18"/></svg></span></div></div></div>';
     KX.el = el; KX.pv = 0; cancelAnimationFrame(KX.raf);
@@ -2261,7 +2261,8 @@ function fillIntro(){
       else h += '<div class="slab' + (i === wk.length ? " now" : "") + '" style="--i:' + i + '"><s>' + pad(i) + '</s>' + (i === wk.length ? '<em>' + (did ? "Next" : "Today") + '</em>' : '') + '</div>'; }
     sl.setAttribute("role", "img"); sl.setAttribute("aria-label", wk.length + " of " + goal + " workouts done this week"); sl.innerHTML = h; })();
   (function(){ var io = document.getElementById("intro"), ti = document.getElementById("i-title"), d0 = new Date().toDateString(), did = S.sessions.some(function(q){ return new Date(q.startedAt).toDateString() === d0; });
-    var say = !last ? ["Day", "one."] : st.thisWeek >= goal ? ["Week", "done."] : did ? ["Work", "done."] : st.thisWeek === 0 ? ["Show", "up."] : ["Keep", "on."];
+    var LINES = [["Build", "the", "kingdom."], ["Brick", "by brick."], ["Earn the", "mirror."], ["Stack", "the days."], ["Built,", "not given."], ["Show up", "anyway."], ["Own", "the hour."], ["Leave", "stronger."], ["One", "more rep."], ["Do", "the work."]];
+    var dnum = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(2026, 10, 15).getTime()) / 864e5), say = st.thisWeek >= goal ? ["Week", "done."] : LINES[((dnum % LINES.length) + LINES.length) % LINES.length];
     var avail = Math.min(window.innerWidth || 390, 560) - 48, size = 150;
     try{ var cx = document.createElement("canvas").getContext("2d"); cx.font = '900 100px -apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,"Helvetica Neue",Arial,sans-serif';
       var wmax = Math.max.apply(null, say.map(function(t){ return cx.measureText(t).width - 7 * (t.length - 1); })); size = Math.max(72, Math.min(168, Math.floor(100 * avail / (wmax * 1.04)))); }catch(e){ size = 120; }
