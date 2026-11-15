@@ -475,6 +475,17 @@ button.bg-r{cursor:pointer;transition:color .25s}
 .dayph{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dayph img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;display:block}
 .dayph button{border:0;background:none;padding:0}
+/* workout day: one note and photos for the whole session */
+.wkx{gap:10px;padding:12px}
+.wkx textarea.field{min-height:56px;background:transparent;border-color:var(--line)}
+.wkp{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.wkp::-webkit-scrollbar{display:none}
+.wkp button{flex:none;width:66px;height:88px;border:0;border-radius:12px;padding:0;overflow:hidden;background:none}
+.wkp img{width:100%;height:100%;object-fit:cover;display:block}
+.wkp label{flex:none;width:66px;height:88px;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--line2);border-radius:12px;color:var(--acc-text);font:600 13px/1 var(--font);cursor:pointer}
+.wkp label:not(.wide){font:400 28px/1 var(--font)}
+.wkp label.wide{flex:1;height:48px}
+.wkp label svg{width:18px;height:18px}
 </style>
 </head>
 <body>
@@ -918,8 +929,9 @@ function pTx(mode, fn){ return pdb().then(function(db){ return new Promise(funct
 function loadPhotos(){
   return pTx("readonly", function(st){ return st.getAll(); }).then(function(list){
     S.photos.forEach(function(p){ try{ URL.revokeObjectURL(p.url); }catch(e){} });
-    S.photos = (list || []).sort(function(a, b){ return b.at - a.at; }).map(function(p){ return { id:p.id, at:p.at, url:URL.createObjectURL(p.blob) }; });
-    if(viewName() === "body") render();
+    S.photos = (list || []).sort(function(a, b){ return b.at - a.at; }).map(function(p){ return { id:p.id, at:p.at, wid:p.wid || "", url:URL.createObjectURL(p.blob) }; });
+    var v = viewName();
+    if(v === "body" || v === "history" || (v === "today" && S.active && !S.pick && !openGroup(S.active).length)) render();
   }).catch(function(){ S.photosOff = true; if(viewName() === "body") render(); });
 }
 function shrink(file){ return new Promise(function(res, rej){
@@ -928,10 +940,10 @@ function shrink(file){ return new Promise(function(res, rej){
     c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
     URL.revokeObjectURL(url); c.toBlob(function(b){ b ? res(b) : rej(new Error("no blob")); }, "image/jpeg", 0.85); };
   img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("bad image")); }; img.src = url; }); }
-function addPhoto(file){
-  var at = file.lastModified && file.lastModified < Date.now() + 60000 ? file.lastModified : Date.now();
+function addPhoto(file, wid){
+  var at = !wid && file.lastModified && file.lastModified < Date.now() + 60000 ? file.lastModified : Date.now();
   toast("Saving photo…");
-  shrink(file).then(function(blob){ return pTx("readwrite", function(st){ return st.put({ id:uid(), at:at, blob:blob }); }); })
+  shrink(file).then(function(blob){ return pTx("readwrite", function(st){ var rec = { id:uid(), at:at, blob:blob }; if(wid) rec.wid = wid; return st.put(rec); }); })
     .then(function(){ toast("Photo saved"); return loadPhotos(); })
     .catch(function(){ toast("Couldn't save that photo"); });
 }
@@ -1256,6 +1268,7 @@ function renderHistory(){
     return '<details class="card hs"><summary><div class="eyebrow">' + fmtDate(s.startedAt) + '</div><b>' + esc(s.name) + '</b><div class="meta num"><span>' + fmtMin(s.dur) + '</span><span>' + s.setCount + ' sets</span><span>' + fmtVol(s.volume) + ' ' + esc(u) + '</span>' + (s.prs && s.prs.length ? '<span class="pill">' + s.prs.length + (s.prs.length > 1 ? " records" : " record") + '</span>' : "") + '</div></summary>' +
       '<div class="lines num">' + s.exercises.map(function(x){ return '<div><span>' + esc(x.name) + '</span><span>' + x.sets.map(function(t){ return fmtW(t.w) + "×" + t.r; }).join(", ") + '</span></div>' + x.sets.map(function(t, ti){ return t.note || t.rir ? '<div class="notebox">Set ' + (ti+1) + ': ' + [rirLabel(t.rir), t.note ? esc(t.note) : ""].filter(Boolean).join(" · ") + '</div>' : ""; }).join(""); }).join("") + '</div>' +
       (s.note ? '<div class="notebox">' + esc(s.note) + '</div>' : "") +
+      (function(){ var wp = S.photos.filter(function(p){ return p.wid === s.id; }); return wp.length ? '<div class="dayph">' + wp.map(function(p){ return '<button type="button" data-act="ph-view" data-id="' + p.id + '"><img src="' + p.url + '" alt="Workout photo" loading="lazy"></button>'; }).join("") + '</div>' : ""; })() +
       '<div class="row"><button class="btn small ghost danger" type="button" data-act="del-session" data-id="' + esc(s.id) + '">Delete workout</button></div></details>'; }).join("") + '</div>';
 }
 
@@ -1648,6 +1661,7 @@ document.addEventListener("input", function(ev){
 });
 document.addEventListener("change", function(ev){ if(ev.target.id === "pg-ex"){ S.progressEx = ev.target.value; render(); }
   if(ev.target.id === "ph-file" && ev.target.files && ev.target.files[0]){ addPhoto(ev.target.files[0]); ev.target.value = ""; }
+  if(ev.target.id === "wk-file" && ev.target.files && ev.target.files[0] && S.active){ addPhoto(ev.target.files[0], S.active.id); ev.target.value = ""; }
   if(ev.target.id === "restore-file" && ev.target.files && ev.target.files[0]){ var fr = new FileReader();
     fr.onload = function(){ try{ var d = JSON.parse(fr.result); if(!d || !d.cfg || !Array.isArray(d.sessions)) throw 0;
         ask("Restore this backup?", "It replaces the routines and " + S.sessions.length + " workouts on this phone with the " + d.sessions.length + " workouts in the file.", "Restore", function(){
@@ -1667,7 +1681,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "32";
+var BUILD = "33";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -1759,7 +1773,11 @@ function renderWorkout(){
   if(!a.exercises.length) h += '<div class="empty">No exercises yet. Add one below.</div>';
   a.exercises.forEach(function(x, ei){ var s = exState(x), g = gearOf(x.name), tg = String(x.target || "").replace("-", "–");
     h += '<button type="button" class="card tr' + (s.all ? " fin" : "") + '" data-act="ex-toggle" data-e="' + ei + '" aria-label="' + esc(x.name) + ', ' + s.dn + ' of ' + s.pn + ' sets done"><span class="xnum">' + (s.all ? IC.check : (ei + 1)) + '</span><span class="xm"><span class="nm">' + esc(x.name) + '</span><span class="meta">' + (x.plan || s.pn) + (tg ? ' × ' + esc(tg) : ' sets') + ' · ' + GEAR[g] + (x.link ? ' · superset' : '') + '</span></span><span class="xc">' + s.dn + '/' + s.pn + '</span></button>'; });
-  return h + '</div><button type="button" class="btn go" data-act="finish">Finish workout</button><div class="links"><button type="button" data-act="add-ex-open">+ Add exercise</button><button type="button" class="danger" data-act="cancel">Cancel workout</button></div>';
+  var wp = S.photos.filter(function(p){ return p.wid === a.id; });
+  h += '</div><div class="card wkx"><textarea class="field" id="wk-note" rows="2" placeholder="Note on today&#39;s workout" aria-label="Note on this workout">' + esc(a.note || "") + '</textarea>' +
+    (S.photosOff ? "" : '<div class="wkp">' + wp.map(function(p){ return '<button type="button" data-act="ph-view" data-id="' + p.id + '"><img src="' + p.url + '" alt="Workout photo"></button>'; }).join("") +
+      '<label for="wk-file"' + (wp.length ? ' aria-label="Add another photo">+' : ' class="wide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Add photo') + '</label><input id="wk-file" type="file" accept="image/*" class="vh"></div>') + '</div>';
+  return h + '<button type="button" class="btn go" data-act="finish">Finish workout</button><div class="links"><button type="button" data-act="add-ex-open">+ Add exercise</button><button type="button" class="danger" data-act="cancel">Cancel workout</button></div>';
 }
 
 function renderExercise(a, grp, hist, u){
@@ -1848,8 +1866,8 @@ function daySheet(t){
   var h = '<h2>' + new Date(t).toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" }) + '</h2>';
   if(!ws.length) h += '<div class="muted">' + (fut ? "Still to come." : "No workout logged this day.") + '</div>';
   ws.forEach(function(s){ h += '<div class="card"><div class="ct">' + esc(s.name) + '</div><div class="meta">' + fmtMin(s.dur) + ' · ' + s.setCount + ' sets · ' + fmtVol(s.volume) + ' ' + esc(u) + (s.prs && s.prs.length ? ' · ' + s.prs.length + (s.prs.length > 1 ? " records" : " record") : "") + '</div><div class="lines">' +
-    s.exercises.map(function(x){ return '<div><span>' + esc(x.name) + '</span><span>' + x.sets.map(function(q){ return fmtW(q.w) + "×" + q.r; }).join(", ") + '</span></div>'; }).join("") + '</div></div>'; });
-  if(ph.length) h += '<div class="sec" style="margin:0">Progress ' + (ph.length > 1 ? "photos" : "photo") + '</div><div class="dayph">' + ph.map(function(p){ return '<button type="button" data-act="ph-view" data-id="' + p.id + '"><img src="' + p.url + '" alt="Progress photo"></button>'; }).join("") + '</div>';
+    s.exercises.map(function(x){ return '<div><span>' + esc(x.name) + '</span><span>' + x.sets.map(function(q){ return fmtW(q.w) + "×" + q.r; }).join(", ") + '</span></div>'; }).join("") + '</div>' + (s.note ? '<div class="notebox">' + esc(s.note) + '</div>' : "") + '</div>'; });
+  if(ph.length) h += '<div class="sec" style="margin:0">' + (ph.length > 1 ? "Photos" : "Photo") + '</div><div class="dayph">' + ph.map(function(p){ return '<button type="button" data-act="ph-view" data-id="' + p.id + '"><img src="' + p.url + '" alt="Progress photo"></button>'; }).join("") + '</div>';
   if(!fut && !S.photosOff) h += '<label class="btn" for="ph-day-file">' + (ph.length ? "Add another photo" : "Add a progress photo for this day") + '</label><input id="ph-day-file" type="file" accept="image/*" class="vh" data-t="' + t + '">';
   sheet(h + '<button class="btn ghost" type="button" data-act="sheet-close">Close</button>');
 }
