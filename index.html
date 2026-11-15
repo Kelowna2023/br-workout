@@ -668,40 +668,40 @@ var ls = {
 /* ---------- starter program (shown until you edit it) ---------- */
 var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:4, goals:[], notes:{}, routines:[
   { id:"mon", day:1, name:"Posterior Chain", focus:"Rows, RDLs, pulldowns, shrugs", exercises:[
-    {name:"Low Cable Row", sets:4, reps:"12-15", rest:150},
-    {name:"RDL", sets:4, reps:"10-12", rest:150},
+    {name:"Low Cable Row", sets:3, reps:"12-15", rest:150},
+    {name:"RDL", sets:3, reps:"10-12", rest:150},
     {name:"Cable Straight-Arm Pulldown", sets:3, reps:"15", rest:150},
     {name:"Hamstring Curl", sets:3, reps:"15", rest:150},
     {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"tue", day:2, name:"Push", focus:"Incline press, Arnold press, triceps", exercises:[
-    {name:"Incline Press", sets:4, reps:"8-12", rest:150},
+    {name:"Incline Press", sets:3, reps:"8-12", rest:150},
     {name:"Seated Arnold Press", sets:3, reps:"10-12", rest:150},
-    {name:"Lateral Raise", sets:4, reps:"15-20", rest:150},
+    {name:"Lateral Raise", sets:3, reps:"15-20", rest:150},
     {name:"Overhead Cable Tricep Extension", sets:3, reps:"15-20", rest:150},
     {name:"Cable Tricep Pushdown", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"thu", day:4, name:"Lower Body", focus:"Split squats, squats, extensions, RDLs, calves", exercises:[
-    {name:"Smith Bulgarian Split Squat", sets:4, reps:"8-10", rest:150},
+    {name:"Smith Bulgarian Split Squat", sets:3, reps:"8-10", rest:150},
     {name:"Goblet Squat / Heels-Elevated Smith Squat", sets:3, reps:"10-12", rest:150},
-    {name:"Leg Extension", sets:4, reps:"12-15", rest:150},
+    {name:"Leg Extension", sets:3, reps:"12-15", rest:150},
     {name:"RDL", sets:3, reps:"12", rest:150},
-    {name:"Smith Calf Raise", sets:4, reps:"15-20", rest:150}
+    {name:"Smith Calf Raise", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"fri", day:5, name:"Upper Density", focus:"Row + press, delts, arms, flys, calves", exercises:[
-    {name:"Cable Seated Row", sets:4, reps:"15-20", rest:150, link:true},
-    {name:"Flat Press", sets:4, reps:"15-20", rest:150},
-    {name:"Lateral Raise", sets:4, reps:"15-20", rest:150, link:true},
-    {name:"Rear Delt Raise", sets:4, reps:"15-20", rest:150},
+    {name:"Cable Seated Row", sets:3, reps:"15-20", rest:150, link:true},
+    {name:"Flat Press", sets:3, reps:"15-20", rest:150},
+    {name:"Lateral Raise", sets:3, reps:"15-20", rest:150, link:true},
+    {name:"Rear Delt Raise", sets:3, reps:"15-20", rest:150},
     {name:"Cable Curl", sets:3, reps:"15", rest:150, link:true},
     {name:"Overhead Cable Tricep Extension", sets:3, reps:"15", rest:150},
-    {name:"Cable Chest Fly", sets:2, reps:"20", rest:150},
+    {name:"Cable Chest Fly", sets:3, reps:"20", rest:150},
     {name:"Smith Calf Raise", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"sat", day:6, name:"Shoulders & Carries", focus:"Shoulder press, delts, shrugs, farmer carries", exercises:[
-    {name:"Seated Shoulder Press", sets:4, reps:"12", rest:150},
-    {name:"Lateral Raise", sets:4, reps:"15-20", rest:150, link:true},
-    {name:"Rear Delt Raise", sets:4, reps:"15-20", rest:150},
+    {name:"Seated Shoulder Press", sets:3, reps:"12", rest:150},
+    {name:"Lateral Raise", sets:3, reps:"15-20", rest:150, link:true},
+    {name:"Rear Delt Raise", sets:3, reps:"15-20", rest:150},
     {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:150},
     {name:"Farmer Carry", sets:3, reps:"lengths of the gym", rest:150, repLabel:"Lengths"},
     {name:"Smith Calf Raise", sets:3, reps:"20", rest:150}
@@ -715,12 +715,13 @@ function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars 
   if((c.pv || 0) < 4){ c.routines.forEach(function(r){ if(r.id === "tue" && r.name === "Chest & Shoulders") r.name = "Push"; }); c.pv = 4; migrated = true; }
   if((c.pv || 0) < 5){ var addEx = function(id, ex, after){ c.routines.forEach(function(r){ if(r.id !== id) return; var ks = r.exercises.map(function(x){ return key(x.name); }); if(ks.indexOf(key(ex.name)) >= 0) return; var i = after ? ks.indexOf(after) : -1; if(i >= 0 && !r.exercises[i].link) r.exercises.splice(i + 1, 0, ex); else r.exercises.push(ex); }); };
     c.routines.forEach(function(r){ if(r.id === "mon" || r.id === "sat") r.exercises.forEach(function(x){ if(key(x.name) === "dumbbell shrug") x.name = "Smith Shrug"; }); });
-    addEx("mon", {name:"Lat Pulldown", sets:4, reps:"10-12", rest:150}, "low cable row");
+    addEx("mon", {name:"Lat Pulldown", sets:3, reps:"10-12", rest:150}, "low cable row");
     addEx("mon", {name:"Dumbbell Curl", sets:3, reps:"10-12", rest:150}, null);
     addEx("tue", {name:"Machine Chest Press", sets:3, reps:"10-12", rest:150}, "incline press");
     addEx("sat", {name:"Hammer Curl", sets:3, reps:"12-15", rest:150}, "smith shrug");
     c.pv = 5; migrated = true; }
   if((c.pv || 0) < 6){ c.routines.forEach(function(r){ r.exercises.forEach(function(x){ x.rest = 150; }); }); c.pv = 6; migrated = true; }
+  if((c.pv || 0) < 7){ c.routines.forEach(function(r){ r.exercises.forEach(function(x){ x.sets = 3; }); }); c.pv = 7; migrated = true; }
   return c; }
 var PLATE_COLORS = ["var(--plate)","var(--p-blue)","var(--p-yellow)","var(--p-green)"];
 
@@ -737,6 +738,8 @@ var S = {
 };
 if(migrated && S.active && !hasWork(S.active)){ S.active = null; ls.set("active", null); }
 if(!ls.get("r150")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ x.rest = 150; }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("r150", 1); }
+if(!ls.get("s3")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ var dn = x.sets.filter(function(q){ return q.done; }).length; x.plan = Math.max(3, dn);
+  while(x.sets.length < 3){ var l = x.sets[x.sets.length - 1]; x.sets.push({ w: l ? l.w : "", r: l ? l.r : "", pl: l && l.pl ? l.pl.slice() : [], bar: l ? l.bar : undefined, done:false, prev:null }); } }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("s3", 1); }
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
 var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = true;
 
@@ -867,10 +870,10 @@ function trimActive(){
   return changed;
 }
 function mkEx(x, hist){
-  var h = hist[key(x.name)], n = Math.max(1, parseInt(x.sets,10) || 3), sets = [];
+  var h = hist[key(x.name)], n = 3, sets = [];
   var inc = S.cfg.units === "kg" ? 2.5 : 5, rng = String(x.reps||"").match(/\d+/g), topR = rng ? +rng[rng.length-1] : 0;
   var bump = !!(h && topR && h.last.length >= n && h.last.slice(0,n).every(function(s){ return s.r >= topR && s.w > 0; }));
-  for(var i = 0; i < 1; i++){
+  for(var i = 0; i < n; i++){
     var p = h && h.last.length ? (h.last[i] || h.last[h.last.length-1]) : null;
     sets.push({ w: p ? (bump ? p.w + inc : p.w) : "", r: p ? (bump ? (x.repLabel ? 1 : lowRep(x.reps)) : p.r) : "", done:false, prev: p ? {w:p.w, r:p.r} : null });
   }
@@ -895,6 +898,7 @@ function toggleSet(ei, si){
     if(e > bar + 0.01){ st.pr = true; recordMoment(x.name, st.w, st.r); buzz([60,40,60,40,160]); }
   }
   S.cfg.goals.forEach(function(g){ if(key(g.name) === key(x.name)){ var tg = e1rm(num(g.w), num(g.r)); if(tg > 0 && e >= tg && !(h && h.best >= tg) && !x.goalHit){ x.goalHit = true; toast("Goal reached: " + g.name + " " + fmtW(num(g.w)) + " × " + g.r); buzz([80,60,80,60,240]); } } });
+  x.sets.slice(si + 1).forEach(function(o){ if(!o.done && !(num(o.w) > 0) && !(num(o.r) > 0)){ o.w = st.w; o.r = st.r; if(st.pl) o.pl = st.pl.slice(); if(st.bar !== undefined) o.bar = st.bar; } });
   if(!x.sets.some(function(o){ return !o.done; }) && x.sets.length < (x.plan || 0)){ var hp0 = h && h.last[x.sets.length] ? h.last[x.sets.length] : null;
     x.sets.push({ w: st.w, r: st.r, pl: st.pl ? st.pl.slice() : [], bar: st.bar, done:false, prev: hp0 ? { w:hp0.w, r:hp0.r } : null }); }
   var gAll = groupOf(a, ei).every(function(gi){ return exState(a.exercises[gi]).all; }); if(gAll) a.openEx = null;
@@ -1779,7 +1783,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "40";
+var BUILD = "41";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
