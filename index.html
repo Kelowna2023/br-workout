@@ -2194,7 +2194,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "59";
+var BUILD = "65";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2601,7 +2601,7 @@ function introFX(fast){
     IV.tw = gsap.to(o, { p:target, duration:dur, ease:ease, onUpdate:function(){ IV.set(o.p); }, onComplete:function(){ IV.busy = false; sfxSwell(0);
       if(target === 1){ intro.hidden = true; S.pick = true; KX.p(0); gsap.set([main, tabs], { clearProps:"transform,opacity" }); gsap.set(all, { clearProps:"all" }); gsap.set(cue, { clearProps:"opacity" }); IV.p = 0; }
       else { gsap.set([main, tabs], { clearProps:"transform,opacity" }); } } }); };
-  IV.go = function(dur){ if(intro.hidden || IV.busy) return; IV.ready(); IV.to(1, Math.max(1.15, dur || 0), "power2.inOut"); };
+  IV.go = function(dur){ if(intro.hidden || IV.busy) return; IV.ready(); IV.to(1, Math.max(1.7, dur || 0), "power2.inOut"); };
   IFX = { dead:false, exit:0, leave:function(done){ done(); } };
 }
 (function(){ var intro = $("#intro"); if(!intro) return;
@@ -2609,12 +2609,12 @@ function introFX(fast){
   intro.addEventListener("pointermove", function(e){ var d = IV.drag; if(!d || e.pointerId !== d.id) return; var now = performance.now(), dy = d.y0 - e.clientY;
     if(now > d.t) d.v = d.v * 0.5 + ((d.y - e.clientY) / (now - d.t)) * 0.5; d.y = e.clientY; d.t = now;
     if(!d.on){ if(dy < 8) return; d.on = true; d.y0 = e.clientY + 8; dy = 0; try{ intro.setPointerCapture(d.id); }catch(x){} if(IV.ready && IV.set) IV.ready(); }
-    if(IV.set) IV.set(Math.max(0, Math.min(1, (d.y0 - e.clientY) / ((intro.clientHeight || 800) * 0.66)))); });
+    if(IV.set) IV.set(Math.max(0, Math.min(1, (d.y0 - e.clientY) / ((intro.clientHeight || 800) * 0.92)))); });
   function end(e){ var d = IV.drag; if(!d || e.pointerId !== d.id) return; IV.drag = null; if(!d.on) return;
     IV.skipTap = 1; setTimeout(function(){ IV.skipTap = 0; }, 60);
     if(!IV.set){ if(d.y0 - e.clientY > 40) cut(endIntro); return; }
-    var open = e.type !== "pointercancel" && (d.v > 0.45 || (IV.p > 0.36 && d.v > -0.25));
-    if(open) IV.to(1, Math.max(0.6, 1.15 * (1 - IV.p)), "power2.out"); else IV.to(0, 0.75, "power3.out"); }
+    var open = e.type !== "pointercancel" && (d.v > 0.4 || (IV.p > 0.26 && d.v > -0.25));
+    if(open) IV.to(1, Math.max(0.9, 1.7 * (1 - IV.p)), "power2.out"); else IV.to(0, 1.0, "power3.out"); }
   intro.addEventListener("pointerup", end); intro.addEventListener("pointercancel", end);
 })();
 GFX = { burst:function(){}, at:function(){}, warp:function(){}, fire:function(){} };
@@ -2737,15 +2737,15 @@ function nvBack(run){ sfx("back"); if(!nvOK() || NV.busy){ run(); return; } nvEn
         /* the opening, run backwards: same motion as swiping in, driven the other way */
         fillIntro(); io.hidden = false; introFX(true); if(!IV.set){ io.hidden = true; T.dead = true; return; }
         IV.ready(); IV.set(1); T.home = true; T.st = { home:true, H:io.clientHeight || 800 }; }
-      if(T.home){ if(e.cancelable) e.preventDefault(); IV.set(1 - nvCl((dy - T.off) / (T.st.H * 0.66))); return; }
+      if(T.home){ if(e.cancelable) e.preventDefault(); IV.set(1 - nvCl((dy - T.off) / (T.st.H * 0.92))); return; }
       if(NV.busy){ T.dead = true; return; } T.mv = moves(T.c); T.st = nvBegin(T.mv.go, T.edge ? "x" : "y"); }
     if(e.cancelable) e.preventDefault();
-    if(T.home){ IV.set(1 - nvCl((dy - T.off) / (T.st.H * 0.66))); return; }
+    if(T.home){ IV.set(1 - nvCl((dy - T.off) / (T.st.H * 0.92))); return; }
     nvSet(T.st, nvCl(T.edge ? (dx - T.off) / T.st.W : (dy - T.off) / T.st.H)); }
   function end(e){ var t = T; T = null; if(!t) return; t.el.removeEventListener("touchmove", move); t.el.removeEventListener("touchend", end); t.el.removeEventListener("touchcancel", end);
     if(!t.st){ if(t.edge && !t.dead && e.type === "touchend" && Math.abs(t.x - t.x0) < 8 && Math.abs(t.y - t.y0) < 8){ var el = document.elementFromPoint(t.x, t.y); if(el){ if(el.focus) el.focus(); el.click(); } } return; }
-    if(t.home){ var back = e.type === "touchend" && (t.v > 0.45 || (IV.p < 0.64 && t.v > -0.25));
-      if(back) IV.to(0, Math.max(0.65, 1.15 * IV.p), "power2.out"); else IV.to(1, Math.max(0.5, 0.9 * (1 - IV.p)), "power3.out"); return; }
+    if(t.home){ var back = e.type === "touchend" && (t.v > 0.4 || (IV.p < 0.74 && t.v > -0.25));
+      if(back) IV.to(0, Math.max(0.95, 1.7 * IV.p), "power2.out"); else IV.to(1, Math.max(0.7, 1.2 * (1 - IV.p)), "power3.out"); return; }
     var p = t.st.p, open = e.type === "touchend" && (t.v > 0.5 || (p > (t.edge ? 0.34 : 0.24) && t.v > -0.2)); if(open) sfx("back");
     nvEnd(t.st, open, open ? Math.max(0.24, 0.5 * (1 - p)) : 0.5, open ? "power3.out" : "expo.out", t.mv.undo); }
 })();
