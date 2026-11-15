@@ -728,6 +728,17 @@ main>h1.lt{will-change:transform,opacity}
 .bkrow span{display:flex;flex-direction:column;gap:5px}.bkrow b{font:600 16px/1.1 var(--font)}.bkrow small{font:500 13px/1.2 var(--font);color:var(--dim)}
 .bkrow i{flex:none;font:600 14px/1 var(--font);font-style:normal;color:var(--acc)}
 .bk-st{font:400 15px/1.45 var(--font);color:var(--dim)}.bk-st b{color:var(--text);font-weight:600}
+/* ---- consistency pass: finish screen, switches, calmer zeros ---- */
+#endcard{background:radial-gradient(120% 60% at 50% 0%,rgba(255,106,61,.26),rgba(255,106,61,0) 70%),var(--bg)}
+.ec-in{min-height:100%;box-sizing:border-box;justify-content:center;gap:20px}
+.ec-in .brmark{display:none}
+.ec-in .fs-h{font-size:40px!important}
+.fs-st div{border:1px solid rgba(255,150,110,.16)!important;border-radius:16px;padding:16px}
+.bg-n.low{color:var(--dim)}.bg-b i.low{background:#4a4950}
+.lk{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-direction:row-reverse!important;text-align:left;width:100%;gap:12px;min-height:48px;font:500 15px/1.2 var(--font);color:var(--dim)}
+.lk input{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:48px;height:28px;margin:0;border-radius:99px;background:var(--card2);border:1px solid var(--line2);transition:background .2s}
+.lk input::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#d8d4cf;transition:transform .2s}
+.lk input:checked{background:var(--acc);border-color:var(--acc)}.lk input:checked::after{transform:translateX(20px);background:#fff}
 </style>
 </head>
 <body>
@@ -1938,7 +1949,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "52";
+var BUILD = "53";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
