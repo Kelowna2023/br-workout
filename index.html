@@ -868,6 +868,7 @@ if(migrated && S.active && !hasWork(S.active)){ S.active = null; ls.set("active"
 if(!ls.get("r150")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ x.rest = 150; }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("r150", 1); }
 if(!ls.get("s3")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ var dn = x.sets.filter(function(q){ return q.done; }).length; x.plan = Math.max(3, dn);
   while(x.sets.length < 3){ var l = x.sets[x.sets.length - 1]; x.sets.push({ w: l ? l.w : "", r: l ? l.r : "", pl: l && l.pl ? l.pl.slice() : [], bar: l ? l.bar : undefined, done:false, prev:null }); } }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("s3", 1); }
+if(!ls.get("g2")){ S.cfg.gear = S.cfg.gear || {}; Object.keys(S.cfg.gear).forEach(function(k){ if(/smith/.test(k) || S.cfg.gear[k] === "bar") delete S.cfg.gear[k]; }); ls.set("cfg", S.cfg); ls.set("g2", 1); }
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
 var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = true;
 
@@ -1116,16 +1117,16 @@ function toast(msg){ var t = $("#toast"); t.innerHTML = "<div>" + esc(msg) + "</
 /* ---------- plate calculator ---------- */
 var plSide = [], plCtx = null;
 /* ---------- equipment: barbell plates, cable / machine stack, dumbbells ---------- */
-var GEAR = { bar:"Barbell", cable:"Cable", machine:"Machine", db:"Dumbbells", body:"Bodyweight" };
+var GEAR = { db:"Dumbbells", cable:"Cable", machine:"Machine", bar:"Smith machine", body:"Bodyweight" };
 function gearOf(name){
   var o = S.cfg.gear && S.cfg.gear[key(name)]; if(o && GEAR[o]) return o;
   var n = String(name || "").toLowerCase();
   if(/cable|pulldown|pushdown|face ?pull|crossover|pull-?through/.test(n)) return "cable";
   if(/goblet|dumbbell|\bdb\b|\brdl\b|romanian|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
+  if(/smith/.test(n)) return "bar";
   if(/machine|leg press|leg curl|hamstring curl|leg extension|pec deck|hack squat|seated calf/.test(n)) return "machine";
   if(/pull-?up|chin-?up|\bdips?\b|push-?up|plank|hanging|sit-?up/.test(n)) return "body";
-  if(/curl|raise|fly|shrug|kickback|skull|pullover/.test(n) && !/smith|calf|barbell|ez/.test(n)) return "db";
-  return "bar";
+  return "db";
 }
 function stackSteps(){ return S.cfg.units === "kg" ? [2.5,5,7.5,10] : [5,10,12.5,15]; }
 function stackAddons(){ return S.cfg.units === "kg" ? [0,1.25,2.5] : [0,2.5,5]; }
@@ -1919,7 +1920,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "48";
+var BUILD = "49";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
