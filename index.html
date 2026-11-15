@@ -710,6 +710,7 @@ main>h1.lt{will-change:transform,opacity}
 .pglog.sc button{grid-template-columns:1fr auto}
 .pglog.sc button span:first-child{display:flex;flex-direction:column;gap:5px;font:600 16px/1.2 var(--font);color:var(--text)}
 .pglog.sc button small{font:500 13px/1 var(--font);color:var(--dim);font-variant-numeric:tabular-nums}
+:root{--p-red:#e5484d;--p-blue:#3b82f6;--p-yellow:#f2c230;--p-green:#3fb96a;--p-grey:#9a9aa3}
 </style>
 </head>
 <body>
@@ -1920,7 +1921,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "49";
+var BUILD = "50";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
