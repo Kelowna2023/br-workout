@@ -963,6 +963,21 @@ main{gap:26px!important;padding-top:34px!important}
 .kx-row.one .kx-t{color:var(--text);-webkit-text-stroke:0;font-weight:800;text-transform:none;letter-spacing:-.05em;line-height:1}
 .kx-t b{display:flex;font-weight:inherit}.kx-t i{color:var(--acc);opacity:1;padding:0 .26em 0 .06em;font-weight:300}
 .kx-t span{padding-right:.2em}.kx-t span.q{color:var(--dim)}
+
+/* ---- opening: split. Statement on black, the week on an orange block that rises to open the app ---- */
+#intro.v2 .i-cue{opacity:0!important}
+.sp{pointer-events:none}
+.sp-top{position:absolute;left:24px;right:24px;top:calc(env(safe-area-inset-top) + 66px);will-change:transform,opacity}
+.sp-h{display:flex;justify-content:space-between;font:600 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-variant-numeric:tabular-nums}.sp-h b{color:var(--text);font-weight:600}
+.sp-say{margin-top:12vh;font-family:var(--font);font-weight:900;letter-spacing:-.065em;line-height:.86;color:var(--text)}
+.sp-say .ln{display:block;overflow:hidden;padding:.05em 0 .16em;margin:-.05em 0 -.16em}.sp-say .ln>span{display:block}
+.sp-blk{position:absolute;left:0;right:0;bottom:0;height:36%;min-height:264px;color:#09090a}
+.sp-bg{position:absolute;inset:0;background:var(--acc);transform-origin:50% 100%;will-change:transform}
+.sp-in{position:absolute;inset:0;padding:26px 24px calc(env(safe-area-inset-bottom) + 30px);display:flex;flex-direction:column;justify-content:space-between}
+.sp-m{font:600 10.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.sp-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.sp-wk{font:800 46px/1 var(--font);letter-spacing:-.05em;margin-bottom:12px}
+.sp-ar{flex:none;width:44px;height:52px}.sp-ar svg{width:100%;height:100%;fill:none;stroke:#09090a;stroke-width:1.6;stroke-linecap:square}
 </style>
 </head>
 <body>
@@ -2203,31 +2218,29 @@ function cut(fn){
 }
 function endIntro(){ var el = $("#intro"); if(el.hidden) return; el.hidden = true; S.pick = true; render();
   if(viewName() === "today"){ var m = $("#view"); m.scrollTop = 0; m.classList.add("enter"); setTimeout(function(){ m.classList.remove("enter"); }, 1700); } }
-/* ---- opening: kinetic type wall. Rows run on their own, follow the finger, and part as you swipe in ---- */
-var KX = { rows:[], el:null, raf:0, last:0, imp:0, v:0, boost:0, px:null, pv:0, shown:false,
-  build:function(lines){ var io = document.getElementById("intro"), el = io.querySelector(".kx"), cls = ["o","s","a","o","s","o"];
-    if(!el){ el = document.createElement("div"); el.className = "kx"; el.setAttribute("aria-hidden", "true"); io.insertBefore(el, io.querySelector(".mid")); }
-    var rep = function(segs){ var c = '<b>' + segs.map(function(t, j){ return '<span' + (j ? ' class="q"' : '') + '>' + esc(t) + '</span><i>/</i>'; }).join("") + '</b>', s = ""; for(var k = 0; k < 4; k++) s += c; return s; };
-    el.innerHTML = '<span class="kx-h k1" id="kx-tl"></span><span class="kx-h k2" id="kx-tr"></span><div class="kx-rows">' + '<div class="kx-row one"><div class="kx-t">' + rep(lines) + '</div></div>' + '</div><span class="kx-h k3" id="kx-bl"></span><span class="kx-h k4" id="kx-br"></span>';
-    KX.el = el; KX.shown = false; KX.pv = 0; KX.imp = 0; KX.v = 0;
-    KX.rows = Array.prototype.map.call(el.querySelectorAll(".kx-row"), function(r, i){ return { row:r, t:r.firstChild, w:0, x:0, dir:1, sp:24 }; });
-    if(!KX.raf) KX.raf = requestAnimationFrame(KX.tick); },
-  p:function(p){ KX.pv = p; },
-  tick:function(ts){ var io = document.getElementById("intro"); if(!io || io.hidden || !KX.el || !KX.el.isConnected){ KX.raf = 0; KX.last = 0; return; }
-    KX.raf = requestAnimationFrame(KX.tick); var dt = KX.last ? Math.min(0.05, (ts - KX.last) / 1000) : 0.016; KX.last = ts;
-    if(!KX.shown){ var ok = true; KX.rows.forEach(function(r){ var s = r.t.firstChild; r.w = s ? s.offsetWidth : 0; if(!r.w) ok = false; }); if(!ok) return; KX.shown = true; KX.boost = 1;
-      if(window.gsap && !calm){ KX.rows.forEach(function(r, i){ gsap.fromTo(r.row, { clipPath:"inset(0% 0% 100% 0%)", y:40 }, { clipPath:"inset(0% 0% 0% 0%)", y:0, duration:1.1, ease:"expo.out", clearProps:"clipPath,transform" }); });
-        gsap.fromTo(KX.el.querySelectorAll(".kx-h"), { opacity:0 }, { opacity:1, duration:0.8, delay:0.7, stagger:0.06 }); } }
-    KX.boost *= Math.pow(0.02, dt); KX.v *= Math.pow(0.004, dt); var imp = KX.imp; KX.imp = 0;
-    var W = io.clientWidth || 390, p = KX.pv, sk = Math.max(-12, Math.min(12, -KX.v * 16));
-    KX.rows.forEach(function(r, i){ r.x += r.dir * (r.sp + KX.boost * 260) * dt - imp - KX.v * 420 * dt; var m = ((r.x % r.w) + r.w) % r.w, ex = 0;
-      r.t.style.transform = "translate3d(" + (-m).toFixed(1) + "px," + (-p * (io.clientHeight || 800) * 0.34).toFixed(1) + "px,0) skewX(" + sk.toFixed(2) + "deg)"; r.row.style.opacity = p > 0 ? String(Math.max(0, 1 - p * 1.6)) : ""; });
-    var h = KX.el.querySelectorAll(".kx-h"), o = String(Math.max(0, 1 - p * 3)); for(var k = 0; k < h.length; k++) if(p > 0) h[k].style.opacity = o;
-    var c = document.getElementById("kx-tr"), n = new Date(), tx = ("0" + n.getHours()).slice(-2) + ":" + ("0" + n.getMinutes()).slice(-2) + ":" + ("0" + n.getSeconds()).slice(-2); if(c && c.textContent !== tx) c.textContent = tx; } };
-(function(){ var io = document.getElementById("intro"); if(!io) return;
-  io.addEventListener("pointerdown", function(e){ KX.px = e.clientX; KX.pt = performance.now(); });
-  io.addEventListener("pointermove", function(e){ if(KX.px == null) return; var now = performance.now(), dx = e.clientX - KX.px, dtm = Math.max(1, now - KX.pt); KX.imp += dx; KX.v = KX.v * 0.6 + (dx / dtm) * 0.4; KX.px = e.clientX; KX.pt = now; });
-  var up = function(){ KX.px = null; }; io.addEventListener("pointerup", up); io.addEventListener("pointercancel", up); })();
+/* ---- opening: split. Everything on it is a function of how far you have swiped ---- */
+var KX = { el:null, raf:0, pv:0, px:null, imp:0, v:0, pt:0,
+  build:function(d){ var io = document.getElementById("intro"), el = io.querySelector(".kx");
+    if(!el){ el = document.createElement("div"); el.className = "kx sp"; el.setAttribute("aria-hidden", "true"); io.insertBefore(el, io.querySelector(".mid")); }
+    var avail = Math.min(window.innerWidth || 390, 560) - 48, size = 96;
+    try{ var cx = document.createElement("canvas").getContext("2d"); cx.font = '900 100px -apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,"Helvetica Neue",Arial,sans-serif';
+      var wmax = Math.max.apply(null, d.say.map(function(t){ return cx.measureText(t).width - 6.5 * (t.length - 1); })); size = Math.max(60, Math.min(108, Math.floor(100 * avail * 0.8 / wmax))); }catch(e){}
+    el.innerHTML = '<div class="sp-top"><div class="sp-h"><span>' + d.tl + '</span><span>' + esc(d.tr) + '</span></div><div class="sp-say" style="font-size:' + size + 'px">' + d.say.map(function(t){ return '<span class="ln"><span>' + esc(t) + '</span></span>'; }).join("") + '</div></div>' +
+      '<div class="sp-blk"><i class="sp-bg"></i><div class="sp-in"><span class="sp-m">This week</span><div class="sp-row"><div><div class="sp-wk">' + esc(d.wk) + '</div><div class="sp-m">' + esc(d.last) + '</div></div><span class="sp-ar"><svg viewBox="0 0 44 52" aria-hidden="true"><path d="M22 50V4M4 22L22 4l18 18"/></svg></span></div></div></div>';
+    KX.el = el; KX.pv = 0; cancelAnimationFrame(KX.raf);
+    var wait = function(){ if(!el.isConnected) return; if(io.hidden || !el.offsetHeight){ KX.raf = requestAnimationFrame(wait); return; }
+      if(!window.gsap || calm) return; var blk = el.querySelector(".sp-blk");
+      gsap.fromTo(blk, { yPercent:100 }, { yPercent:0, duration:0.95, ease:"expo.out", clearProps:"transform" });
+      gsap.fromTo(el.querySelectorAll(".sp-say .ln>span"), { yPercent:112 }, { yPercent:0, duration:0.95, stagger:0.09, delay:0.12, ease:"expo.out", clearProps:"transform" });
+      gsap.fromTo(el.querySelector(".sp-in"), { opacity:0, y:14 }, { opacity:1, y:0, duration:0.7, delay:0.45, ease:"power3.out", clearProps:"opacity,transform" });
+      gsap.fromTo(el.querySelector(".sp-h"), { opacity:0 }, { opacity:1, duration:0.8, delay:0.3 }); };
+    KX.raf = requestAnimationFrame(wait); },
+  p:function(p){ var el = KX.el; if(!el || !el.isConnected) return; KX.pv = p; var io = document.getElementById("intro"), H = io.clientHeight || 800, blk = el.querySelector(".sp-blk"), bg = el.querySelector(".sp-bg"), inn = el.querySelector(".sp-in"), top = el.querySelector(".sp-top");
+    if(p <= 0){ bg.style.transform = ""; blk.style.transform = ""; inn.style.opacity = ""; inn.style.transform = ""; top.style.opacity = ""; top.style.transform = ""; return; }
+    var h0 = blk.offsetHeight || 280, a = Math.min(1, p / 0.55), e = 1 - Math.pow(1 - a, 3), b = Math.max(0, (p - 0.55) / 0.45);
+    bg.style.transform = "scaleY(" + (1 + (H / h0 - 1) * e).toFixed(4) + ")"; blk.style.transform = "translate3d(0," + (-b * b * (H + 20)).toFixed(1) + "px,0)";
+    inn.style.opacity = String(Math.max(0, 1 - a * 1.8)); inn.style.transform = "translate3d(0," + (-a * 40).toFixed(1) + "px,0)";
+    top.style.opacity = String(Math.max(0, 1 - a * 1.5)); top.style.transform = "translate3d(0," + (-a * 70).toFixed(1) + "px,0)"; } };
 function fillIntro(){
   var now = new Date(); $("#i-day").textContent = now.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
   var st = weekStats(), goal = Math.max(1, +S.cfg.weeklyGoal || 5), last = null, lines, sub;
@@ -2259,10 +2272,8 @@ function fillIntro(){
     var bg = io.querySelector(".i-bg"), ph = io.querySelector(".i-photo"), p = S.photos && S.photos[0];
     if(p && p.url){ if(!ph){ ph = document.createElement("div"); ph.className = "i-photo"; bg.appendChild(ph); } if(ph.dataset.id !== String(p.id)){ ph.dataset.id = String(p.id); ph.style.backgroundImage = 'url("' + p.url + '")'; } io.classList.add("has-photo"); }
     else { if(ph) ph.remove(); io.classList.remove("has-photo"); }
-    (function(){ var n = new Date(), wkn = (function(){ var d = new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())), dn = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dn); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 864e5) + 1) / 7); })(), up = function(t){ return String(t).toUpperCase(); };
-      KX.build([say.join(" "), st.thisWeek + " of " + goal + " this week", last && last.name ? last.name + ", " + when : "Nothing logged yet"]);
-      var q = function(id, h){ var e = document.getElementById(id); if(e) e.innerHTML = h; };
-      q("kx-tl", "WK <b>" + wkn + "</b> / " + n.getFullYear()); q("kx-bl", "<b>" + ("0" + st.thisWeek).slice(-2) + "</b> / " + ("0" + goal).slice(-2)); q("kx-br", "SESSION <b>" + ("00" + (S.sessions.length + (did ? 0 : 1))).slice(-3) + "</b>"); })(); })();
+    (function(){ var n = new Date(), up = function(t){ return String(t).toUpperCase(); }, wkn = (function(){ var d = new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())), dn = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dn); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 864e5) + 1) / 7); })();
+      KX.build({ say:say, tl:"WK <b>" + wkn + "</b> / " + n.getFullYear(), tr:up(n.toLocaleDateString("en-US", { weekday:"short" })) + " " + n.getDate() + " " + up(n.toLocaleDateString("en-US", { month:"short" })), wk:st.thisWeek + " of " + goal, last: last ? "Last · " + (last.name ? last.name + " · " : "") + when : "Nothing logged yet" }); })(); })();
 }
 (function(){ var dirty = relabel();
   if(S.active && !S.active.routineId){ S.active = null; dirty = true; }
