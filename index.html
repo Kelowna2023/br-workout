@@ -621,6 +621,20 @@ main[data-v="progress"]::before{content:"Progress";font:700 32px/1.08 var(--font
 @keyframes icue{0%{transform:translateY(40px)}70%,100%{transform:translateY(-18px)}}
 @media (max-height:620px){#intro.v2 .i-bot{bottom:calc(env(safe-area-inset-bottom) + 100px)}#intro.v2 .i-cue i{height:26px}}
 @media (prefers-reduced-motion:reduce){#intro.v2 .i-cue i::after{animation:none;top:auto;bottom:0}}
+
+/* ---- travel layer: pages are objects you move, not screens that swap ---- */
+.nvg{position:absolute;left:0;right:0;z-index:20;display:flex;flex-direction:column;overflow:hidden;pointer-events:none;will-change:transform,opacity;transform:translateZ(0)}
+.nvg main{overflow:hidden}
+.nvg *,.nvg *::before,.nvg *::after{animation:none!important;transition:none!important}
+.nvg.x{box-shadow:-18px 0 50px rgba(0,0,0,.55),-1px 0 0 rgba(255,255,255,.07)}
+.nvg.y{box-shadow:0 -18px 50px rgba(0,0,0,.5),0 -1px 0 rgba(255,255,255,.08)}
+.nvg.y::before{content:"";position:absolute;left:50%;top:8px;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:rgba(255,255,255,.26);z-index:3;opacity:var(--grab,0)}
+.nvdim{position:absolute;left:0;right:0;z-index:19;background:#000;opacity:0;pointer-events:none}
+.nvfly{position:absolute;z-index:21;margin:0;pointer-events:none;will-change:transform;white-space:normal}
+#nvbar{position:absolute;left:0;right:0;top:0;z-index:5;height:calc(env(safe-area-inset-top) + 46px);padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:center;background:rgba(9,9,10,.74);-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);border-bottom:1px solid rgba(255,255,255,.07);font:600 16px/1 var(--font);letter-spacing:-.015em;color:var(--text);opacity:0;pointer-events:none;will-change:opacity}
+#nvbar span{display:block;max-width:76%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;will-change:transform}
+main>h1.lt{will-change:transform,opacity}
+.hrow:active,.xlist>.tr:active{background:rgba(255,255,255,.035)}
 </style>
 </head>
 <body>
@@ -1696,7 +1710,7 @@ document.addEventListener("click", function(ev){
     case "start-open": cut(function(){ goWorkout(null); }); break;
     case "to-home": cut(function(){ var el = $("#intro"); fillIntro(); el.hidden = false; introFX(true); }); break;
     case "resume": cut(function(){ S.pick = false; render(); $("#view").scrollTop = 0; }); break;
-    case "to-list": cut(function(){ S.pick = true; if(location.hash !== "#today") location.hash = "#today"; render(); $("#view").scrollTop = 0; }); break;
+    case "to-list": nvBack(function(){ S.pick = true; if(location.hash !== "#today") location.hash = "#today"; render(); $("#view").scrollTop = 0; }); break;
     case "enter": if(IV.skipTap){ IV.skipTap = 0; break; } if(!calm && window.gsap && IV.go) IV.go(0.85); else cut(endIntro); break;
     case "plates": plateSheet(null); break;
     case "sheet-close": closeSheet(); break;
@@ -1749,7 +1763,7 @@ document.addEventListener("click", function(ev){
     case "cal": (function(){ var n0 = new Date(), c = S.histMonth ? new Date(S.histMonth) : new Date(n0.getFullYear(), n0.getMonth(), 1);
         S.histMonth = new Date(c.getFullYear(), c.getMonth() + (+b.dataset.v), 1).getTime(); render(); })(); break;
     case "ex-next": a.openEx = groupOf(a, ei)[0]; a.restReady = null; saveActive(); render(); $("#view").scrollTop = 0; break;
-    case "ex-close": a.openEx = null; saveActive(); render(); $("#view").scrollTop = 0; break;
+    case "ex-close": nvBack(function(){ a.openEx = null; saveActive(); render(); $("#view").scrollTop = 0; }); break;
     case "ex-toggle": morphFrom(b.querySelector(".nm"), function(){ a.openEx = groupOf(a, ei)[0]; saveActive(); render(); $("#view").scrollTop = 0; }); break;
     case "add-set": var ax = a.exercises[ei], asets = ax.sets, al = asets[asets.length-1], ahx = histIndex()[key(ax.name)], ahp = ahx && ahx.last[asets.length] ? ahx.last[asets.length] : null;
       asets.push({ w: al ? al.w : "", r: al ? al.r : "", pl: al && al.pl ? al.pl.slice() : [], bar: al ? al.bar : undefined, done:false, prev: ahp ? { w:ahp.w, r:ahp.r } : null });
@@ -2200,6 +2214,7 @@ function introFX(fast){
 })();
 GFX = { burst:function(){}, at:function(){}, warp:function(){}, fire:function(){} };
 function fxAfterRender(main, changed){
+  if(NV.quiet){ navDir = 1; return; }
   if(!changed) return; navDir = 1;
   var kids = Array.prototype.slice.call(main.children), rows = main.querySelectorAll(".hrow,.xlist>.tr");
   gsap.killTweensOf(main); gsap.set(main, { clearProps:"transform,opacity,filter" });
@@ -2224,6 +2239,114 @@ function renderToday(){
       (live ? '<span class="badge">In progress</span>' : '<span class="chev" aria-hidden="true">›</span>') + '</button>'; });
   return h + '</div><div class="links"><span></span><a href="#routines">Edit workouts</a></div>';
 }
+/* ===================== travel layer ===================== */
+var NV = { busy:false, quiet:false };
+function nvOK(){ return !calm && !!window.gsap; }
+function nvCl(v){ return v < 0 ? 0 : v > 1 ? 1 : v; }
+/* a frozen copy of the page you are on, so the real one can change underneath it */
+function nvSnap(){
+  var main = $("#view"), app = $("#app"), g = document.createElement("div"), m = document.createElement("main"), top = main.scrollTop, i;
+  g.className = "nvg"; g.setAttribute("aria-hidden", "true"); if(main.dataset.v) m.dataset.v = main.dataset.v; m.innerHTML = main.innerHTML;
+  var a = main.querySelectorAll("input,textarea,select"), b = m.querySelectorAll("input,textarea,select");
+  for(i = 0; i < a.length && i < b.length; i++){ try{ b[i].value = a[i].value; b[i].tabIndex = -1; }catch(e){} }
+  m.querySelectorAll("[id],[data-act],[for],[style]").forEach(function(e){ e.removeAttribute("id"); e.removeAttribute("data-act"); e.removeAttribute("for");
+    if(e.style){ ["opacity","transform","translate","rotate","scale","filter","visibility","will-change"].forEach(function(k){ e.style.removeProperty(k); }); } });
+  g.style.top = main.offsetTop + "px"; g.style.height = main.offsetHeight + "px";
+  g.style.background = "radial-gradient(320px 270px at 40px " + (-50 - main.offsetTop) + "px,rgba(255,106,61,.32),rgba(255,106,61,0)),var(--bg)";
+  g.appendChild(m); app.appendChild(g); m.scrollTop = top; $("#nvbar").style.opacity = 0; return g;
+}
+function nvQuiet(fn){ NV.quiet = true; try{ fn(); } finally { NV.quiet = false; } }
+
+/* forward: the name you tapped travels up and becomes the page title; the list parts around it */
+function morphFrom(src, run){
+  if(!nvOK() || NV.busy || !src){ run(); return; }
+  var main = $("#view"), app = $("#app"), row = src.closest(".hrow,.tr"), r0 = src.getBoundingClientRect(), txt = src.textContent.trim(), cs0 = getComputedStyle(src), fs0 = parseFloat(cs0.fontSize), lh0 = parseFloat(cs0.lineHeight) || fs0 * 1.2;
+  var idx = Array.prototype.indexOf.call(main.querySelectorAll(".hrow,.xlist>.tr"), row), k0 = screenKey(), g = nvSnap(), done = false;
+  NV.busy = true; nvQuiet(run);
+  var fly = null, dst = null, grows = Array.prototype.slice.call(g.querySelectorAll(".hrow,.xlist>.tr")), kids = Array.prototype.slice.call(main.children);
+  function finish(){ if(done) return; done = true; if(fly) fly.remove(); if(dst) dst.style.visibility = ""; g.remove(); NV.busy = false; gsap.set(kids, { clearProps:"opacity,transform" }); nvScroll(); }
+  if(screenKey() === k0){ finish(); return; }
+  main.querySelectorAll("h1.lt").forEach(function(h){ if(!dst && h.textContent.trim() === txt) dst = h; });
+  var ar = app.getBoundingClientRect();
+  if(dst){ var r1 = dst.getBoundingClientRect(), cs1 = getComputedStyle(dst), fs1 = parseFloat(cs1.fontSize), lh1 = parseFloat(cs1.lineHeight) || fs1 * 1.1;
+    if(r1.height > lh1 * 1.5 || r0.height > lh0 * 1.5) dst = null;       /* wraps differently at the two sizes: let it fade instead */
+    else { fly = document.createElement("div"); fly.className = "nvfly"; fly.textContent = txt;
+      fly.style.cssText = "left:" + (r1.left - ar.left) + "px;top:" + (r1.top - ar.top) + "px;width:" + r1.width + "px;font:" + cs1.fontStyle + " " + cs1.fontWeight + " " + cs1.fontSize + "/" + cs1.lineHeight + " " + cs1.fontFamily + ";letter-spacing:" + cs1.letterSpacing + ";color:" + cs1.color;
+      app.appendChild(fly); var sc = fs0 / fs1;
+      dst.style.visibility = "hidden"; var gs = idx >= 0 && grows[idx] ? grows[idx].querySelector(".wn,.nm") : null; if(gs) gs.style.visibility = "hidden";
+      gsap.fromTo(fly, { x:r0.left - r1.left, y:(r0.top + r0.height / 2) - (r1.top + lh1 * sc / 2), scale:sc, transformOrigin:"0 0" }, { x:0, y:0, scale:1, duration:0.62, ease:"power3.inOut", onComplete:finish }); } }
+  grows.forEach(function(r, i){ if(i === idx){ gsap.to(r, { opacity:0, duration:0.22, ease:"power1.in" }); return; }
+    var d = idx < 0 ? 1 : i - idx; gsap.to(r, { y:(d < 0 ? -1 : 1) * (26 + 12 * Math.min(4, Math.abs(d))), opacity:0, duration:0.38, ease:"power2.in" }); });
+  Array.prototype.forEach.call(g.firstChild.children, function(c){ if(!c.matches(".hlist,.xlist")) gsap.to(c, { opacity:0, duration:0.24, ease:"power1.in" }); });
+  gsap.to(g, { opacity:0, duration:0.3, delay:0.2, ease:"power1.inOut" });
+  var rest = kids.filter(function(c){ return c !== dst; });
+  gsap.fromTo(rest, { opacity:0, y:30 }, { opacity:1, y:0, duration:0.66, stagger:0.045, delay:0.24, ease:"expo.out", clearProps:"opacity,transform" });
+  var rws = main.querySelectorAll(".xlist>.tr"); if(rws.length) gsap.fromTo(rws, { opacity:0, y:16 }, { opacity:1, y:0, duration:0.6, stagger:0.04, delay:0.32, ease:"expo.out", clearProps:"opacity,transform" });
+  main.querySelectorAll(".pbar i").forEach(function(b){ gsap.from(b, { scaleX:0, transformOrigin:"0 50%", duration:0.9, ease:"power3.out", delay:0.4 }); });
+  if(!fly) setTimeout(finish, 700); setTimeout(finish, 1400);
+}
+
+/* back: the page you are on is carried off (sideways, or down), the one before is already underneath */
+function nvBegin(doBack, axis){
+  var main = $("#view"), app = $("#app"); if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  var st = { axis:axis, top:main.scrollTop, W:main.offsetWidth, H:main.offsetHeight, p:0, main:main };
+  st.g = nvSnap(); st.g.classList.add(axis); st.dim = document.createElement("div"); st.dim.className = "nvdim"; st.dim.style.top = st.g.style.top; st.dim.style.height = st.g.style.height; app.insertBefore(st.dim, st.g);
+  NV.busy = true; nvQuiet(doBack); gsap.killTweensOf(main); nvSet(st, 0); return st;
+}
+function nvSet(st, p){ st.p = p;
+  if(st.axis === "x"){ gsap.set(st.g, { x:p * st.W }); gsap.set(st.main, { x:-(1 - p) * st.W * 0.26 }); gsap.set(st.dim, { opacity:0.5 * (1 - p) }); }
+  else { var k = nvCl(p * 7); gsap.set(st.g, { y:p * st.H, scale:1 - 0.04 * k, borderRadius:26 * k, transformOrigin:"50% 0", "--grab":k });
+    gsap.set(st.main, { scale:0.93 + 0.07 * p, transformOrigin:"50% 40%" }); gsap.set(st.dim, { opacity:0.62 * (1 - p) }); }
+}
+function nvEnd(st, complete, dur, ease, undo){ var o = { p:st.p };
+  gsap.to(o, { p:complete ? 1 : 0, duration:dur, ease:ease, onUpdate:function(){ nvSet(st, o.p); }, onComplete:function(){
+    if(!complete && undo){ nvQuiet(undo); st.main.scrollTop = st.top; }
+    gsap.set(st.main, { clearProps:"transform" }); st.g.remove(); st.dim.remove(); NV.busy = false; nvScroll(); } });
+}
+function nvBack(run){ if(!nvOK() || NV.busy){ run(); return; } nvEnd(nvBegin(run, "x"), true, 0.52, "power3.inOut"); }
+
+/* the finger: left edge pulls the page back; on an exercise, pulling down puts it away */
+(function(){ var app = $("#app"), T = null;
+  function where(){ if(!nvOK() || NV.busy || !$("#intro").hidden) return null;
+    var blk = ["#sheet","#endcard","#restfull","#rest","#mo"], i, e; for(i = 0; i < blk.length; i++){ e = $(blk[i]); if(e && !e.hidden && e.offsetParent !== null && blk[i] !== "#rest") return null; }
+    if(viewName() !== "today" || !S.active || S.pick) return null; return openGroup(S.active).length ? "ex" : "wk"; }
+  function moves(c){ var a = S.active, prev = a.openEx;
+    return c === "ex" ? { go:function(){ a.openEx = null; saveActive(); render(); $("#view").scrollTop = 0; }, undo:function(){ a.openEx = prev; saveActive(); render(); } }
+      : { go:function(){ S.pick = true; render(); $("#view").scrollTop = 0; }, undo:function(){ S.pick = false; render(); } }; }
+  app.addEventListener("touchstart", function(e){ if(T){ if(T.st) return; end({ type:"touchcancel" }); } if(e.touches.length !== 1) return; var c = where(); if(!c) return;
+    var t = e.touches[0], main = $("#view"), mr = main.getBoundingClientRect(); if(t.clientY < mr.top || t.clientY > mr.bottom) return;
+    var edge = t.clientX - mr.left <= 20, down = c === "ex" && !edge && main.scrollTop <= 0 && !e.target.closest("input,textarea,select,.wh,[contenteditable]");
+    if(!edge && !down) return;
+    T = { c:c, edge:edge, x0:t.clientX, y0:t.clientY, x:t.clientX, y:t.clientY, t:performance.now(), v:0, st:null, dead:false, el:e.target };
+    /* the page under the finger gets re-rendered mid-gesture, so listen on the touched element itself: it keeps receiving the touch after it leaves the page */
+    T.el.addEventListener("touchmove", move, { passive:false }); T.el.addEventListener("touchend", end); T.el.addEventListener("touchcancel", end);
+    if(edge && e.cancelable) e.preventDefault();          /* keeps the phone's own back-swipe from fighting this one */
+  }, { passive:false });
+  function move(e){ if(!T || T.dead) return; var t = e.touches[0], dx = t.clientX - T.x0, dy = t.clientY - T.y0, now = performance.now();
+    if(now > T.t) T.v = T.v * 0.5 + ((T.edge ? t.clientX - T.x : t.clientY - T.y) / (now - T.t)) * 0.5; T.x = t.clientX; T.y = t.clientY; T.t = now;
+    if(!T.st){
+      if(T.edge){ if(dx > 10 && dx > Math.abs(dy)){ T.off = dx; } else { if(Math.abs(dy) > 16 || dx < -10) T.dead = true; return; } }
+      else { if(dy > 9 && dy > Math.abs(dx) * 1.3 && $("#view").scrollTop <= 0){ T.off = dy; } else { if(dy < -5 || Math.abs(dx) > 12) T.dead = true; return; } }
+      if(NV.busy){ T.dead = true; return; } T.mv = moves(T.c); T.st = nvBegin(T.mv.go, T.edge ? "x" : "y"); }
+    if(e.cancelable) e.preventDefault();
+    nvSet(T.st, nvCl(T.edge ? (dx - T.off) / T.st.W : (dy - T.off) / T.st.H)); }
+  function end(e){ var t = T; T = null; if(!t) return; t.el.removeEventListener("touchmove", move); t.el.removeEventListener("touchend", end); t.el.removeEventListener("touchcancel", end);
+    if(!t.st){ if(t.edge && !t.dead && e.type === "touchend" && Math.abs(t.x - t.x0) < 8 && Math.abs(t.y - t.y0) < 8){ var el = document.elementFromPoint(t.x, t.y); if(el){ if(el.focus) el.focus(); el.click(); } } return; }
+    var p = t.st.p, open = e.type === "touchend" && (t.v > 0.5 || (p > (t.edge ? 0.34 : 0.24) && t.v > -0.2));
+    nvEnd(t.st, open, open ? Math.max(0.24, 0.5 * (1 - p)) : 0.5, open ? "power3.out" : "expo.out", t.mv.undo); }
+})();
+
+/* long pages: the big title eases back as you scroll and a slim bar takes its place */
+(function(){ var b = document.createElement("div"); b.id = "nvbar"; b.setAttribute("aria-hidden", "true"); b.innerHTML = "<span></span>"; $("#app").appendChild(b); })();
+function nvScroll(){ var main = $("#view"), bar = $("#nvbar"); if(!main || !bar) return; if(NV.busy){ bar.style.opacity = 0; return; }
+  var y = main.scrollTop, h = main.querySelector("h1.lt"), p = nvCl((y - 4) / 64), v = main.dataset.v, title = "";
+  if(h){ if(p > 0){ h.style.transformOrigin = "0 100%"; h.style.transform = "translate3d(0," + (p * 10).toFixed(2) + "px,0) scale(" + (1 - 0.14 * p).toFixed(4) + ")"; h.style.opacity = (1 - p).toFixed(3); } else if(h._nv){ h.style.transform = ""; h.style.opacity = ""; } h._nv = p > 0; }
+  if(v === "today") title = (S.active && !S.pick && h) ? h.textContent : "Workouts"; else title = { history:"History", progress:"Progress", body:"Body", routines:"Setup" }[v] || "";
+  var sp = bar.firstChild, o = nvCl((y - (h ? 46 : 18)) / 34); if(sp.textContent !== title) sp.textContent = title;
+  bar.style.opacity = o.toFixed(3); sp.style.transform = "translate3d(0," + ((1 - o) * 8).toFixed(2) + "px,0)"; }
+(function(){ var tk = false; $("#view").addEventListener("scroll", function(){ if(tk) return; tk = true; requestAnimationFrame(function(){ tk = false; nvScroll(); }); }, { passive:true }); })();
+var render0 = render; render = function(){ render0(); nvScroll(); };
+
 render();
 setInterval(tick, 250);
 connect();
