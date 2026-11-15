@@ -1023,12 +1023,17 @@ function sfx(kind){ try{ primeAudio(); if(!actx || !SFX.out) return;
     /* the phone wakes the audio a beat after the touch: wait for it instead of dropping the sound */
     if(actx.state !== "running"){ var asked = Date.now(); actx.resume().then(function(){ if(Date.now() - asked < 700) sfxPlay(kind); }).catch(function(){}); return; }
     sfxPlay(kind); }catch(e){} }
+/* One small family of glass dings, all from the same five notes (G A B D E) so any two of them sound right together. */
 function sfxPlay(kind){ try{ if(!sfxOK()) return; var t = actx.currentTime + 0.01;
-    if(kind === "set") sfxTock(t, 0.3);
-    else if(kind === "rest"){ sfxGlass(659.3, t, 0.3, 0.3); sfxGlass(987.8, t + 0.24, 0.42, 0.26); }
+    if(kind === "openw") sfxGlass(784, t, 0.16, 0.15);                                             /* into a workout */
+    else if(kind === "openx") sfxGlass(987.8, t, 0.15, 0.13);                                      /* into an exercise */
+    else if(kind === "back") sfxGlass(587.3, t, 0.12, 0.09);                                       /* stepping back: lower, softer */
+    else if(kind === "tab") sfxGlass(659.3, t, 0.07, 0.06);                                        /* switching section: barely there */
+    else if(kind === "set"){ sfxGlass(1174.7, t, 0.2, 0.2); sfxV(1568, t + 0.02, 0.01, 0.12, 0.03); }   /* set done: the brightest ding */
+    else if(kind === "rest"){ sfxGlass(784, t, 0.3, 0.28); sfxGlass(1174.7, t + 0.26, 0.45, 0.26); }     /* rest over: two notes, rising */
     else if(kind === "pr") sfxBloom([392, 493.9, 587.3, 784], t, 0.09, 0.5, 0.11);
     else if(kind === "finish"){ sfxBloom([261.6, 392, 523.3], t, 0.14, 0.7, 0.12); sfxV(1046.5, t + 0.2, 0.2, 0.6, 0.018); }
-    else if(kind === "land") sfxBloom([196, 392], t, 0.07, 0.34, 0.1);
+    else if(kind === "land") sfxGlass(392, t, 0.36, 0.17);                                         /* workouts arrive: one low chime */
   }catch(e){} }
 function sfxSwell(){}
 function sfxUnlock(){ primeAudio(); try{ if(actx && SFX.out){ var b = actx.createBufferSource(); b.buffer = actx.createBuffer(1, 1, 22050); b.connect(actx.destination); b.start(0); } }catch(e){} }
@@ -1929,7 +1934,8 @@ function morphFrom(src, run){ run(); }
 function landGhost(){ return null; }
 function fxScroll(){}
 var navDir = 1;
-document.addEventListener("click", function(e){ var b = e.target.closest("[data-act],.tabs a"); if(!b) return; navDir = /^(ex-close|to-list|to-home|sheet-close)$/.test(b.dataset.act || "") ? -1 : 1; }, true);
+document.addEventListener("click", function(e){ var b = e.target.closest("[data-act],.tabs a"); if(!b) return; navDir = /^(ex-close|to-list|to-home|sheet-close)$/.test(b.dataset.act || "") ? -1 : 1;
+  if(b.matches(".tabs a")){ if(b.getAttribute("aria-current") !== "page") sfx("tab"); } else if(b.dataset.act === "ex-next") sfx("openx"); }, true);
 function relDay(t){ var d0 = new Date(); d0.setHours(0,0,0,0); var d = new Date(t); d.setHours(0,0,0,0); var n = Math.round((d0 - d) / 864e5);
   return n <= 0 ? "today" : n === 1 ? "yesterday" : n < 7 ? DAYS[d.getDay()].slice(0,3) : fmtShort(t); }
 function estMin(exs){ var t = 0; exs.forEach(function(x){ var n = Array.isArray(x.sets) ? Math.max(x.plan || 0, x.sets.length) : (+x.sets || 3); t += n * (40 + (+x.rest || 90)); }); return Math.max(5, Math.round(t / 300) * 5); }
@@ -2291,6 +2297,7 @@ function nvQuiet(fn){ NV.quiet = true; try{ fn(); } finally { NV.quiet = false; 
 
 /* forward: the name you tapped travels up and becomes the page title; the list parts around it */
 function morphFrom(src, run){
+  sfx(src && src.matches && src.matches(".nm") ? "openx" : "openw");
   if(!nvOK() || NV.busy || !src){ run(); return; }
   var main = $("#view"), app = $("#app"), row = src.closest(".hrow,.tr"), r0 = src.getBoundingClientRect(), txt = src.textContent.trim(), cs0 = getComputedStyle(src), fs0 = parseFloat(cs0.fontSize), lh0 = parseFloat(cs0.lineHeight) || fs0 * 1.2;
   var idx = Array.prototype.indexOf.call(main.querySelectorAll(".hrow,.xlist>.tr"), row), k0 = screenKey(), g = nvSnap(), done = false;
@@ -2335,7 +2342,7 @@ function nvEnd(st, complete, dur, ease, undo){ var o = { p:st.p };
     if(!complete && undo){ nvQuiet(undo); st.main.scrollTop = st.top; }
     gsap.set(st.main, { clearProps:"transform" }); st.g.remove(); st.dim.remove(); NV.busy = false; nvScroll(); } });
 }
-function nvBack(run){ if(!nvOK() || NV.busy){ run(); return; } nvEnd(nvBegin(run, "x"), true, 0.52, "power3.inOut"); }
+function nvBack(run){ sfx("back"); if(!nvOK() || NV.busy){ run(); return; } nvEnd(nvBegin(run, "x"), true, 0.52, "power3.inOut"); }
 
 /* the finger: left edge pulls the page back; on an exercise, pulling down puts it away */
 (function(){ var app = $("#app"), T = null;
@@ -2372,7 +2379,7 @@ function nvBack(run){ if(!nvOK() || NV.busy){ run(); return; } nvEnd(nvBegin(run
     if(!t.st){ if(t.edge && !t.dead && e.type === "touchend" && Math.abs(t.x - t.x0) < 8 && Math.abs(t.y - t.y0) < 8){ var el = document.elementFromPoint(t.x, t.y); if(el){ if(el.focus) el.focus(); el.click(); } } return; }
     if(t.home){ var back = e.type === "touchend" && (t.v > 0.45 || (IV.p < 0.64 && t.v > -0.25));
       if(back) IV.to(0, Math.max(0.3, 0.62 * IV.p), "power3.out"); else IV.to(1, Math.max(0.26, 0.55 * (1 - IV.p)), "expo.out"); return; }
-    var p = t.st.p, open = e.type === "touchend" && (t.v > 0.5 || (p > (t.edge ? 0.34 : 0.24) && t.v > -0.2));
+    var p = t.st.p, open = e.type === "touchend" && (t.v > 0.5 || (p > (t.edge ? 0.34 : 0.24) && t.v > -0.2)); if(open) sfx("back");
     nvEnd(t.st, open, open ? Math.max(0.24, 0.5 * (1 - p)) : 0.5, open ? "power3.out" : "expo.out", t.mv.undo); }
 })();
 
