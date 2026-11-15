@@ -610,6 +610,17 @@ main[data-v="progress"]::before{content:"Progress";font:700 32px/1.08 var(--font
 #intro.v2 .btn.go:active{transform:scale(.985)}
 @media (max-height:620px){#intro.v2 .i-mark{height:54%}#intro.v2 .brmark{width:min(44vw,180px)}#intro.v2 .i-rule{margin:18px 0 14px}}
 @media (prefers-reduced-motion:reduce){#intro.v2 .i-glow::before{animation:none}}
+
+/* opening: no button. Swipe up and the screen follows your finger. */
+#intro.v2{background:transparent;touch-action:none;-webkit-user-select:none;user-select:none}
+#intro.v2 .i-bg{position:absolute;inset:0;background:#060607}
+#intro.v2 .i-bot{bottom:calc(env(safe-area-inset-bottom) + 118px)}
+#intro.v2 .i-cue{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:4;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:12px;min-width:120px;padding:10px 16px;border:0;background:none;color:var(--dim);font:600 13px/1 var(--font);letter-spacing:.01em;-webkit-tap-highlight-color:transparent}
+#intro.v2 .i-cue i{position:relative;display:block;width:1px;height:38px;background:rgba(255,255,255,.14);overflow:hidden}
+#intro.v2 .i-cue i::after{content:"";position:absolute;left:0;right:0;top:0;height:16px;background:linear-gradient(180deg,#ffb9a0,rgba(255,106,61,0));animation:icue 2.4s cubic-bezier(.6,0,.3,1) infinite}
+@keyframes icue{0%{transform:translateY(40px)}70%,100%{transform:translateY(-18px)}}
+@media (max-height:620px){#intro.v2 .i-bot{bottom:calc(env(safe-area-inset-bottom) + 100px)}#intro.v2 .i-cue i{height:26px}}
+@media (prefers-reduced-motion:reduce){#intro.v2 .i-cue i::after{animation:none;top:auto;bottom:0}}
 </style>
 </head>
 <body>
@@ -648,7 +659,7 @@ main[data-v="progress"]::before{content:"Progress";font:700 32px/1.08 var(--font
     <a href="#routines" id="tab-routines">Setup</a>
   </nav>
   <div id="grain" aria-hidden="true"></div>
-  <div id="intro" class="v2" hidden><div class="bar t"></div><div class="bar b"></div><div class="i-glow" aria-hidden="true"></div><div class="mid"><div class="i-mark"><svg class="brmark" viewBox="14 28 180 144" role="img" aria-label="BR monogram"><g class="m-all" id="brall">
+  <div id="intro" class="v2" hidden><div class="bar t"></div><div class="bar b"></div><div class="i-bg" aria-hidden="true"></div><div class="i-glow" aria-hidden="true"></div><div class="mid"><div class="i-mark"><svg class="brmark" viewBox="14 28 180 144" role="img" aria-label="BR monogram"><g class="m-all" id="brall">
       <rect class="m-p m-1" x="22" y="36" width="20" height="128"/>
       <path class="m-p m-2" d="M49,36 H82 L97,51 V82 L82,97 H49 Z"/>
       <path class="m-p m-3" d="M49,104 H86 L101,119 V149 L86,164 H49 Z"/>
@@ -656,7 +667,7 @@ main[data-v="progress"]::before{content:"Progress";font:700 32px/1.08 var(--font
       <path class="m-p m-5" d="M137,36 H168 L183,51 V82 L168,97 H137 Z"/>
       <path class="m-p m-6" d="M137,104 h22 L186,164 h-23 Z"/>
     </g><defs><linearGradient id="brfade" gradientUnits="userSpaceOnUse" x1="0" y1="170" x2="0" y2="262"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="brmask" maskUnits="userSpaceOnUse" x="0" y="166" width="210" height="110"><rect x="0" y="166" width="210" height="110" fill="url(#brfade)"/></mask><linearGradient id="brg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9b78"/><stop offset="1" stop-color="#f04a26"/></linearGradient><linearGradient id="brsh" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="70" y2="22"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-    <g class="m-sh" fill="url(#brsh)" aria-hidden="true"><rect x="22" y="36" width="20" height="128"/><path d="M49,36 H82 L97,51 V82 L82,97 H49 Z"/><path d="M49,104 H86 L101,119 V149 L86,164 H49 Z"/><rect x="110" y="36" width="20" height="128"/><path d="M137,36 H168 L183,51 V82 L168,97 H137 Z"/><path d="M137,104 h22 L186,164 h-23 Z"/></g><g class="m-ref" mask="url(#brmask)" aria-hidden="true"><use href="#brall" transform="translate(0,338) scale(1,-1)"/></g></svg></div><div class="i-bot"><span class="i-day" id="i-day"></span><span class="i-line"></span><span class="i-title" id="i-title"></span><span class="i-sub" id="i-sub"></span><span class="i-rule" aria-hidden="true"></span><button class="btn go" type="button" data-act="enter"><span>Start</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button></div></div><div class="i-veil" aria-hidden="true"></div></div>
+    <g class="m-sh" fill="url(#brsh)" aria-hidden="true"><rect x="22" y="36" width="20" height="128"/><path d="M49,36 H82 L97,51 V82 L82,97 H49 Z"/><path d="M49,104 H86 L101,119 V149 L86,164 H49 Z"/><rect x="110" y="36" width="20" height="128"/><path d="M137,36 H168 L183,51 V82 L168,97 H137 Z"/><path d="M137,104 h22 L186,164 h-23 Z"/></g><g class="m-ref" mask="url(#brmask)" aria-hidden="true"><use href="#brall" transform="translate(0,338) scale(1,-1)"/></g></svg></div><div class="i-bot"><span class="i-day" id="i-day"></span><span class="i-line"></span><span class="i-title" id="i-title"></span><span class="i-sub" id="i-sub"></span></div></div><div class="i-veil" aria-hidden="true"></div><button class="i-cue" type="button" data-act="enter" aria-label="Open workouts"><i aria-hidden="true"></i><span>Swipe up</span></button></div>
   <div id="wipe" hidden aria-hidden="true"><i class="t"></i><i class="b"></i></div>
   <div id="sheet" hidden></div>
   <div id="toast"></div>
@@ -1686,7 +1697,7 @@ document.addEventListener("click", function(ev){
     case "to-home": cut(function(){ var el = $("#intro"); fillIntro(); el.hidden = false; introFX(true); }); break;
     case "resume": cut(function(){ S.pick = false; render(); $("#view").scrollTop = 0; }); break;
     case "to-list": cut(function(){ S.pick = true; if(location.hash !== "#today") location.hash = "#today"; render(); $("#view").scrollTop = 0; }); break;
-    case "enter": if(IFX && !IFX.dead && !calm){ IFX.leave(function(){ cut(endIntro); }); } else cut(endIntro); break;
+    case "enter": if(IV.skipTap){ IV.skipTap = 0; break; } if(!calm && window.gsap && IV.go) IV.go(0.85); else cut(endIntro); break;
     case "plates": plateSheet(null); break;
     case "sheet-close": closeSheet(); break;
     case "pl-add": plSide.push(+b.dataset.v); plateShow(true); break;
@@ -2131,14 +2142,17 @@ function fxAfterRender(main, changed){
 }
 
 /* ---- quiet layer: calm opening, soft screen changes, compact home ---- */
+var IV = { p:0, drag:null, busy:false };
 function introFX(fast){
   var intro = $("#intro"); if(!intro || calm || !window.gsap) return;
   intro.classList.remove("quick"); intro.classList.add("fx");
   var q = function(sel){ return Array.prototype.slice.call(intro.querySelectorAll(sel)); };
   var mark = intro.querySelector(".brmark"), pcs = q(".m-all .m-p"), sh = intro.querySelector(".m-sh"), ref = intro.querySelector(".m-ref"), grad = intro.querySelector("#brsh"),
-      glow = intro.querySelector(".i-glow"), bot = intro.querySelector(".i-bot"), day = $("#i-day"), lines = q(".i-title .ln>span"), sub = $("#i-sub"), rule = intro.querySelector(".i-rule"), btn = intro.querySelector(".btn.go");
-  var all = [mark, sh, ref, glow, bot, day, sub, rule, btn].concat(pcs, lines);
-  gsap.killTweensOf(all); gsap.set(all, { clearProps:"all" });
+      bg = intro.querySelector(".i-bg"), veil = intro.querySelector(".i-veil"), glow = intro.querySelector(".i-glow"), bot = intro.querySelector(".i-bot"), day = $("#i-day"), lines = q(".i-title .ln>span"), sub = $("#i-sub"), cue = intro.querySelector(".i-cue"),
+      main = $("#view"), tabs = $(".tabs");
+  var all = [mark, sh, ref, bg, veil, glow, bot, day, sub].concat(pcs, lines);
+  if(IV.tw) IV.tw.kill(); gsap.killTweensOf(all.concat([cue, main, tabs])); gsap.set(all, { clearProps:"all" }); gsap.set(cue, { clearProps:"opacity" }); gsap.set([main, tabs], { clearProps:"transform,opacity" });
+  IV.p = 0; IV.busy = false; IV.drag = null;
   /* each piece of the stencil travels in from its own side and locks */
   var from = [[0,-46],[54,0],[54,0],[0,46],[54,0],[34,44]], sweep = { x:-110 };
   var put = function(){ if(grad) grad.setAttribute("gradientTransform", "translate(" + sweep.x.toFixed(1) + " 0)"); }; put();
@@ -2154,14 +2168,36 @@ function introFX(fast){
     .fromTo(day, { opacity:0, y:8 }, { opacity:1, y:0, duration:0.9 }, 0.8)
     .fromTo(lines, { yPercent:112 }, { yPercent:0, duration:1.05, stagger:0.09 }, 0.88)
     .fromTo(sub, { opacity:0, y:8 }, { opacity:1, y:0, duration:0.9 }, 1.12)
-    .fromTo(rule, { scaleX:0 }, { scaleX:1, duration:1.2, ease:"expo.inOut" }, 0.85)
-    .fromTo(btn, { opacity:0, y:14 }, { opacity:1, y:0, duration:0.9 }, 1.28);
+    .fromTo(cue, { opacity:0 }, { opacity:1, duration:1.2, ease:"power2.out" }, 1.4);
   if(fast) tl.timeScale(1.9);
-  IFX = { dead:false, exit:0, leave:function(done){ if(this.exit) return; this.exit = 1; tl.progress(1).kill();
-    gsap.to(bot, { opacity:0, y:16, duration:0.3, ease:"power2.in" });
-    gsap.to(glow, { opacity:0, duration:0.36, ease:"power2.in" });
-    gsap.to(mark, { scale:1.1, opacity:0, duration:0.36, ease:"power2.in", onComplete:function(){ done(); setTimeout(function(){ gsap.set(all, { clearProps:"all" }); }, 420); } }); } };
+  var cl = function(v){ return v < 0 ? 0 : v > 1 ? 1 : v; };
+  /* p = 0 the opening, p = 1 the workouts. Everything on screen is a function of p, so it tracks the finger exactly. */
+  IV.set = function(p){ IV.p = p; var H = intro.clientHeight || 800;
+    gsap.set(bg, { opacity:1 - cl((p - 0.2) / 0.62) }); gsap.set([glow, veil], { opacity:1 - cl(p * 1.35) });
+    gsap.set(mark, { y:-p * H * 0.17, scale:1 - 0.3 * p, opacity:1 - cl((p - 0.22) / 0.38), transformOrigin:"50% 50%" });
+    gsap.set(bot, { y:-p * 110, opacity:1 - cl(p * 2.6) }); gsap.set(cue, { opacity:1 - cl(p * 4) });
+    gsap.set([main, tabs], { y:(1 - p) * (1 - p) * 170, opacity:cl((p - 0.3) / 0.45) }); };
+  IV.ready = function(){ if(tl.progress() < 1) tl.progress(1); if(!S.pick){ S.pick = true; render(); } $("#view").scrollTop = 0; };
+  IV.to = function(target, dur, ease){ IV.busy = true; if(IV.tw) IV.tw.kill(); var o = { p:IV.p };
+    IV.tw = gsap.to(o, { p:target, duration:dur, ease:ease, onUpdate:function(){ IV.set(o.p); }, onComplete:function(){ IV.busy = false;
+      if(target === 1){ intro.hidden = true; S.pick = true; gsap.set([main, tabs], { clearProps:"transform,opacity" }); gsap.set(all, { clearProps:"all" }); gsap.set(cue, { clearProps:"opacity" }); IV.p = 0; }
+      else { gsap.set([main, tabs], { clearProps:"transform,opacity" }); } } }); };
+  IV.go = function(dur){ if(intro.hidden || IV.busy) return; IV.ready(); IV.to(1, dur || 0.7, "power3.inOut"); };
+  IFX = { dead:false, exit:0, leave:function(done){ done(); } };
 }
+(function(){ var intro = $("#intro"); if(!intro) return;
+  intro.addEventListener("pointerdown", function(e){ if(intro.hidden || IV.busy || (e.pointerType === "mouse" && e.button)) return; IV.drag = { id:e.pointerId, y0:e.clientY, y:e.clientY, t:performance.now(), v:0, on:false }; });
+  intro.addEventListener("pointermove", function(e){ var d = IV.drag; if(!d || e.pointerId !== d.id) return; var now = performance.now(), dy = d.y0 - e.clientY;
+    if(now > d.t) d.v = d.v * 0.5 + ((d.y - e.clientY) / (now - d.t)) * 0.5; d.y = e.clientY; d.t = now;
+    if(!d.on){ if(dy < 8) return; d.on = true; d.y0 = e.clientY + 8; dy = 0; try{ intro.setPointerCapture(d.id); }catch(x){} if(IV.ready && IV.set) IV.ready(); }
+    if(IV.set) IV.set(Math.max(0, Math.min(1, (d.y0 - e.clientY) / ((intro.clientHeight || 800) * 0.46)))); });
+  function end(e){ var d = IV.drag; if(!d || e.pointerId !== d.id) return; IV.drag = null; if(!d.on) return;
+    IV.skipTap = 1; setTimeout(function(){ IV.skipTap = 0; }, 60);
+    if(!IV.set){ if(d.y0 - e.clientY > 40) cut(endIntro); return; }
+    var open = e.type !== "pointercancel" && (d.v > 0.45 || (IV.p > 0.36 && d.v > -0.25));
+    if(open) IV.to(1, Math.max(0.28, 0.6 * (1 - IV.p)), "power3.out"); else IV.to(0, 0.6, "expo.out"); }
+  intro.addEventListener("pointerup", end); intro.addEventListener("pointercancel", end);
+})();
 GFX = { burst:function(){}, at:function(){}, warp:function(){}, fire:function(){} };
 function fxAfterRender(main, changed){
   if(!changed) return; navDir = 1;
