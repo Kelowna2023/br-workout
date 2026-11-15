@@ -647,6 +647,8 @@ main>h1.lt{will-change:transform,opacity}
 .restc .rbtn{border:0;padding:0}
 .restc.run .rbtn.pp{background:var(--grad);color:#fff}
 .restc.paused b{color:var(--dim)}
+.gearchip{border:0;height:32px;padding:0 12px;gap:6px}.gearchip span{font-size:10px;opacity:.7}
+.gearsw.big{grid-template-columns:1fr 1fr;gap:10px}.gearsw.big button{min-height:56px;font-size:16px;border-radius:14px}
 </style>
 </head>
 <body>
@@ -1058,9 +1060,10 @@ function gearOf(name){
   var o = S.cfg.gear && S.cfg.gear[key(name)]; if(o && GEAR[o]) return o;
   var n = String(name || "").toLowerCase();
   if(/cable|pulldown|pushdown|face ?pull|crossover|pull-?through/.test(n)) return "cable";
-  if(/goblet|dumbbell|\bdb\b|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
+  if(/goblet|dumbbell|\bdb\b|\brdl\b|romanian|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
   if(/machine|leg press|leg curl|hamstring curl|leg extension|pec deck|hack squat|seated calf/.test(n)) return "machine";
   if(/pull-?up|chin-?up|\bdips?\b|push-?up|plank|hanging|sit-?up/.test(n)) return "body";
+  if(/curl|raise|fly|shrug|kickback|skull|pullover/.test(n) && !/smith|calf|barbell|ez/.test(n)) return "db";
   return "bar";
 }
 function stackSteps(){ return S.cfg.units === "kg" ? [2.5,5,7.5,10] : [5,10,12.5,15]; }
@@ -1763,6 +1766,7 @@ document.addEventListener("click", function(ev){
       saveActive(); render(); if(ns.open){ var nt = $("#s-" + ei + "-" + si + "-n"); if(nt) nt.focus(); } break;
     case "confirm-yes": var fn = confirmFn; closeSheet(); if(fn) fn(); break;
     case "check": toggleSet(ei, si); break;
+    case "gear-pick": sheet('<div><div class="eyebrow">' + esc(a.exercises[ei].name) + '</div><h2>Equipment</h2></div><div class="gearsw big">' + Object.keys(GEAR).map(function(gk){ return '<button type="button" data-act="gear" data-e="' + ei + '" data-v="' + gk + '" aria-pressed="' + (gearOf(a.exercises[ei].name) === gk) + '">' + GEAR[gk] + '</button>'; }).join("") + '</div>'); break;
     case "ex-more": var mx = a.exercises[ei];
       sheet('<div><div class="eyebrow">' + esc(mx.name) + '</div><h2>Options</h2></div>' +
         '<label class="eyebrow" for="lift-note">Note for this lift, kept for next time<input class="field" id="lift-note" data-note="' + esc(key(mx.name)) + '" value="' + esc(S.cfg.notes[key(mx.name)] || "") + '" placeholder="Seat height, grip, cues"></label>' +
@@ -1847,7 +1851,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "44";
+var BUILD = "45";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -1974,7 +1978,7 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
   for(var i = 0; i < x.sets.length; i++) if(!x.sets[i].done){ cs = i; break; }
   var ref = x.sets[cs < 0 ? x.sets.length - 1 : cs], tg = String(x.target || "").replace("-", "–");
   if(tg) chips.push('<span class="chip dim">' + (x.plan || s.pn) + ' × ' + esc(tg) + '</span>');
-  chips.push('<span class="chip dim">' + GEAR[g] + '</span>');
+  chips.push('<button type="button" class="chip dim gearchip" data-act="gear-pick" data-e="' + ei + '" aria-label="Equipment: ' + GEAR[g] + '. Tap to change">' + GEAR[g] + ' <span aria-hidden="true">▾</span></button>');
   if(ref.prev) chips.push('<span class="chip sug">Last ' + fmtW(ref.prev.w) + ' × ' + ref.prev.r + (x.bump ? ' → try ' + fmtW(num(ref.prev.w) + num(x.bump)) : '') + '</span>');
   x.sets.forEach(function(st, si){
     var id = "s-" + ei + "-" + si, hasNote = !!((st.note && String(st.note).trim()) || st.rir), n = si + 1;
