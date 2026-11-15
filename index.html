@@ -712,6 +712,22 @@ main>h1.lt{will-change:transform,opacity}
 .pglog.sc button span:first-child{display:flex;flex-direction:column;gap:5px;font:600 16px/1.2 var(--font);color:var(--text)}
 .pglog.sc button small{font:500 13px/1 var(--font);color:var(--dim);font-variant-numeric:tabular-nums}
 :root{--p-red:#e5484d;--p-blue:#3b82f6;--p-yellow:#f2c230;--p-green:#3fb96a;--p-grey:#9a9aa3}
+
+/* ---- what to beat ---- */
+.beat{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid rgba(255,150,110,.2);border-radius:18px;background:linear-gradient(155deg,rgba(255,106,61,.13),rgba(20,20,24,.74) 62%);overflow:hidden}
+.beat>div{display:flex;flex-direction:column;gap:6px;padding:16px 18px;min-width:0}
+.beat>div+div{border-left:1px solid rgba(255,150,110,.16)}
+.beat span{font:600 12px/1 var(--font);color:var(--dim)}.beat div+div span{color:var(--acc)}
+.beat b{font:700 24px/1 var(--font);letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.beat small{font:500 13px/1.3 var(--font);color:var(--dim);font-variant-numeric:tabular-nums}
+.beat .bw{grid-column:1/-1;flex-direction:row;align-items:center;gap:8px;padding:11px 18px;border-left:0!important;border-top:1px solid rgba(127,224,174,.2);background:rgba(127,224,174,.08);color:#7fe0ae;font:600 13px/1 var(--font)}
+.beat.first{grid-template-columns:1fr}.beat.first b{font-size:20px;white-space:normal}
+.win{margin:-2px 0 8px 28px;font:600 12px/1 var(--font);color:#7fe0ae}.win.eq{color:var(--dim)}
+/* ---- backup ---- */
+.bkrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:64px;padding:12px 18px;border:1px solid rgba(255,150,110,.22);border-radius:16px;background:rgba(255,106,61,.07);color:var(--text);text-align:left}
+.bkrow span{display:flex;flex-direction:column;gap:5px}.bkrow b{font:600 16px/1.1 var(--font)}.bkrow small{font:500 13px/1.2 var(--font);color:var(--dim)}
+.bkrow i{flex:none;font:600 14px/1 var(--font);font-style:normal;color:var(--acc)}
+.bk-st{font:400 15px/1.45 var(--font);color:var(--dim)}.bk-st b{color:var(--text);font-weight:600}
 </style>
 </head>
 <body>
@@ -1782,6 +1798,12 @@ document.addEventListener("click", function(ev){
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
+    case "backup": bkSheet(); break;
+    case "backup-go": (function(){ if(!BK) return;
+        try{ var f = new File([BK.data], BK.name, { type:"application/json" });
+          if(navigator.canShare && navigator.canShare({ files:[f] })){ navigator.share({ files:[f], title:"BR workout backup" }).then(bkDone).catch(function(){}); return; } }catch(e){}
+        try{ var u = URL.createObjectURL(new Blob([BK.data], { type:"application/json" })), l = document.createElement("a"); l.href = u; l.download = BK.name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); bkDone(); }catch(e){ toast("Could not save a backup on this device"); }
+      })(); break;
     case "pg-tab": S.pgTab = b.dataset.v; S.pgOpen = false; S.pgNoAnim = false; render(); $("#view").scrollTop = 0; break;
     case "pg-week": (function(){ var sc = $("#pg-scroll"), mv = $("#view"), st = mv.scrollTop; S.pgScroll = sc ? sc.scrollLeft : null; S.pgWeek = +b.dataset.i; S.pgNoAnim = true; render(); mv.scrollTop = st; })(); break;
     case "pg-go": S.progressEx = b.dataset.k; S.pgTab = "ex"; S.pgBar = null; S.pgNoAnim = false; render(); $("#view").scrollTop = 0; break;
@@ -1872,12 +1894,6 @@ document.addEventListener("click", function(ev){
       if(!gn || !(gw > 0) || !(gr > 0)){ toast("Fill in the lift, weight and reps"); break; }
       S.cfg.goals.push({ id:uid(), name:gn, w:gw, r:gr }); saveCfg(); render(); break;
     case "goal-del": S.cfg.goals = S.cfg.goals.filter(function(g){ return g.id !== b.dataset.id; }); saveCfg(); render(); break;
-    case "backup": (function(){
-        var data = JSON.stringify({ app:"br-workout", v:1, at:Date.now(), cfg:S.cfg, sessions:S.sessions }), name = "br-workout-backup-" + new Date().toISOString().slice(0,10) + ".json";
-        try{ var f = new File([data], name, { type:"application/json" });
-          if(navigator.canShare && navigator.canShare({ files:[f] })){ navigator.share({ files:[f], title:"Workout backup" }).catch(function(){}); return; } }catch(e){}
-        try{ var u = URL.createObjectURL(new Blob([data], { type:"application/json" })), l = document.createElement("a"); l.href = u; l.download = name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); toast("Backup saved"); }catch(e){ toast("Could not save a backup on this device"); }
-      })(); break;
     case "units": S.cfg.units = b.dataset.v; saveCfg(); render(); break;
     case "r-add": var nr = { id:uid(), name:"New routine", focus:"", exercises:[{ name:"", sets:3, reps:"8-12", rest:90 }] }; rs.push(nr); S.openRoutine = nr.id; saveCfg(); render(); break;
     case "r-add-ex": rs[ri].exercises.push({ name:"", sets:3, reps:"8-12", rest:90 }); S.openRoutine = rs[ri].id; saveCfg(); render(); break;
@@ -1922,7 +1938,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "51";
+var BUILD = "52";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2010,7 +2026,7 @@ function renderToday(){
     h += '<button type="button" class="card wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (live ? ", in progress" : "") + '"><span class="wtop"><span class="wn">' + esc(r.name) + '</span>' + (live ? '<span class="badge">In progress</span>' : '<span class="chev" aria-hidden="true">›</span>') + '</span>' +
       '<span class="meta">' + r.exercises.length + ' exercises · ~' + estMin(r.exercises) + ' min · ' + (last ? "last " + relDay(last) : "not done yet") + '</span>' +
       '<span class="chips">' + chipsFor(r.exercises).map(function(c){ return '<span class="chip">' + c + '</span>'; }).join("") + '</span></button>'; });
-  return h + '</div><div class="links"><span></span><a href="#routines">Edit workouts</a></div>';
+  var bn = bkNeed(); return h + '</div>' + (bn ? '<button type="button" class="bkrow" data-act="backup"><span><b>Back up your history</b><small>' + (bkInfo() ? bn + (bn === 1 ? ' workout' : ' workouts') + ' since your last backup' : 'Your workouts live on this phone only') + '</small></span><i>Back up</i></button>' : '') + '<div class="links">' + (STANDALONE ? '<a href="#" data-act="backup">Backup</a>' : '<span></span>') + '<a href="#routines">Edit workouts</a></div>';
 }
 
 function renderWorkout(){
@@ -2050,7 +2066,6 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
   var ref = x.sets[cs < 0 ? x.sets.length - 1 : cs], tg = String(x.target || "").replace("-", "–");
   if(tg) chips.push('<span class="chip dim">' + (x.plan || s.pn) + ' × ' + esc(tg) + '</span>');
   chips.push('<button type="button" class="chip dim gearchip" data-act="gear-pick" data-e="' + ei + '" aria-label="Equipment: ' + GEAR[g] + '. Tap to change">' + GEAR[g] + ' <span aria-hidden="true">▾</span></button>');
-  if(ref.prev) chips.push('<span class="chip sug">Last ' + fmtW(ref.prev.w) + ' × ' + ref.prev.r + (x.bump ? ' → try ' + fmtW(num(ref.prev.w) + num(x.bump)) : '') + '</span>');
   x.sets.forEach(function(st, si){
     var id = "s-" + ei + "-" + si, hasNote = !!((st.note && String(st.note).trim()) || st.rir), n = si + 1;
     rows += '<div class="sr' + (st.done ? " done" : si === cs ? " cur" : "") + '"><span class="sn">' + n + '</span>' +
@@ -2058,14 +2073,14 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
       '<input class="si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="' + esc(st.prev && st.prev.w ? String(st.prev.w) : "0") + '">' +
       '<button type="button" class="nt' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" aria-label="' + (hasNote ? "Note on set " + n : "Add a note to set " + n) + '" data-act="set-note" data-e="' + ei + '" data-s="' + si + '">' + IC.note + '<span>Note</span></button>' +
       '<button type="button" class="ck" data-act="check" data-e="' + ei + '" data-s="' + si + '" aria-label="' + (st.done ? "Set " + n + " complete. Undo" : "Complete set " + n) + '">' + IC.check + '</button>' +
-      '<button type="button" class="sx" data-act="set-x" data-e="' + ei + '" data-s="' + si + '" aria-label="Delete set ' + n + '">×</button></div>' +
+      '<button type="button" class="sx" data-act="set-x" data-e="' + ei + '" data-s="' + si + '" aria-label="Delete set ' + n + '">×</button></div>' + winTag(st, u) +
       (!st.open && st.rir ? '<div class="rir-l">' + rirLabel(st.rir) + '</div>' : "") +
       (st.open ? '<div class="setnote"><div class="rir" role="group" aria-label="How hard was set ' + n + '">' + RIR.map(function(q){ return '<button type="button" data-act="rir" data-e="' + ei + '" data-s="' + si + '" data-v="' + q[0] + '" aria-pressed="' + (st.rir === q[0]) + '">' + q[1] + '</button>'; }).join("") + '</div><textarea class="field" id="' + id + '-n" rows="2" aria-label="Note for set ' + n + '" data-e="' + ei + '" data-s="' + si + '" data-k="note" placeholder="Note for set ' + n + '">' + esc(st.note || "") + '</textarea></div>' : "");
   });
   var help = g === "bar" ? "What&#39;s on the bar" : (g === "cable" || g === "machine") ? "Weight stack" : "";
   return '<div class="exb">' + (inSS ? '<div class="cap ss2">Superset · ' + (gi + 1) + ' of ' + gn + '</div>' : "") +
     '<div class="xh"><h1 class="lt xn">' + esc(x.name) + '</h1><button type="button" class="more" aria-label="More options for ' + esc(x.name) + '" data-act="ex-more" data-e="' + ei + '">' + IC.more + '</button></div>' +
-    '<div class="chips">' + chips.join("") + '</div>' +
+    '<div class="chips">' + chips.join("") + '</div>' + beatCard(x, u, g) +
     '<div class="card setc"><div class="sr hdr" aria-hidden="true"><span></span><span>' + esc(rl) + '</span><span>' + esc(g === "db" ? u + " each" : g === "body" ? "+ " + u : u) + '</span><span></span><span></span><span></span></div>' + rows +
     '<div class="setfoot"><button type="button" data-act="add-set" data-e="' + ei + '">+ Add set</button>' + (help ? '<button type="button" data-act="weight" data-e="' + ei + '" data-s="' + (cs < 0 ? x.sets.length - 1 : cs) + '">' + help + '</button>' : '') + '</div></div></div>';
 }
@@ -2324,7 +2339,7 @@ function renderToday(){
     h += '<button type="button" class="hrow" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (live ? ", in progress" : "") + '"><span class="ix">' + (i < 9 ? "0" : "") + (i + 1) + '</span>' +
       '<span class="hm"><span class="wn">' + esc(r.name) + '</span><span class="meta">' + chipsFor(r.exercises).join(", ") + (last ? ' · last ' + relDay(last) : '') + '</span></span>' +
       (live ? '<span class="badge">In progress</span>' : '<span class="chev" aria-hidden="true">›</span>') + '</button>'; });
-  return h + '</div><div class="links"><span></span><a href="#routines">Edit workouts</a></div>';
+  var bn = bkNeed(); return h + '</div>' + (bn ? '<button type="button" class="bkrow" data-act="backup"><span><b>Back up your history</b><small>' + (bkInfo() ? bn + (bn === 1 ? ' workout' : ' workouts') + ' since your last backup' : 'Your workouts live on this phone only') + '</small></span><i>Back up</i></button>' : '') + '<div class="links">' + (STANDALONE ? '<a href="#" data-act="backup">Backup</a>' : '<span></span>') + '<a href="#routines">Edit workouts</a></div>';
 }
 /* ===================== travel layer ===================== */
 var NV = { busy:false, quiet:false };
@@ -2525,6 +2540,55 @@ function renderProgress(){
   var tab = S.pgTab === "all" ? "all" : "ex";
   return '<div class="pgseg two" role="group" aria-label="Progress view">' + [["ex","By exercise"],["all","Overall"]].map(function(m){ return '<button type="button" data-act="pg-tab" data-v="' + m[0] + '" aria-pressed="' + (tab === m[0]) + '">' + m[1] + '</button>'; }).join("") + '</div>' + (tab === "all" ? pgOverall() : pgExercise());
 }
+
+/* ---- what to beat ---- */
+function beatCard(x, u, g){
+  var data = pgData(key(x.name)), wins = 0;
+  x.sets.forEach(function(st){ if(st.done && st.prev && num(st.prev.r) > 0 && (num(st.w) > num(st.prev.w) || (num(st.w) === num(st.prev.w) && num(st.r) > num(st.prev.r)))) wins++; });
+  if(!data.length) return '<div class="beat first"><div><span>First time</span><b>Today sets the bar</b><small>What you log now is the number to beat next session.</small></div></div>';
+  var d = data[data.length - 1], rg = String(x.target || "").match(/\d+/g), lo = rg ? +rg[0] : 0, hi = rg ? +rg[rg.length - 1] : 0, inc = u === "kg" ? 2.5 : 5, body = !(d.top > 0);
+  var f = function(w, r){ return body ? r + " reps" : fmtW(w) + " × " + r; }, main, alt = "";
+  if(body){ main = f(0, d.topR + 1); }
+  else if(hi && d.topR >= hi){ main = f(d.top + inc, lo || Math.max(1, d.topR - 3)); alt = "Top of your rep range, so add weight"; }
+  else { main = f(d.top, d.topR + 1); alt = "or " + f(d.top + inc, lo && lo < d.topR ? lo : Math.max(1, d.topR - 2)); }
+  return '<div class="beat"><div><span>Last time · ' + fmtShort(d.t) + '</span><b>' + f(d.top, d.topR) + '</b><small>' + d.sets.map(function(st){ return num(st.r); }).join(", ") + ' reps' + (g === "db" && !body ? ' · ' + esc(u) + ' each' : '') + '</small></div>' +
+    '<div><span>Beat it</span><b>' + main + '</b><small>' + alt + '</small></div>' + (wins ? '<div class="bw">▲ ' + wins + (wins === 1 ? ' set' : ' sets') + ' beat last time</div>' : '') + '</div>';
+}
+function winTag(st, u){
+  if(!st.done || !st.prev || !(num(st.prev.r) > 0)) return "";
+  var w = num(st.w), r = num(st.r), pw = num(st.prev.w), pr = num(st.prev.r);
+  if(w > pw) return '<div class="win">▲ +' + fmtW(w - pw) + ' ' + esc(u) + ' on last time</div>';
+  if(w === pw && r > pr) return '<div class="win">▲ +' + (r - pr) + (r - pr === 1 ? ' rep' : ' reps') + ' on last time</div>';
+  if(w === pw && r === pr) return '<div class="win eq">Matched last time</div>';
+  return "";
+}
+/* ---- backup: everything in one file, photos included ---- */
+var BK = null;
+function bkInfo(){ return ls.get("bk"); }
+function bkNeed(){ var k = bkInfo(), n = S.sessions.length; if(!STANDALONE || !n) return 0; if(!k) return n; var fresh = n - (k.n || 0); return fresh >= 3 || (fresh > 0 && Date.now() - k.at > 7 * 864e5) ? fresh : 0; }
+function bkSheet(){
+  var k = bkInfo(); BK = null;
+  sheet('<div><div class="eyebrow">Backup</div><h2>Keep your history safe</h2></div>' +
+    '<p class="bk-st">Your workouts and photos are stored on this phone only. A backup is one file with everything in it. Pick <b>Save to Files</b> and it lives in iCloud Drive.</p>' +
+    '<p class="bk-st" id="bk-st">' + (k ? 'Last backup: <b>' + fmtShort(k.at) + '</b>, ' + (k.n || 0) + ' workouts.' : 'No backup saved yet.') + '</p>' +
+    '<button class="btn go" type="button" data-act="backup-go" id="bk-go" disabled>Preparing…</button>' +
+    '<label class="btn ghost" style="display:grid;place-items:center;cursor:pointer" for="restore-file2">Restore from a backup file</label><input id="restore-file2" type="file" accept="application/json,.json" style="position:absolute;opacity:0;width:1px;height:1px">');
+  var ready = function(photos){ var data = JSON.stringify({ app:"br-workout", v:2, at:Date.now(), cfg:S.cfg, sessions:S.sessions, active:S.active, parked:S.parked, photos:photos }), name = "br-workout-backup-" + new Date().toISOString().slice(0,10) + ".json";
+    BK = { data:data, name:name, n:photos.length }; var bt = $("#bk-go"); if(bt){ bt.disabled = false; bt.textContent = "Save backup file"; }
+    var s2 = $("#bk-st"); if(s2) s2.innerHTML += ' This one holds <b>' + S.sessions.length + (S.sessions.length === 1 ? ' workout' : ' workouts') + '</b>' + (photos.length ? ' and <b>' + photos.length + (photos.length === 1 ? ' photo' : ' photos') + '</b>' : '') + '.'; };
+  pTx("readonly", function(st){ return st.getAll(); }).then(function(list){ return Promise.all((list || []).map(function(p){ return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res({ id:p.id, at:p.at, wid:p.wid || "", data:fr.result }); }; fr.onerror = function(){ res(null); }; fr.readAsDataURL(p.blob); }); })); })
+    .then(function(ph){ ready(ph.filter(Boolean)); }).catch(function(){ ready([]); });
+}
+function bkDone(){ ls.set("bk", { at:Date.now(), n:S.sessions.length }); closeSheet(); toast("Backup saved"); render(); }
+function bkRestore(file){ var fr = new FileReader();
+  fr.onload = function(){ try{ var d = JSON.parse(fr.result); if(!d || !d.cfg || !Array.isArray(d.sessions)) throw 0;
+      ask("Restore this backup?", "It replaces the workouts on this phone (" + S.sessions.length + ") with the " + d.sessions.length + " in the file" + (d.photos && d.photos.length ? ", and adds its " + d.photos.length + " photos" : "") + ".", "Restore", function(){
+        S.cfg = normalise(d.cfg); S.sessions = d.sessions; ls.set("sessions", S.sessions); if(d.active !== undefined){ S.active = d.active || null; ls.set("active", S.active); } if(Array.isArray(d.parked)){ S.parked = d.parked; ls.set("parked", S.parked); }
+        saveCfg(); closeSheet(); render(); toast("Backup restored");
+        if(d.photos && d.photos.length) Promise.all(d.photos.map(function(p){ return fetch(p.data).then(function(r){ return r.blob(); }).then(function(bl){ return pTx("readwrite", function(st){ var rec = { id:p.id, at:p.at, blob:bl }; if(p.wid) rec.wid = p.wid; return st.put(rec); }); }).catch(function(){}); })).then(loadPhotos); });
+    }catch(e){ toast("That file is not a workout backup"); } };
+  fr.readAsText(file); }
+document.addEventListener("change", function(ev){ if(ev.target.id === "restore-file2" && ev.target.files && ev.target.files[0]){ bkRestore(ev.target.files[0]); ev.target.value = ""; } });
 render();
 setInterval(tick, 250);
 connect();
