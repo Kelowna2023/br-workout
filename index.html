@@ -913,14 +913,14 @@ main{overflow-x:hidden!important;overscroll-behavior-x:none;touch-action:pan-y}
   padding:calc(30px + var(--pt,0px)) calc(30px + var(--pr,0px)) calc(30px + var(--pb,0px)) calc(30px + var(--pl,0px));
   color:#fff;-webkit-text-fill-color:#fff;-webkit-text-stroke:0;text-shadow:0 0 .28em rgba(255,255,255,.95),0 0 .8em rgba(200,176,255,.85);pointer-events:none;
   -webkit-mask:linear-gradient(105deg,transparent 43%,#000 50%,transparent 57%) 100% 0/350% 100% no-repeat;mask:linear-gradient(105deg,transparent 43%,#000 50%,transparent 57%) 100% 0/350% 100% no-repeat;
-  animation:sheen 6.5s cubic-bezier(.65,0,.25,1) var(--sd,0ms) infinite both}
+  animation:sheen 3.6s cubic-bezier(.45,0,.35,1) var(--sd,0ms) infinite both}
 .sh.sh1::after{white-space:nowrap}
 button.sh::after{display:flex;align-items:center;justify-content:var(--jc,flex-start)}
 .mo-h.sh::after{white-space:pre-line}
-@keyframes sheen{0%{-webkit-mask-position:100% 0;mask-position:100% 0}17%,100%{-webkit-mask-position:0 0;mask-position:0 0}}
+@keyframes sheen{0%{-webkit-mask-position:100% 0;mask-position:100% 0}58%,100%{-webkit-mask-position:0 0;mask-position:0 0}}
 .btn.go{position:relative;overflow:hidden}
-.btn.go::after{content:"";position:absolute;top:0;bottom:0;left:0;width:42%;pointer-events:none;background:linear-gradient(105deg,rgba(255,255,255,0),rgba(255,255,255,.8),rgba(255,255,255,0));transform:translateX(-130%);animation:btnsh 6.5s cubic-bezier(.65,0,.25,1) 1.7s infinite both}
-@keyframes btnsh{0%{transform:translateX(-130%)}15%,100%{transform:translateX(370%)}}
+.btn.go::after{content:"";position:absolute;top:0;bottom:0;left:0;width:42%;pointer-events:none;background:linear-gradient(105deg,rgba(255,255,255,0),rgba(255,255,255,.8),rgba(255,255,255,0));transform:translateX(-130%);animation:btnsh 3.6s cubic-bezier(.45,0,.35,1) 1.7s infinite both}
+@keyframes btnsh{0%{transform:translateX(-130%)}55%,100%{transform:translateX(370%)}}
 /* ---- opening: everything lands in about a second and a half, on one long ease ---- */
 @media (prefers-reduced-motion:no-preference){
   #intro::after{animation:i-open .6s ease-out both}
@@ -981,7 +981,7 @@ button.sh::after{display:flex;align-items:center;justify-content:var(--jc,flex-s
       <rect class="m-p m-4" x="110" y="36" width="20" height="128"/>
       <path class="m-p m-5" d="M137,36 H168 L183,51 V82 L168,97 H137 Z"/>
       <path class="m-p m-6" d="M137,104 h22 L186,164 h-23 Z"/>
-    </g><defs><linearGradient id="brsh" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="70" y2="22"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/><animateTransform attributeName="gradientTransform" type="translate" values="-90 0;230 0;230 0" keyTimes="0;.15;1" calcMode="spline" keySplines=".65 0 .25 1;0 0 1 1" dur="6.5s" begin="1.15s" repeatCount="indefinite"/></linearGradient></defs>
+    </g><defs><linearGradient id="brsh" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="70" y2="22"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/><animateTransform attributeName="gradientTransform" type="translate" values="-90 0;230 0;230 0" keyTimes="0;.58;1" calcMode="spline" keySplines=".45 0 .35 1;0 0 1 1" dur="3.6s" begin="1.15s" repeatCount="indefinite"/></linearGradient></defs>
     <g class="m-sh" fill="url(#brsh)" aria-hidden="true"><rect x="22" y="36" width="20" height="128"/><path d="M49,36 H82 L97,51 V82 L82,97 H49 Z"/><path d="M49,104 H86 L101,119 V149 L86,164 H49 Z"/><rect x="110" y="36" width="20" height="128"/><path d="M137,36 H168 L183,51 V82 L168,97 H137 Z"/><path d="M137,104 h22 L186,164 h-23 Z"/></g></svg><span class="i-day" id="i-day"></span><span class="i-line"></span><span class="i-title" id="i-title"></span><span class="i-sub" id="i-sub"></span><button class="btn go" type="button" data-act="enter">Let's get it</button></div></div>
   <div id="wipe" hidden aria-hidden="true"><i class="t"></i><i class="b"></i></div>
   <div id="sheet" hidden></div>
@@ -1856,7 +1856,7 @@ function sheen(root, restart, base){
     if(cs.display === "inline" && !one) continue;
     list.push({ el:el, txt:txt, y:r.top - rr.top, x:r.left - rr.left, one:one && !br, inl:cs.display === "inline", ta:cs.textAlign, p:[cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft] });
   }
-  list.forEach(function(o){ var s = o.el.style, d = (base || 0) + Math.min(2600, Math.max(0, o.y) * 1.5 + Math.max(0, o.x) * 0.6) - gone;
+  list.forEach(function(o){ var s = o.el.style, d = (base || 0) + Math.min(1500, Math.max(0, o.y) * 0.9 + Math.max(0, o.x) * 0.4) - gone;
     o.el.dataset.sh = o.txt; s.setProperty("--sd", Math.round(d) + "ms");
     ["--pt","--pr","--pb","--pl"].forEach(function(k, n){ if(parseFloat(o.p[n])) s.setProperty(k, o.p[n]); });
     if(o.el.tagName === "BUTTON") s.setProperty("--jc", o.ta === "center" ? "center" : o.ta === "right" || o.ta === "end" ? "flex-end" : "flex-start"); o.el.classList.add("sh"); if(o.one) o.el.classList.add("sh1"); if(o.inl) o.el.classList.add("shi"); });
@@ -2124,7 +2124,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "28";
+var BUILD = "29";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
