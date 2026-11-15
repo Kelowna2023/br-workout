@@ -830,6 +830,11 @@ details.card>summary{padding:16px 0}details.card>*:not(summary){margin-left:0;ma
 @keyframes slfd{from{opacity:0;transform:translateY(6px)}}
 @keyframes slnow{0%{transform:scaleX(0);opacity:1}55%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.slab::before,.slab i,.slab b,.slab s,.slab em,.slab.now::after{animation:none}}
+/* ---- opening: type only, on screen at once ---- */
+#intro.v2 .i-mark{display:none!important}
+#intro.v2 .i-bot{bottom:auto;top:calc(env(safe-area-inset-top) + 26vh)}
+#intro.v2 .i-title{font-size:clamp(52px,17vw,76px)!important;font-weight:800!important;letter-spacing:-.055em!important;line-height:.98!important}
+#intro.v2 .i-sub{margin-top:18px}
 </style>
 </head>
 <body>
@@ -2040,7 +2045,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "56";
+var BUILD = "57";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2391,10 +2396,10 @@ function introFX(fast){
     .set(sh, { opacity:0.7 }, 1.0)
     .to(sweep, { x:250, duration:1.25, ease:"power2.inOut", onUpdate:put }, 1.0)
     .set(sh, { opacity:0 }, 2.3)
-    .fromTo(day, { opacity:0, y:8 }, { opacity:1, y:0, duration:0.9 }, 0.8)
-    .fromTo(lines, { yPercent:112 }, { yPercent:0, duration:1.05, stagger:0.09 }, 0.88)
-    .fromTo(sub, { opacity:0, y:8 }, { opacity:1, y:0, duration:0.9 }, 1.12)
-    .fromTo(cue, { opacity:0 }, { opacity:1, duration:1.2, ease:"power2.out" }, 1.4);
+    .fromTo(day, { opacity:0, y:8 }, { opacity:1, y:0, duration:0.7 }, 0.05)
+    .fromTo(lines, { yPercent:112 }, { yPercent:0, duration:0.95, stagger:0.08 }, 0.1)
+    .fromTo(sub, { opacity:0, y:8 }, { opacity:1, y:0, duration:0.7 }, 0.4)
+    .fromTo(cue, { opacity:0 }, { opacity:1, duration:0.9, ease:"power2.out" }, 0.6);
   if(fast) tl.timeScale(1.9);
   var cl = function(v){ return v < 0 ? 0 : v > 1 ? 1 : v; };
   /* p = 0 the opening, p = 1 the workouts. Everything on screen is a function of p, so it tracks the finger exactly. */
