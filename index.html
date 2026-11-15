@@ -660,43 +660,43 @@ var ls = {
 /* ---------- starter program (shown until you edit it) ---------- */
 var STARTER = { units:"lb", updatedAt:0, weeklyGoal:5, pv:4, goals:[], notes:{}, routines:[
   { id:"mon", day:1, name:"Posterior Chain", focus:"Rows, RDLs, pulldowns, shrugs", exercises:[
-    {name:"Low Cable Row", sets:4, reps:"12-15", rest:75},
-    {name:"RDL", sets:4, reps:"10-12", rest:90},
-    {name:"Cable Straight-Arm Pulldown", sets:3, reps:"15", rest:60},
-    {name:"Hamstring Curl", sets:3, reps:"15", rest:60},
-    {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:60}
+    {name:"Low Cable Row", sets:4, reps:"12-15", rest:150},
+    {name:"RDL", sets:4, reps:"10-12", rest:150},
+    {name:"Cable Straight-Arm Pulldown", sets:3, reps:"15", rest:150},
+    {name:"Hamstring Curl", sets:3, reps:"15", rest:150},
+    {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"tue", day:2, name:"Push", focus:"Incline press, Arnold press, triceps", exercises:[
-    {name:"Incline Press", sets:4, reps:"8-12", rest:90},
-    {name:"Seated Arnold Press", sets:3, reps:"10-12", rest:90},
-    {name:"Lateral Raise", sets:4, reps:"15-20", rest:60},
-    {name:"Overhead Cable Tricep Extension", sets:3, reps:"15-20", rest:60},
-    {name:"Cable Tricep Pushdown", sets:3, reps:"15-20", rest:60}
+    {name:"Incline Press", sets:4, reps:"8-12", rest:150},
+    {name:"Seated Arnold Press", sets:3, reps:"10-12", rest:150},
+    {name:"Lateral Raise", sets:4, reps:"15-20", rest:150},
+    {name:"Overhead Cable Tricep Extension", sets:3, reps:"15-20", rest:150},
+    {name:"Cable Tricep Pushdown", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"thu", day:4, name:"Lower Body", focus:"Split squats, squats, extensions, RDLs, calves", exercises:[
-    {name:"Smith Bulgarian Split Squat", sets:4, reps:"8-10", rest:90},
-    {name:"Goblet Squat / Heels-Elevated Smith Squat", sets:3, reps:"10-12", rest:90},
-    {name:"Leg Extension", sets:4, reps:"12-15", rest:60},
-    {name:"RDL", sets:3, reps:"12", rest:90},
-    {name:"Smith Calf Raise", sets:4, reps:"15-20", rest:60}
+    {name:"Smith Bulgarian Split Squat", sets:4, reps:"8-10", rest:150},
+    {name:"Goblet Squat / Heels-Elevated Smith Squat", sets:3, reps:"10-12", rest:150},
+    {name:"Leg Extension", sets:4, reps:"12-15", rest:150},
+    {name:"RDL", sets:3, reps:"12", rest:150},
+    {name:"Smith Calf Raise", sets:4, reps:"15-20", rest:150}
   ]},
   { id:"fri", day:5, name:"Upper Density", focus:"Row + press, delts, arms, flys, calves", exercises:[
-    {name:"Cable Seated Row", sets:4, reps:"15-20", rest:75, link:true},
-    {name:"Flat Press", sets:4, reps:"15-20", rest:75},
-    {name:"Lateral Raise", sets:4, reps:"15-20", rest:60, link:true},
-    {name:"Rear Delt Raise", sets:4, reps:"15-20", rest:60},
-    {name:"Cable Curl", sets:3, reps:"15", rest:60, link:true},
-    {name:"Overhead Cable Tricep Extension", sets:3, reps:"15", rest:60},
-    {name:"Cable Chest Fly", sets:2, reps:"20", rest:60},
-    {name:"Smith Calf Raise", sets:3, reps:"15-20", rest:60}
+    {name:"Cable Seated Row", sets:4, reps:"15-20", rest:150, link:true},
+    {name:"Flat Press", sets:4, reps:"15-20", rest:150},
+    {name:"Lateral Raise", sets:4, reps:"15-20", rest:150, link:true},
+    {name:"Rear Delt Raise", sets:4, reps:"15-20", rest:150},
+    {name:"Cable Curl", sets:3, reps:"15", rest:150, link:true},
+    {name:"Overhead Cable Tricep Extension", sets:3, reps:"15", rest:150},
+    {name:"Cable Chest Fly", sets:2, reps:"20", rest:150},
+    {name:"Smith Calf Raise", sets:3, reps:"15-20", rest:150}
   ]},
   { id:"sat", day:6, name:"Shoulders & Carries", focus:"Shoulder press, delts, shrugs, farmer carries", exercises:[
-    {name:"Seated Shoulder Press", sets:4, reps:"12", rest:90},
-    {name:"Lateral Raise", sets:4, reps:"15-20", rest:60, link:true},
-    {name:"Rear Delt Raise", sets:4, reps:"15-20", rest:60},
-    {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:60},
-    {name:"Farmer Carry", sets:3, reps:"lengths of the gym", rest:90, repLabel:"Lengths"},
-    {name:"Smith Calf Raise", sets:3, reps:"20", rest:60}
+    {name:"Seated Shoulder Press", sets:4, reps:"12", rest:150},
+    {name:"Lateral Raise", sets:4, reps:"15-20", rest:150, link:true},
+    {name:"Rear Delt Raise", sets:4, reps:"15-20", rest:150},
+    {name:"Dumbbell Shrug", sets:3, reps:"15-20", rest:150},
+    {name:"Farmer Carry", sets:3, reps:"lengths of the gym", rest:150, repLabel:"Lengths"},
+    {name:"Smith Calf Raise", sets:3, reps:"20", rest:150}
   ]}
 ]};
 var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], migrated = false;
@@ -707,11 +707,12 @@ function normalise(c){ c.goals = c.goals || []; c.notes = c.notes || {}; c.bars 
   if((c.pv || 0) < 4){ c.routines.forEach(function(r){ if(r.id === "tue" && r.name === "Chest & Shoulders") r.name = "Push"; }); c.pv = 4; migrated = true; }
   if((c.pv || 0) < 5){ var addEx = function(id, ex, after){ c.routines.forEach(function(r){ if(r.id !== id) return; var ks = r.exercises.map(function(x){ return key(x.name); }); if(ks.indexOf(key(ex.name)) >= 0) return; var i = after ? ks.indexOf(after) : -1; if(i >= 0 && !r.exercises[i].link) r.exercises.splice(i + 1, 0, ex); else r.exercises.push(ex); }); };
     c.routines.forEach(function(r){ if(r.id === "mon" || r.id === "sat") r.exercises.forEach(function(x){ if(key(x.name) === "dumbbell shrug") x.name = "Smith Shrug"; }); });
-    addEx("mon", {name:"Lat Pulldown", sets:4, reps:"10-12", rest:75}, "low cable row");
-    addEx("mon", {name:"Dumbbell Curl", sets:3, reps:"10-12", rest:60}, null);
-    addEx("tue", {name:"Machine Chest Press", sets:3, reps:"10-12", rest:90}, "incline press");
-    addEx("sat", {name:"Hammer Curl", sets:3, reps:"12-15", rest:60}, "smith shrug");
+    addEx("mon", {name:"Lat Pulldown", sets:4, reps:"10-12", rest:150}, "low cable row");
+    addEx("mon", {name:"Dumbbell Curl", sets:3, reps:"10-12", rest:150}, null);
+    addEx("tue", {name:"Machine Chest Press", sets:3, reps:"10-12", rest:150}, "incline press");
+    addEx("sat", {name:"Hammer Curl", sets:3, reps:"12-15", rest:150}, "smith shrug");
     c.pv = 5; migrated = true; }
+  if((c.pv || 0) < 6){ c.routines.forEach(function(r){ r.exercises.forEach(function(x){ x.rest = 150; }); }); c.pv = 6; migrated = true; }
   return c; }
 var PLATE_COLORS = ["var(--plate)","var(--p-blue)","var(--p-yellow)","var(--p-green)"];
 
@@ -727,6 +728,7 @@ var S = {
   progressEx: null
 };
 if(migrated && S.active && !hasWork(S.active)){ S.active = null; ls.set("active", null); }
+if(!ls.get("r150")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ x.rest = 150; }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("r150", 1); }
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
 var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = true;
 
@@ -864,7 +866,7 @@ function mkEx(x, hist){
     var p = h && h.last.length ? (h.last[i] || h.last[h.last.length-1]) : null;
     sets.push({ w: p ? (bump ? p.w + inc : p.w) : "", r: p ? (bump ? (x.repLabel ? 1 : lowRep(x.reps)) : p.r) : "", done:false, prev: p ? {w:p.w, r:p.r} : null });
   }
-  return { name:x.name, target:x.reps || "", rest: parseInt(x.rest,10) || 90, sets:sets, plan:n, bump: bump ? inc : 0, link: !!x.link, repLabel: x.repLabel || "" };
+  return { name:x.name, target:x.reps || "", rest: parseInt(x.rest,10) || 150, sets:sets, plan:n, bump: bump ? inc : 0, link: !!x.link, repLabel: x.repLabel || "" };
 }
 function startWorkout(r){
   var hist = histIndex();
@@ -1283,7 +1285,7 @@ function openGroup(a){
 
 /* scroll-wheel timer: minutes on the left, seconds on the right */
 function wheelSheet(ei){
-  var a = S.active, x = a.exercises[ei], cur = Math.max(0, Math.round(x.rest || 90)), m0 = Math.min(10, Math.floor(cur / 60)), s0 = Math.round((cur % 60) / 5) * 5;
+  var a = S.active, x = a.exercises[ei], cur = Math.max(0, Math.round(x.rest || 150)), m0 = Math.min(10, Math.floor(cur / 60)), s0 = Math.round((cur % 60) / 5) * 5;
   var mins = "", secs = ""; for(var i = 0; i <= 10; i++) mins += '<div>' + i + '</div>'; for(var j = 0; j < 60; j += 5) secs += '<div>' + pad2(j) + '</div>';
   var pre = [15,30,45,60,90,120,150,180];
   sheet('<h2>Rest timer</h2><div class="tpre" role="group" aria-label="Quick picks">' + pre.map(function(v){ return '<button type="button" data-act="wh-pre" data-v="' + v + '" aria-pressed="' + (v === cur) + '">' + fmtClock(v) + '</button>'; }).join("") + '</div><div class="mono" style="margin-top:4px">Or dial it in</div><div class="whl mono"><span>min</span><span></span><span>sec</span></div><div class="whs"><div class="wh" id="wh-m">' + mins + '</div><div class="whc">:</div><div class="wh" id="wh-s">' + secs + '</div></div>' +
@@ -1327,7 +1329,7 @@ function renderWorkout(){
   if(grp.length){
     var tx = a.exercises[grp[0]];
     if(a.restEnd) h += '<button type="button" class="tmr2 run" id="inl-rest" data-act="rest-max" aria-label="Resting. Show the timer"><i class="t-bar"></i><span class="t-l">Resting<small>Tap to see it big</small></span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now())/1000)) + '</b><span class="t-go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4zM14 4h6v6h-2V6h-4zM4 14h2v4h4v2H4zM18 14h2v6h-6v-2h4z"/></svg></span></button>';
-    else h += '<button type="button" class="tmr2' + (a.restReady ? " ready" : "") + '" id="inl-rest" data-act="wheel" data-e="' + grp[0] + '" aria-label="Rest timer, ' + fmtClock(tx.rest || 90) + '. Tap to set and start"><span class="t-l">Rest<small>' + (a.restReady ? "Set done — start your rest" : "Tap to set and start") + '</small></span><b>' + fmtClock(tx.rest || 90) + '</b><span class="t-go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg></span></button>';
+    else h += '<button type="button" class="tmr2' + (a.restReady ? " ready" : "") + '" id="inl-rest" data-act="wheel" data-e="' + grp[0] + '" aria-label="Rest timer, ' + fmtClock(tx.rest || 150) + '. Tap to set and start"><span class="t-l">Rest<small>' + (a.restReady ? "Set done — start your rest" : "Tap to set and start") + '</small></span><b>' + fmtClock(tx.rest || 150) + '</b><span class="t-go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg></span></button>';
     return h;
   }
   if(!grp.length && allDone) h += '<div class="act2"><div class="xh"><h3 class="xn" style="font-size:34px">' + esc(a.name) + '</h3></div><div class="mono xt">Every lift is logged</div></div>';
@@ -1769,7 +1771,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "37";
+var BUILD = "38";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -1873,7 +1875,7 @@ function renderExercise(a, grp, hist, u){
   var h = '<div class="ex-top"><button type="button" class="back" data-act="ex-close">‹ ' + esc(a.name) + '</button><span class="cap">' + (first + 1) + ' of ' + a.exercises.length + '</span></div>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
   if(a.restEnd) h += '<button type="button" class="card restc run" id="inl-rest" data-act="rest-max" aria-label="Resting. Show the timer"><i class="t-bar"></i><span><span class="cap">Resting</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now()) / 1000)) + '</b></span><span class="rbtn">' + IC.expand + '</span></button>';
-  else h += '<button type="button" class="card restc' + (a.restReady ? " ready" : "") + '" id="inl-rest" data-act="wheel" data-e="' + first + '" aria-label="Rest timer ' + fmtClock(tx.rest || 90) + '. Tap to set and start"><span><span class="cap">' + (a.restReady ? "Set done · start your rest" : "Rest timer") + '</span><b>' + fmtClock(tx.rest || 90) + '</b></span><span class="rbtn">' + IC.play + '</span></button>';
+  else h += '<button type="button" class="card restc' + (a.restReady ? " ready" : "") + '" id="inl-rest" data-act="wheel" data-e="' + first + '" aria-label="Rest timer ' + fmtClock(tx.rest || 150) + '. Tap to set and start"><span><span class="cap">' + (a.restReady ? "Set done · start your rest" : "Rest timer") + '</span><b>' + fmtClock(tx.rest || 150) + '</b></span><span class="rbtn">' + IC.play + '</span></button>';
   var nx = -1, i;
   for(i = last + 1; i < a.exercises.length; i++) if(!exState(a.exercises[i]).all){ nx = i; break; }
   if(nx < 0) for(i = 0; i < first; i++) if(!exState(a.exercises[i]).all){ nx = i; break; }
@@ -2112,12 +2114,12 @@ function renderToday(){
     '<h1 class="lt">' + hi + ', Brett</h1><p class="hm-sub">What are we training?</p><div class="hlist">';
   var order = S.cfg.routines.slice().sort(function(x, y){ var dx = x.day == null ? 9 : (x.day + 6) % 7, dy = y.day == null ? 9 : (y.day + 6) % 7; return dx - dy; });
   order.forEach(function(r, i){
-    var live = (a && a.routineId === r.id) || S.parked.some(function(w){ return w.routineId === r.id; }), last = 0;
+    var logged = function(w){ return w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done; }); }); }, live = (a && a.routineId === r.id && logged(a)) || S.parked.some(function(w){ return w.routineId === r.id && logged(w); }), last = 0;
     S.sessions.forEach(function(q){ if(q.routineId === r.id && q.startedAt > last) last = q.startedAt; });
     h += '<button type="button" class="hrow" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (live ? ", in progress" : "") + '"><span class="ix">' + (i < 9 ? "0" : "") + (i + 1) + '</span>' +
       '<span class="hm"><span class="wn">' + esc(r.name) + '</span><span class="meta">' + chipsFor(r.exercises).join(", ") + (last ? ' · last ' + relDay(last) : '') + '</span></span>' +
-      (live ? '<span class="badge">In progress</span>' : '<span class="mn">' + estMin(r.exercises) + ' min</span>') + '</button>'; });
-  return h + '</div><div class="links"><a href="#" data-act="to-home">Start screen</a><a href="#routines">Edit workouts</a></div>';
+      (live ? '<span class="badge">In progress</span>' : '<span class="chev" aria-hidden="true">›</span>') + '</button>'; });
+  return h + '</div><div class="links"><span></span><a href="#routines">Edit workouts</a></div>';
 }
 render();
 setInterval(tick, 250);
