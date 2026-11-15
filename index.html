@@ -574,6 +574,14 @@ h2{font:700 20px/1.2 var(--font);letter-spacing:-.025em;text-transform:none}
 .hrow .mn{flex:none;font:500 13px/1 var(--font);color:var(--dim)}
 .cells{border-top:0!important}
 main[data-v="progress"]::before{content:"Progress";font:700 32px/1.08 var(--font);letter-spacing:-.035em;color:var(--text)}
+/* ---- a little warmth on every page ---- */
+#app::before{background:radial-gradient(closest-side,rgba(255,106,61,.32),rgba(255,106,61,0))!important}
+#app::after{display:block;animation:none!important;width:560px;height:560px;right:-300px;bottom:-260px;background:radial-gradient(closest-side,rgba(255,80,40,.16),rgba(255,80,40,0))!important}
+.card,.cal,.bmap,.bg,.chart,.tablewrap,.cells span,.strip div,.fs-st div{background:linear-gradient(155deg,rgba(255,106,61,.085),rgba(20,20,24,.74) 55%);border-color:rgba(255,150,110,.13)}
+.xnum{background:rgba(255,106,61,.14);color:var(--acc-text)}
+.pbar{background:rgba(255,106,61,.14)}
+.hrow{border-color:rgba(255,150,110,.12)!important}
+.tabs a[aria-current="page"]{color:var(--acc)}
 </style>
 </head>
 <body>
@@ -1771,7 +1779,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "39";
+var BUILD = "40";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
