@@ -983,6 +983,9 @@ main{gap:26px!important;padding-top:34px!important}
 .hrow:active *,.tr:active *,.pglog button:active *,.pgl button:active *{color:inherit!important;border-color:inherit!important}
 .hrow:active .wn,.tr:active .nm{color:var(--text)!important}.hrow:active .ix{color:var(--acc)!important}.hrow:active .meta,.tr:active .meta,.hrow:active .chev{color:var(--dim)!important}
 .hrow.live:active{background:var(--acc)!important}.hrow.live:active *{color:#09090a!important}
+.done-t{font:700 10.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc)!important}
+.hrow .chev.ok{color:var(--acc)!important;font-size:20px}
+.hrow:active .done-t,.hrow:active .chev.ok{color:var(--acc)!important}
 </style>
 </head>
 <body>
@@ -2194,7 +2197,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "65";
+var BUILD = "66";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2904,9 +2907,10 @@ function renderToday(){
   order.forEach(function(r, i){
     var logged = function(w){ return w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done; }); }); }, live = (a && a.routineId === r.id && logged(a)) || S.parked.some(function(w){ return w.routineId === r.id && logged(w); }), last = 0;
     S.sessions.forEach(function(q){ if(q.routineId === r.id && q.startedAt > last) last = q.startedAt; });
-    h += '<button type="button" class="hrow' + (live ? " live" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (live ? ", in progress" : "") + '"><span class="ix">' + (i < 9 ? "0" : "") + (i + 1) + '</span>' +
-      '<span class="hm"><span class="wn" style="--n:' + Math.max(6, r.name.length) + '">' + esc(r.name) + '</span><span class="meta">' + chipsFor(r.exercises).join(" / ") + (last ? ' — ' + relDay(last) : '') + '</span></span>' +
-      (live ? '<span class="badge">In progress</span>' : '<span class="chev" aria-hidden="true">→</span>') + '</button>'; });
+    var wk0 = weekStart(Date.now());
+    h += '<button type="button" class="hrow' + (live ? " live" : "") + '" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (live ? ", in progress" : last >= wk0 ? ", complete this week" : "") + '"><span class="ix">' + (i < 9 ? "0" : "") + (i + 1) + '</span>' +
+      '<span class="hm">' + (last >= wk0 && !live ? '<span class="done-t">Complete · ' + relDay(last) + '</span>' : '') + '<span class="wn" style="--n:' + Math.max(6, r.name.length) + '">' + esc(r.name) + '</span><span class="meta">' + chipsFor(r.exercises).join(" / ") + (last && last < wk0 ? ' — ' + relDay(last) : '') + '</span></span>' +
+      (live ? '<span class="badge">In progress</span>' : last >= wk0 ? '<span class="chev ok" aria-hidden="true">✓</span>' : '<span class="chev" aria-hidden="true">→</span>') + '</button>'; });
   var bn = bkNeed(); return h + '</div>' + (bn ? '<button type="button" class="bkrow" data-act="backup"><span><b>Back up your history</b><small>' + (bkInfo() ? bn + (bn === 1 ? ' workout' : ' workouts') + ' since your last backup' : 'Your workouts live on this phone only') + '</small></span><i>Back up</i></button>' : '') + '<div class="links">' + (STANDALONE ? '<a href="#" data-act="backup">Backup</a>' : '<span></span>') + '<a href="#routines">Edit workouts</a></div>';
 }
 /* screens arrive the way the opening does: titles rise from behind a mask, rows wipe in from the edge */
