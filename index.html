@@ -835,6 +835,22 @@ details.card>summary{padding:16px 0}details.card>*:not(summary){margin-left:0;ma
 #intro.v2 .i-bot{bottom:auto;top:calc(env(safe-area-inset-top) + 26vh)}
 #intro.v2 .i-title{font-size:clamp(52px,17vw,76px)!important;font-weight:800!important;letter-spacing:-.055em!important;line-height:.98!important}
 #intro.v2 .i-sub{margin-top:18px}
+
+/* ---- opening hero: a statement, over your latest photo when there is one ---- */
+#intro.v2 .i-bot{top:calc(env(safe-area-inset-top) + 76px)!important;bottom:calc(env(safe-area-inset-bottom) + 112px)!important;left:24px;right:24px;display:flex;flex-direction:column;align-items:stretch}
+#intro.v2 .i-title{order:1;margin:0;font-weight:900!important;letter-spacing:-.07em!important;line-height:.86!important}
+#intro.v2 .i-title .ln{padding:.06em 0 .16em;margin:-.06em 0 -.16em}
+#intro.v2 .i-title em{font-style:normal;color:var(--acc)}
+#intro.v2 .i-line{order:2;display:block;margin-top:auto;width:100%;height:1px;background:rgba(243,239,232,.16)}
+#intro.v2 .i-sub{order:3;margin-top:18px!important;font:600 17px/1.2 var(--font)!important;color:var(--text)!important;letter-spacing:-.01em}
+#intro.v2 .i-day{order:4;margin-top:7px;font:400 15px/1.3 var(--font)!important;color:var(--dim)!important}
+#intro.v2 .i-photo{position:absolute;inset:0;background:#09090a center 22%/cover no-repeat;filter:grayscale(1) contrast(1.12) brightness(.82);transform-origin:50% 35%;animation:heropush 14s cubic-bezier(.2,.6,.3,1) both}
+#intro.v2 .i-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,9,10,.5),rgba(9,9,10,.12) 32%,rgba(9,9,10,.78) 70%,#09090a 90%)}
+#intro.v2.has-photo .i-title{margin-top:auto}#intro.v2.has-photo .i-line{margin-top:24px;background:rgba(243,239,232,.3)}
+#intro.v2.has-photo .i-photo::after{background:linear-gradient(180deg,rgba(9,9,10,.35),rgba(9,9,10,.05) 30%,rgba(9,9,10,.55) 52%,rgba(9,9,10,.9) 72%,#09090a 92%)}
+#intro.v2.has-photo .i-day{color:rgba(243,239,232,.72)!important}
+@keyframes heropush{from{transform:scale(1.02);opacity:0}8%{opacity:1}to{transform:scale(1.14);opacity:1}}
+@media (prefers-reduced-motion:reduce){#intro.v2 .i-photo{animation:none}}
 </style>
 </head>
 <body>
@@ -1284,6 +1300,7 @@ function loadPhotos(){
   return pTx("readonly", function(st){ return st.getAll(); }).then(function(list){
     S.photos.forEach(function(p){ try{ URL.revokeObjectURL(p.url); }catch(e){} });
     S.photos = (list || []).sort(function(a, b){ return b.at - a.at; }).map(function(p){ return { id:p.id, at:p.at, wid:p.wid || "", url:URL.createObjectURL(p.blob) }; });
+    try{ var hio = document.getElementById("intro"); if(hio && !hio.hidden){ var hb = hio.querySelector(".i-bg"), hp = hio.querySelector(".i-photo"), h0 = S.photos[0]; if(h0){ if(!hp){ hp = document.createElement("div"); hp.className = "i-photo"; hb.appendChild(hp); } hp.dataset.id = String(h0.id); hp.style.backgroundImage = 'url("' + h0.url + '")'; hio.classList.add("has-photo"); } } }catch(e){}
     var v = viewName();
     if(v === "body" || v === "history" || (v === "today" && S.active && !S.pick && !openGroup(S.active).length)) render();
   }).catch(function(){ S.photosOff = true; if(viewName() === "body") render(); });
@@ -2045,7 +2062,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "57";
+var BUILD = "58";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2093,6 +2110,18 @@ function fillIntro(){
       if(o) h += '<div class="slab on" style="--i:' + i + ';--h:' + (o.v > 0 ? 38 + 54 * o.v / mx : 60).toFixed(1) + '%"><b>' + (o.v >= 1000 ? (o.v / 1000).toFixed(1) + "k" : o.v > 0 ? Math.round(o.v) : o.c + " sets") + '</b><i></i><em>' + esc(o.n.split(/[\s&]/)[0]) + '</em></div>';
       else h += '<div class="slab' + (i === wk.length ? " now" : "") + '" style="--i:' + i + '"><s>' + pad(i) + '</s>' + (i === wk.length ? '<em>' + (did ? "Next" : "Today") + '</em>' : '') + '</div>'; }
     sl.setAttribute("role", "img"); sl.setAttribute("aria-label", wk.length + " of " + goal + " workouts done this week"); sl.innerHTML = h; })();
+  (function(){ var io = document.getElementById("intro"), ti = document.getElementById("i-title"), d0 = new Date().toDateString(), did = S.sessions.some(function(q){ return new Date(q.startedAt).toDateString() === d0; });
+    var say = !last ? ["Day", "one."] : st.thisWeek >= goal ? ["Week", "done."] : did ? ["Work", "done."] : st.thisWeek === 0 ? ["Show", "up."] : ["Keep", "on."];
+    var avail = Math.min(window.innerWidth || 390, 560) - 48, size = 150;
+    try{ var cx = document.createElement("canvas").getContext("2d"); cx.font = '900 100px -apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,"Helvetica Neue",Arial,sans-serif';
+      var wmax = Math.max.apply(null, say.map(function(t){ return cx.measureText(t).width - 7 * (t.length - 1); })); size = Math.max(72, Math.min(168, Math.floor(100 * avail / (wmax * 1.04)))); }catch(e){ size = 120; }
+    ti.style.setProperty("font-size", size + "px", "important");
+    ti.innerHTML = say.map(function(t){ return '<span class="ln"><span>' + esc(t).replace(/\.$/, '<em>.</em>') + '</span></span>'; }).join(""); ti.setAttribute("aria-label", say.join(" "));
+    $("#i-sub").textContent = st.thisWeek + " of " + goal + " this week";
+    $("#i-day").textContent = new Date().toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" }) + (last ? " · last trained " + when : " · nothing logged yet");
+    var bg = io.querySelector(".i-bg"), ph = io.querySelector(".i-photo"), p = S.photos && S.photos[0];
+    if(p && p.url){ if(!ph){ ph = document.createElement("div"); ph.className = "i-photo"; bg.appendChild(ph); } if(ph.dataset.id !== String(p.id)){ ph.dataset.id = String(p.id); ph.style.backgroundImage = 'url("' + p.url + '")'; } io.classList.add("has-photo"); }
+    else { if(ph) ph.remove(); io.classList.remove("has-photo"); } })();
 }
 (function(){ var dirty = relabel();
   if(S.active && !S.active.routineId){ S.active = null; dirty = true; }
