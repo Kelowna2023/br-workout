@@ -940,7 +940,7 @@ function mkEx(x, hist){
   var bump = !!(h && topR && h.last.length >= n && h.last.slice(0,n).every(function(s){ return s.r >= topR && s.w > 0; }));
   for(var i = 0; i < n; i++){
     var p = h && h.last.length ? (h.last[i] || h.last[h.last.length-1]) : null;
-    sets.push({ w: p ? (bump ? p.w + inc : p.w) : "", r: p ? (bump ? (x.repLabel ? 1 : lowRep(x.reps)) : p.r) : "", done:false, prev: p ? {w:p.w, r:p.r} : null });
+    sets.push({ w:"", r:"", done:false, prev: p ? {w:p.w, r:p.r} : null });
   }
   return { name:x.name, target:x.reps || "", rest: parseInt(x.rest,10) || 150, sets:sets, plan:n, bump: bump ? inc : 0, link: !!x.link, repLabel: x.repLabel || "" };
 }
@@ -963,7 +963,6 @@ function toggleSet(ei, si){
     if(e > bar + 0.01){ st.pr = true; recordMoment(x.name, st.w, st.r); buzz([60,40,60,40,160]); }
   }
   S.cfg.goals.forEach(function(g){ if(key(g.name) === key(x.name)){ var tg = e1rm(num(g.w), num(g.r)); if(tg > 0 && e >= tg && !(h && h.best >= tg) && !x.goalHit){ x.goalHit = true; toast("Goal reached: " + g.name + " " + fmtW(num(g.w)) + " × " + g.r); buzz([80,60,80,60,240]); } } });
-  x.sets.slice(si + 1).forEach(function(o){ if(!o.done && !(num(o.w) > 0) && !(num(o.r) > 0)){ o.w = st.w; o.r = st.r; if(st.pl) o.pl = st.pl.slice(); if(st.bar !== undefined) o.bar = st.bar; } });
   if(!x.sets.some(function(o){ return !o.done; }) && x.sets.length < (x.plan || 0)){ var hp0 = h && h.last[x.sets.length] ? h.last[x.sets.length] : null;
     x.sets.push({ w: st.w, r: st.r, pl: st.pl ? st.pl.slice() : [], bar: st.bar, done:false, prev: hp0 ? { w:hp0.w, r:hp0.r } : null }); }
   var gAll = groupOf(a, ei).every(function(gi){ return exState(a.exercises[gi]).all; }); if(gAll) a.openEx = null;
@@ -1382,7 +1381,7 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
     var id = "s-" + ei + "-" + si, hasNote = !!((st.note && String(st.note).trim()) || st.rir), n = si + 1;
     rows += '<div class="sr' + (st.done ? " done" : si === cs ? " cur" : "") + '"><span class="mono sn">' + n + '</span>' +
       '<input class="num si" id="' + id + '-r" inputmode="numeric" autocomplete="off" aria-label="Set ' + n + ' ' + esc(rl.toLowerCase()) + '" data-e="' + ei + '" data-s="' + si + '" data-k="r" value="' + esc(String(st.r == null ? "" : st.r)) + '" placeholder="' + esc(String(x.target || "0").replace("-", "–")) + '">' +
-      '<input class="num si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="0">' +
+      '<input class="num si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="' + esc(st.prev && st.prev.w ? String(st.prev.w) : "0") + '">' +
       '<button type="button" class="nt' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" aria-label="' + (hasNote ? "Note on set " + n : "Add a note to set " + n) + '" data-act="set-note" data-e="' + ei + '" data-s="' + si + '"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg><span>Note</span></button>' +
       '<button type="button" class="ck" data-act="check" data-e="' + ei + '" data-s="' + si + '" aria-label="' + (st.done ? "Set " + n + " done. Undo it" : "Set " + n + " done") + '">' + (st.done ? "✓" : "Done") + '</button><button type="button" class="sx" data-act="set-x" data-e="' + ei + '" data-s="' + si + '" aria-label="Delete set ' + n + '">×</button></div>' +
       (!st.open && st.rir ? '<div class="rir-l">' + rirLabel(st.rir) + '</div>' : "") +
@@ -1777,7 +1776,7 @@ document.addEventListener("click", function(ev){
     case "ex-close": nvBack(function(){ a.openEx = null; saveActive(); render(); $("#view").scrollTop = 0; }); break;
     case "ex-toggle": morphFrom(b.querySelector(".nm"), function(){ a.openEx = groupOf(a, ei)[0]; saveActive(); render(); $("#view").scrollTop = 0; }); break;
     case "add-set": var ax = a.exercises[ei], asets = ax.sets, al = asets[asets.length-1], ahx = histIndex()[key(ax.name)], ahp = ahx && ahx.last[asets.length] ? ahx.last[asets.length] : null;
-      asets.push({ w: al ? al.w : "", r: al ? al.r : "", pl: al && al.pl ? al.pl.slice() : [], bar: al ? al.bar : undefined, done:false, prev: ahp ? { w:ahp.w, r:ahp.r } : null });
+      asets.push({ w:"", r:"", pl:[], bar: al ? al.bar : undefined, done:false, prev: ahp ? { w:ahp.w, r:ahp.r } : null });
       a.openEx = groupOf(a, ei)[0]; saveActive(); closeSheet(); render(); break;
     case "del-set": var dsets = a.exercises[ei].sets; if(dsets.length > 1){ dsets.pop(); saveActive(); closeSheet(); render(); } else toast("That is the only set"); break;
     case "del-ex": ask("Remove " + a.exercises[ei].name + "?", "Its sets from this workout will be dropped.", "Remove", function(){ a.exercises.splice(ei,1); saveActive(); render(); }); break;
@@ -1848,7 +1847,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "43";
+var BUILD = "44";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -1980,8 +1979,8 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
   x.sets.forEach(function(st, si){
     var id = "s-" + ei + "-" + si, hasNote = !!((st.note && String(st.note).trim()) || st.rir), n = si + 1;
     rows += '<div class="sr' + (st.done ? " done" : si === cs ? " cur" : "") + '"><span class="sn">' + n + '</span>' +
-      '<input class="si" id="' + id + '-r" inputmode="numeric" autocomplete="off" aria-label="Set ' + n + ' ' + esc(rl.toLowerCase()) + '" data-e="' + ei + '" data-s="' + si + '" data-k="r" value="' + esc(String(st.r == null ? "" : st.r)) + '" placeholder="' + esc(tg || "0") + '">' +
-      '<input class="si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="0">' +
+      '<input class="si" id="' + id + '-r" inputmode="numeric" autocomplete="off" aria-label="Set ' + n + ' ' + esc(rl.toLowerCase()) + '" data-e="' + ei + '" data-s="' + si + '" data-k="r" value="' + esc(String(st.r == null ? "" : st.r)) + '" placeholder="' + esc(st.prev && st.prev.r ? String(st.prev.r) : (tg || "0")) + '">' +
+      '<input class="si" id="' + id + '-w" inputmode="decimal" autocomplete="off" aria-label="Set ' + n + ' weight in ' + esc(u) + '" data-e="' + ei + '" data-s="' + si + '" data-k="w" value="' + esc(String(st.w == null ? "" : st.w)) + '" placeholder="' + esc(st.prev && st.prev.w ? String(st.prev.w) : "0") + '">' +
       '<button type="button" class="nt' + (hasNote ? " has" : "") + '" aria-expanded="' + (!!st.open) + '" aria-label="' + (hasNote ? "Note on set " + n : "Add a note to set " + n) + '" data-act="set-note" data-e="' + ei + '" data-s="' + si + '">' + IC.note + '<span>Note</span></button>' +
       '<button type="button" class="ck" data-act="check" data-e="' + ei + '" data-s="' + si + '" aria-label="' + (st.done ? "Set " + n + " complete. Undo" : "Complete set " + n) + '">' + IC.check + '</button>' +
       '<button type="button" class="sx" data-act="set-x" data-e="' + ei + '" data-s="' + si + '" aria-label="Delete set ' + n + '">×</button></div>' +
