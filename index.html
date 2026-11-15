@@ -889,6 +889,23 @@ main>.xbig{position:absolute}
 .tpre{display:flex;flex-wrap:wrap;gap:8px}
 .tpre button{flex:1 0 calc(25% - 8px);min-height:44px;border:1px solid var(--knurl);border-radius:0;background:transparent;color:var(--chalk);font:400 18px/1 var(--poster);letter-spacing:.02em}
 .tpre button[aria-pressed="true"]{border-color:var(--plate);color:var(--plate);box-shadow:0 0 18px rgba(157,107,255,.3)}
+
+/* ---- no sideways drift; index numbers become a moment, not a column ---- */
+html,body{overflow-x:hidden;max-width:100%}
+#app{overflow:hidden}
+main{overflow-x:hidden!important;overscroll-behavior-x:none;touch-action:pan-y}
+.wx{display:none!important}
+.wr{display:flex!important;align-items:baseline;gap:18px}
+.wr .wi2{flex:none;width:22px;font:400 11px/1 var(--mono);letter-spacing:.12em;color:rgba(157,107,255,.75);transform:translateY(-.9em)}
+.pickbig{position:absolute!important;right:-4%;top:150px;font:400 min(92vw,420px)/.8 var(--poster);color:transparent;-webkit-text-stroke:1px rgba(157,107,255,.55);pointer-events:none;z-index:0;letter-spacing:-.05em;opacity:0;text-shadow:0 0 80px rgba(157,107,255,.35);will-change:transform,opacity,filter}
+.xbig{left:0!important;right:0!important;overflow:hidden;text-align:right;white-space:nowrap}
+.xbig span{display:inline-block;margin-right:-.1em;transform-origin:100% 50%}
+.pickbig{opacity:1}
+.pickbig span{opacity:0}
+.wr{justify-content:flex-start!important;text-align:left}
+.pickbig,.xbig{text-shadow:none!important}
+.pickbig span{-webkit-text-stroke:1.2px rgba(170,128,255,.7)}
+.xbig{padding:.14em 0;margin-top:-.14em}
 </style>
 </head>
 <body>
@@ -1583,8 +1600,8 @@ function renderToday(){
     var isToday = r.day === today, live = (a && a.routineId === r.id) || S.parked.some(function(w){ return w.routineId === r.id; }), done = false;
     if(r.day != null){ var d = new Date(ws0); d.setDate(d.getDate() + (r.day + 6) % 7); var t0 = d.getTime(), e = new Date(d); e.setDate(e.getDate() + 1);
       done = S.sessions.some(function(q){ return q.routineId === r.id && q.startedAt >= t0 && q.startedAt < e.getTime(); }); }
-    rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wx" aria-hidden="true">' + pad2(++wxn) + '</span><span class="wn">' + esc(r.name) + '</span></button>'; });
-  return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><h1 class="pick-h">What are we training today?</h1><div class="ledger">'  + rows + '</div>' +
+    rows += '<button type="button" class="wr" data-act="start" data-id="' + esc(r.id) + '" aria-label="' + esc(r.name) + (r.day != null ? ", " + DAYS[r.day] : "") + (live ? ", in progress" : done ? ", done this week" : "") + '"><span class="wi2" aria-hidden="true">' + pad2(++wxn) + '</span><span class="wn">' + esc(r.name) + '</span></button>'; });
+  return '<div class="mono pk"><button type="button" class="mono back" data-act="to-home">← Back</button></div><h1 class="pick-h">What are we training today?</h1><div class="xbig pickbig" aria-hidden="true"></div><div class="ledger">'  + rows + '</div>' +
     '<div class="links mono" style="padding-top:18px"><span></span><a href="#routines">Edit workouts →</a></div>';
 }
 
@@ -1635,7 +1652,7 @@ function actBlock(a, ei, hist, u, inSS, gi, gn){
 }
 function renderWorkout(){
   var a = S.active, u = S.cfg.units, hist = histIndex(), grp = openGroup(a), rows = "", allDone = a.exercises.length > 0 && a.exercises.every(function(x){ return exState(x).all; }),
-    h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button><div class="xbig" aria-hidden="true">' + pad2(grp[0] + 1) + '</div><div class="mono xi">' + pad2(grp[0] + 1) + ' of ' + pad2(a.exercises.length) + '</div>' : '<button type="button" class="mono back" data-act="to-list">← Workouts</button><h1 class="pick-h" style="margin:4px 0 0">' + esc(a.name) + '</h1>';
+    h = grp.length ? '<button type="button" class="mono back" data-act="ex-close">← ' + esc(a.name) + '</button><div class="xbig" aria-hidden="true"><span>' + pad2(grp[0] + 1) + '</span></div><div class="mono xi">' + pad2(grp[0] + 1) + ' of ' + pad2(a.exercises.length) + '</div>' : '<button type="button" class="mono back" data-act="to-list">← Workouts</button><h1 class="pick-h" style="margin:4px 0 0">' + esc(a.name) + '</h1>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
   if(grp.length){
     var tx = a.exercises[grp[0]];
@@ -1853,7 +1870,7 @@ function fxEnter(main, skip){
   var tl = gsap.timeline({ defaults:{ ease:"expo.out" } }), heads = main.querySelectorAll(".pick-h,.xn,.fs-h,h2"), t0 = skip ? 0.55 : 0;
   heads.forEach(function(h, k){ if(h === skip) return; var ch = splitHead(h);
     tl.from(ch, { yPercent:120, rotation:7, opacity:0, duration:1.35, stagger:{ each:0.028 }, transformOrigin:"0% 100%" }, t0 + 0.08 + k * 0.18); });
-  var big = main.querySelectorAll(".xbig"); if(big.length) tl.from(big, { xPercent:45, opacity:0, filter:"blur(18px)", duration:2.2, ease:"expo.out" }, t0);
+  var big = main.querySelectorAll(".xbig:not(.pickbig) span"); if(big.length) tl.from(big, { xPercent:45, opacity:0, filter:"blur(18px)", duration:2.2, ease:"expo.out" }, t0);
   var rows = [], small = [];
   Array.prototype.forEach.call(main.children, function(c){
     if(c.matches(".pick-h,.xn,.fs-h,h2,.xbig")) return;
@@ -1875,7 +1892,7 @@ function fxScroll(main){
   fxTriggers.forEach(function(t){ t.kill(); }); fxTriggers = [];
   var head = main.querySelector(".pick-h,.xn");
   if(head) fxTriggers.push(gsap.to(head, { yPercent:-40, opacity:0.12, scale:0.86, transformOrigin:"0% 100%", ease:"none", scrollTrigger:{ trigger:head, start:"top top+=70", end:"bottom top-=40", scrub:0.8 } }).scrollTrigger);
-  var big = main.querySelector(".xbig");
+  var big = main.querySelector(".xbig:not(.pickbig) span");
   if(big) fxTriggers.push(gsap.to(big, { y:220, rotation:-4, ease:"none", scrollTrigger:{ trigger:main.firstElementChild, start:"top top", end:"+=900", scrub:1.2 } }).scrollTrigger);
   main.querySelectorAll(".wx").forEach(function(n, i){ fxTriggers.push(gsap.fromTo(n, { y:24 + i * 4 }, { y:-36 - i * 6, ease:"none", scrollTrigger:{ trigger:n.parentNode, start:"top bottom", end:"bottom top", scrub:1 } }).scrollTrigger); });
   main.querySelectorAll(".tr,.wr,.bg-r,details.card").forEach(function(r, i){ fxTriggers.push(gsap.fromTo(r, { "--px":"0px" }, { "--px":"-14px", ease:"none", scrollTrigger:{ trigger:r, start:"top bottom", end:"bottom top", scrub:true } }).scrollTrigger); });
@@ -1889,9 +1906,14 @@ function fxAfterRender(main, changed, skip){
 /* things lean toward your thumb, then spring back */
 if(FX){
   var MAG = ".wr,.tr,.btn,.logbtn,.inl-rest,#restgo,.ck,.stk-t,.rir button,.tabs a,.rbtns button,.cal-h button";
-  document.addEventListener("pointerdown", function(e){ var el = e.target.closest(MAG); if(!el) return; var r = el.getBoundingClientRect();
+  document.addEventListener("pointerdown", function(e){
+    var wr = e.target.closest(".wr"), pb = $(".pickbig");
+    if(wr && pb){ var num = wr.querySelector(".wi2"); pb.innerHTML = "<span>" + (num ? num.textContent : "") + "</span>"; var mr = $("#view").getBoundingClientRect(), rr = wr.getBoundingClientRect();
+      gsap.killTweensOf(pb); gsap.set(pb, { top:Math.max(60, rr.top - mr.top + $("#view").scrollTop - pb.offsetHeight * 0.42) });
+      gsap.set(pb, { opacity:1 }); gsap.fromTo(pb.firstChild, { opacity:0, scale:1.18, filter:"blur(24px)", xPercent:8 }, { opacity:1, scale:1, filter:"blur(0px)", xPercent:0, duration:0.9, ease:"expo.out" }); }
+    var el = e.target.closest(MAG); if(!el) return; var r = el.getBoundingClientRect();
     gsap.to(el, { x:(e.clientX - (r.left + r.width/2)) * 0.08, y:(e.clientY - (r.top + r.height/2)) * 0.18, scale:0.975, duration:0.28, ease:"power3.out", overwrite:"auto" }); }, { passive:true });
-  var release = function(e){ document.querySelectorAll(MAG).forEach(function(el){ if(el._gsap && (el._gsap.x !== "0px" || el._gsap.scaleX !== 1)) gsap.to(el, { x:0, y:0, scale:1, duration:1.1, ease:"elastic.out(1,0.35)", overwrite:"auto" }); }); };
+  var release = function(e){ var pb = $(".pickbig"); if(pb && e && e.type === "pointercancel") gsap.to(pb, { opacity:0, filter:"blur(16px)", duration:0.6 }); document.querySelectorAll(MAG).forEach(function(el){ if(el._gsap && (el._gsap.x !== "0px" || el._gsap.scaleX !== 1)) gsap.to(el, { x:0, y:0, scale:1, duration:1.1, ease:"elastic.out(1,0.35)", overwrite:"auto" }); }); };
   document.addEventListener("pointerup", release, { passive:true }); document.addEventListener("pointercancel", release, { passive:true });
   document.addEventListener("pointermove", function(e){
     if(fingerTo){ var app = $("#app").getBoundingClientRect(), a = $("#aura"), ax = gsap.getProperty(a, "x"), ay = gsap.getProperty(a, "y");
@@ -2051,7 +2073,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "26";
+var BUILD = "27";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
