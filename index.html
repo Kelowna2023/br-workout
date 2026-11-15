@@ -936,6 +936,8 @@ button.sh::after{display:flex;align-items:center;justify-content:var(--jc,flex-s
   #wipe.run{animation:wipe .7s ease-in-out both}
 }
 @media (prefers-reduced-motion: reduce){.sh::after,.btn.go::after,.m-sh{display:none!important}}
+.bmap svg{width:min(88vw,360px)!important}
+.bmap path.on{filter:drop-shadow(0 0 2.5px rgba(157,107,255,.9))}
 </style>
 </head>
 <body>
@@ -1548,8 +1550,8 @@ function planGroups(){ var on = {};
     BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })) on[g[0]] = 1; }); }); });
   return on; }
 function bodyFig(shapes, dx, mus){
-  var h = '<g transform="translate(' + dx + ',0)"><g fill="#1f1f22">' + MM_NEUTRAL + '</g>';
-  shapes.forEach(function(sh){ var v = mus[sh[0]] || 0, f = v ? 'fill="#9d6bff" fill-opacity="' + Math.min(1, 0.22 + v / 14).toFixed(2) + '"' : 'fill="#1f1f22"', p = '<path ' + f + ' d="' + sh[1] + '"/>';
+  var h = '<g transform="translate(' + dx + ',0)"><g fill="#2c2b31" stroke="rgba(239,235,228,.16)" stroke-width=".4">' + MM_NEUTRAL + '</g>';
+  shapes.forEach(function(sh){ var v = mus[sh[0]] || 0, f = v ? 'class="on" fill="#a57bff" fill-opacity="' + Math.min(1, 0.45 + v / 12).toFixed(2) + '" stroke="#d9c8ff" stroke-width=".45"' : 'fill="#3a3842" stroke="rgba(239,235,228,.28)" stroke-width=".4"', p = '<path ' + f + ' d="' + sh[1] + '"/>';
     h += p; if(sh[2]) h += '<g transform="translate(100,0) scale(-1,1)">' + p + '</g>'; });
   return h + '</g>'; }
 function measUnit(){ return S.cfg.units === "kg" ? "cm" : "in"; }
@@ -2124,7 +2126,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "29";
+var BUILD = "30";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
