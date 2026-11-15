@@ -999,47 +999,11 @@ function goWorkout(r){
 function discardWorkout(){ S.active = null; saveActive(); render(); }
 
 /* ---------- sound and vibration ---------- */
-function primeAudio(){ try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if(actx.state !== "running") actx.resume();   /* iPhones also park it in "interrupted" */
-    if(!SFX.out){ try{ if(navigator.audioSession) navigator.audioSession.type = "ambient"; }catch(e){}          /* play over his music instead of pausing it */
-      var lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 5200; lp.Q.value = 0.3;
-      SFX.out = actx.createGain(); SFX.out.gain.value = 0.55; SFX.out.connect(lp); lp.connect(actx.destination);
-      var len = Math.floor(actx.sampleRate * 1.4), ir = actx.createBuffer(2, len, actx.sampleRate), ch, i, d, l;
-      for(ch = 0; ch < 2; ch++){ d = ir.getChannelData(ch); l = 0; for(i = 0; i < len; i++){ l = l * 0.7 + (Math.random() * 2 - 1) * 0.3; d[i] = l * Math.pow(1 - i / len, 3.2); } }
-      var cv = actx.createConvolver(), wet = actx.createGain(); cv.buffer = ir; wet.gain.value = 0.22; SFX.out.connect(cv); cv.connect(wet); wet.connect(lp);
-      var n = null; SFX.noise = n; } }catch(e){} }
-/* Sounds are made here, not loaded: low, soft and short. Phone speakers lose anything under ~250 Hz, so every "deep" note carries a quiet octave above it. */
-var SFX = { out:null, noise:null, sw:null };
-function sfxOK(){ return !!(actx && SFX.out && actx.state === "running"); }
-/* Voices. Nothing starts with a click and nothing is a tune: one soft event per moment, quiet, with a natural tail. */
-function sfxV(f, t, att, tail, vol, glide){ var o = actx.createOscillator(), g = actx.createGain(); o.type = "sine"; o.frequency.setValueAtTime(f, t); if(glide) o.frequency.exponentialRampToValueAtTime(glide, t + 0.09);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + att); g.gain.setTargetAtTime(0, t + att, tail); o.connect(g); g.connect(SFX.out); o.start(t); o.stop(t + att + tail * 8); }
-/* a muted wooden tap */
-function sfxTock(t, vol){ sfxV(560, t, 0.004, 0.035, vol, 400); sfxV(280, t, 0.006, 0.05, vol * 0.5, 220); }
-/* a soft glass note: a clear fundamental, a breath of overtone that dies at once */
-function sfxGlass(f, t, tail, vol){ sfxV(f, t, 0.008, tail, vol); sfxV(f * 2, t, 0.006, tail * 0.4, vol * 0.14); sfxV(f * 2.76, t, 0.004, tail * 0.14, vol * 0.05); }
-/* a chord that breathes in rather than being struck */
-function sfxBloom(fs, t, att, tail, vol){ fs.forEach(function(f, i){ sfxV(f, t + i * 0.018, att, tail, vol / (1 + i * 0.35)); }); }
-function sfx(kind){ try{ primeAudio(); if(!actx || !SFX.out) return;
-    /* the phone wakes the audio a beat after the touch: wait for it instead of dropping the sound */
-    if(actx.state !== "running"){ var asked = Date.now(); actx.resume().then(function(){ if(Date.now() - asked < 700) sfxPlay(kind); }).catch(function(){}); return; }
-    sfxPlay(kind); }catch(e){} }
-/* One small family of glass dings, all from the same five notes (G A B D E) so any two of them sound right together. */
-function sfxPlay(kind){ try{ if(!sfxOK()) return; var t = actx.currentTime + 0.01;
-    if(kind === "openw") sfxGlass(784, t, 0.16, 0.15);                                             /* into a workout */
-    else if(kind === "openx") sfxGlass(987.8, t, 0.15, 0.13);                                      /* into an exercise */
-    else if(kind === "back") sfxGlass(587.3, t, 0.12, 0.09);                                       /* stepping back: lower, softer */
-    else if(kind === "tab") sfxGlass(659.3, t, 0.07, 0.06);                                        /* switching section: barely there */
-    else if(kind === "set"){ sfxGlass(1174.7, t, 0.2, 0.2); sfxV(1568, t + 0.02, 0.01, 0.12, 0.03); }   /* set done: the brightest ding */
-    else if(kind === "rest"){ sfxGlass(784, t, 0.3, 0.28); sfxGlass(1174.7, t + 0.26, 0.45, 0.26); }     /* rest over: two notes, rising */
-    else if(kind === "pr") sfxBloom([392, 493.9, 587.3, 784], t, 0.09, 0.5, 0.11);
-    else if(kind === "finish"){ sfxBloom([261.6, 392, 523.3], t, 0.14, 0.7, 0.12); sfxV(1046.5, t + 0.2, 0.2, 0.6, 0.018); }
-    else if(kind === "land") sfxGlass(392, t, 0.36, 0.17);                                         /* workouts arrive: one low chime */
-  }catch(e){} }
+/* The app is silent by choice: no audio is created at all, so nothing can interfere with music. */
+function primeAudio(){}
+function sfx(){}
 function sfxSwell(){}
-function sfxUnlock(){ primeAudio(); try{ if(actx && SFX.out){ var b = actx.createBufferSource(); b.buffer = actx.createBuffer(1, 1, 22050); b.connect(actx.destination); b.start(0); } }catch(e){} }
-["touchstart","touchend","pointerdown","pointerup","click"].forEach(function(ev){ document.addEventListener(ev, sfxUnlock, { capture:true, passive:true }); });
-document.addEventListener("visibilitychange", function(){ if(!document.hidden && actx && actx.state !== "running"){ try{ actx.resume(); }catch(e){} } });
-function beep(){ sfx("rest"); }
+function beep(){}
 function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 
 /* ---------- clock ---------- */
