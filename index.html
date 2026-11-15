@@ -638,6 +638,15 @@ main[data-v="progress"]::before{content:"Progress";font:700 32px/1.08 var(--font
 #nvbar span{display:block;max-width:76%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;will-change:transform}
 main>h1.lt{will-change:transform,opacity}
 .hrow:active,.xlist>.tr:active{background:rgba(255,255,255,.035)}
+/* ---- rest controls: pause, resume, cancel ---- */
+.restc .rbtn{position:relative}
+#restfull .rbtns button:last-child{grid-column:auto;background:var(--card);border:1px solid var(--line2);color:var(--text);font-weight:600}
+#restfull #rf-pause{background:var(--grad);border:0;color:#fff;font-weight:700}
+.restc .rmain{flex:1;display:flex;flex-direction:column;gap:2px;align-items:flex-start;background:none;border:0;padding:0;color:inherit;text-align:left}
+.restc .rctl{flex-direction:row!important;align-items:center;gap:10px!important;flex:none}
+.restc .rbtn{border:0;padding:0}
+.restc.run .rbtn.pp{background:var(--grad);color:#fff}
+.restc.paused b{color:var(--dim)}
 </style>
 </head>
 <body>
@@ -664,8 +673,8 @@ main>h1.lt{will-change:transform,opacity}
     <div class="rtop mono"><span id="rf-lab">Rest</span><span id="rf-of" class="num"></span></div>
     <div class="rclock" id="rf-time" role="timer">0:00</div>
     <div class="rtrack"><i id="rf-bar"></i></div>
-    <div class="rbtns"><button type="button" data-act="rest-add" data-v="-15">−15 s</button><button type="button" data-act="rest-add" data-v="30">+30 s</button><button type="button" data-act="rest-skip">Skip rest</button></div>
-    <div class="rnext" id="rf-next"></div>
+    <div class="rbtns"><button type="button" data-act="rest-add" data-v="-15">−15 s</button><button type="button" data-act="rest-add" data-v="30">+30 s</button><button type="button" data-act="rest-pause" id="rf-pause">Pause</button><button type="button" data-act="rest-skip">Cancel</button></div>
+    <div class="rnext" id="rf-next" hidden></div>
     <button class="mono rmin" type="button" data-act="rest-min">Hide timer</button>
   </div>
   <nav class="tabs" aria-label="Sections">
@@ -1010,6 +1019,7 @@ function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 function tick(){
   var a = S.active, el = $("#elapsed"), dock = $("#rest"), full = $("#restfull");
   if(a && el) el.textContent = fmtDur((Date.now() - a.startedAt)/1000);
+  if(a && a.restPaused != null){ if(a.restEnd) a.restEnd = Date.now() + a.restPaused * 1000; else delete a.restPaused; }
   var inl = $("#inl-rest"), rg = $("#restgo"); if(rg){ var rdy = !!(a && a.restReady && !a.restEnd && !inl); rg.hidden = !rdy; if(rdy) $("#restgo-t").textContent = fmtClock(a.restReady.total); }
   if(inl && a && a.restEnd && $("#inl-t")){ var irem = Math.max(0, (a.restEnd - Date.now())/1000); $("#inl-t").textContent = fmtClock(irem); inl.style.setProperty("--p", (1 - irem / (a.restTotal || 1)).toFixed(4)); }
   if(inl && a && !a.restEnd && inl.classList.contains("run")){ setTimeout(render, 0); }
@@ -1023,12 +1033,11 @@ function tick(){
     else { var tot = a.restTotal || rem, frac = Math.min(1, Math.max(0, rem/tot));
       dock.classList.remove("go"); full.classList.remove("go");
       $("#restlab").textContent = "Rest"; $("#resttime").textContent = fmtClock(rem); $("#restbar").style.width = (100 - frac*100) + "%";
-      $("#rf-lab").textContent = "Rest"; $("#rf-time").textContent = fmtClock(rem); $("#rf-of").textContent = "of " + fmtClock(tot);
+      $("#rf-lab").textContent = a.restPaused != null ? "Paused" : "Rest"; $("#rf-pause").textContent = a.restPaused != null ? "Resume" : "Pause"; $("#rf-time").textContent = fmtClock(rem); $("#rf-of").textContent = "of " + fmtClock(tot);
       full.classList.toggle("late", rem <= 10.5); var sec = Math.ceil(rem);
       if(sec <= 3 && full.dataset.s !== String(sec)){ full.dataset.s = sec; var rt = $("#rf-time"); rt.classList.remove("beat"); void rt.offsetWidth; rt.classList.add("beat"); }
       if(sec > 3) full.dataset.s = "";
       $("#rf-bar").style.width = (100 - frac*100).toFixed(1) + "%";
-      if($("#rf-next").dataset.t !== (a.restNext || "")){ $("#rf-next").dataset.t = a.restNext || ""; $("#rf-next").innerHTML = a.restNext ? '<span class="mono">Up next</span><b>' + esc(a.restNext) + '</b>' : ""; }
       dock.hidden = !restMin || !!$("#inl-rest"); full.hidden = restMin; }
   } else if(Date.now() > restFlash){ dock.hidden = true; full.hidden = true; }
 }
@@ -1731,10 +1740,11 @@ document.addEventListener("click", function(ev){
     case "end-done": (function(){ var e = $("#endcard"); e.classList.add("bye"); setTimeout(function(){ e.hidden = true; e.classList.remove("bye"); }, 600); })(); break;
     case "set-x": (function(){ var xs = a.exercises[ei].sets; if(xs.length <= 1){ xs[0] = { r:"", w:xs[0].w, done:false }; } else xs.splice(si, 1); a.restReady = null; saveActive(); render(); })(); break;
     case "wheel": wheelSheet(ei); break;
+    case "rest-go": (function(){ var secs = Math.round(a.exercises[ei].rest || 150); primeAudio(); a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); })(); break;
     case "wh-pre": (function(v){ $("#wh-m").scrollTo({ top:Math.floor(v / 60) * 44, behavior:"smooth" }); $("#wh-s").scrollTo({ top:(v % 60) / 5 * 44, behavior:"smooth" });
         document.querySelectorAll(".tpre button").forEach(function(q){ q.setAttribute("aria-pressed", q === b); }); })(+b.dataset.v); break;
     case "wh-go": (function(){ var secs = wheelValue(); if(secs < 5){ toast("Pick a time first"); return; } a.exercises[ei].rest = secs; closeSheet(); primeAudio();
-        a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); })(); break;
+        a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); })(); break;
     case "bsel": bodySel(b.dataset.g); if($(".bmap")) $("#view").scrollTo({ top:Math.max(0, $(".bmap").offsetTop - 80), behavior:"smooth" }); break;
     case "bmus": (function(){ var g = BODY_GROUPS.filter(function(x){ return x[1].indexOf(b.dataset.m) >= 0; })[0]; if(g) bodySel(g[0]); })(); break;
     case "cal-day": daySheet(+b.dataset.t); break;
@@ -1775,11 +1785,12 @@ document.addEventListener("click", function(ev){
       a.exercises.push(mkEx({ name:nm, sets:3, reps:"", rest:90 }, histIndex())); a.openEx = groupOf(a, a.exercises.length - 1)[0]; saveActive(); closeSheet(); render(); break;
     case "finish": finishWorkout(); break;
     case "cancel": ask("Cancel this workout?", "Everything logged in this session will be thrown away.", "Cancel workout", discardWorkout); break;
-    case "rest-add": if(a && a.restEnd){ var d = +b.dataset.v * 1000; a.restEnd += d; a.restTotal = Math.max(1, a.restTotal + d/1000); ls.set("active", a); tick(); } break;
+    case "rest-pause": if(a && a.restEnd){ if(a.restPaused != null){ a.restEnd = Date.now() + a.restPaused * 1000; delete a.restPaused; } else a.restPaused = Math.max(1, (a.restEnd - Date.now()) / 1000); saveActive(); render(); tick(); } break;
+    case "rest-add": if(a && a.restEnd){ var d = +b.dataset.v * 1000; a.restEnd += d; if(a.restPaused != null) a.restPaused = Math.max(1, a.restPaused + d/1000); a.restTotal = Math.max(1, a.restTotal + d/1000); ls.set("active", a); tick(); } break;
     case "rest-min": restMin = true; tick(); break;
     case "rest-max": restMin = false; tick(); break;
-    case "rest-skip": if(a){ a.restEnd = null; a.restReady = null; ls.set("active", a); } restFlash = 0; render(); break;
-    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); } break;
+    case "rest-skip": if(a){ a.restEnd = null; a.restReady = null; delete a.restPaused; ls.set("active", a); } restFlash = 0; render(); break;
+    case "rest-start": if(a && a.restReady){ primeAudio(); a.restTotal = a.restReady.total; a.restEnd = Date.now() + a.restTotal*1000; delete a.restPaused; a.restNext = nextUp(a); a.restReady = null; restFlash = 0; restMin = false; saveActive(); render(); } break;
     case "del-session": ask("Delete this workout?", "It will be removed from your history and records.", "Delete", function(){
       var id = b.dataset.id; S.sessions = S.sessions.filter(function(s){ return s.id !== id; }); ls.set("sessions", S.sessions);
       S.pend.add = S.pend.add.filter(function(i){ return i !== id; }); S.pend.del.push(id); savePend(); pushDelete(id); render(); }); break;
@@ -1837,7 +1848,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "41";
+var BUILD = "42";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -1949,8 +1960,8 @@ function renderExercise(a, grp, hist, u){
   var first = grp[0], last = grp[grp.length - 1], tx = a.exercises[first];
   var h = '<div class="ex-top"><button type="button" class="back" data-act="ex-close">‹ ' + esc(a.name) + '</button><span class="cap">' + (first + 1) + ' of ' + a.exercises.length + '</span></div>';
   grp.forEach(function(ei, gi){ h += actBlock(a, ei, hist, u, grp.length > 1, gi, grp.length); });
-  if(a.restEnd) h += '<button type="button" class="card restc run" id="inl-rest" data-act="rest-max" aria-label="Resting. Show the timer"><i class="t-bar"></i><span><span class="cap">Resting</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now()) / 1000)) + '</b></span><span class="rbtn">' + IC.expand + '</span></button>';
-  else h += '<button type="button" class="card restc' + (a.restReady ? " ready" : "") + '" id="inl-rest" data-act="wheel" data-e="' + first + '" aria-label="Rest timer ' + fmtClock(tx.rest || 150) + '. Tap to set and start"><span><span class="cap">' + (a.restReady ? "Set done · start your rest" : "Rest timer") + '</span><b>' + fmtClock(tx.rest || 150) + '</b></span><span class="rbtn">' + IC.play + '</span></button>';
+  if(a.restEnd){ var pz = a.restPaused != null; h += '<div class="card restc run' + (pz ? " paused" : "") + '" id="inl-rest"><i class="t-bar"></i><button type="button" class="rmain" data-act="rest-max" aria-label="Show the timer big"><span class="cap">' + (pz ? "Paused" : "Resting") + '</span><b id="inl-t">' + fmtClock(Math.max(0, (a.restEnd - Date.now()) / 1000)) + '</b></button><span class="rctl"><button type="button" class="rbtn pp" data-act="rest-pause" aria-label="' + (pz ? "Resume rest" : "Pause rest") + '">' + (pz ? IC.play : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>') + '</button><button type="button" class="rbtn rx" data-act="rest-skip" aria-label="Cancel rest"><svg viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>'; }
+  else h += '<div class="card restc' + (a.restReady ? " ready" : "") + '" id="inl-rest"><button type="button" class="rmain" data-act="wheel" data-e="' + first + '" aria-label="Rest time ' + fmtClock(tx.rest || 150) + '. Tap to change"><span class="cap">' + (a.restReady ? "Set done · start your rest" : "Rest timer · tap time to change") + '</span><b>' + fmtClock(tx.rest || 150) + '</b></button><button type="button" class="rbtn" data-act="rest-go" data-e="' + first + '" aria-label="Start rest timer">' + IC.play + '</button></div>';
   var nx = -1, i;
   for(i = last + 1; i < a.exercises.length; i++) if(!exState(a.exercises[i]).all){ nx = i; break; }
   if(nx < 0) for(i = 0; i < first; i++) if(!exState(a.exercises[i]).all){ nx = i; break; }
