@@ -455,6 +455,10 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-bot{position:absolute;left:var(--g);right:var(--g);bottom:calc(var(--sb) + 26px)}
 .h-ms{position:absolute;left:var(--g);right:30%;top:calc(var(--st) + 86px);font:400 17px/1.4 var(--font);letter-spacing:-.008em;color:#7C7972}
 .h-ms b{font-weight:500;color:#D9D5CD}
+.creed{position:absolute;left:var(--g);right:var(--g);top:34%;display:grid;grid-template-columns:36px 1fr;row-gap:16px;align-items:baseline;font:400 27px/1.15 var(--font);letter-spacing:-.03em;color:#7C7972}
+.creed>b{color:var(--t);font-weight:600;font-size:19px;letter-spacing:0}
+.creed span b{color:var(--tx);font-weight:500}
+.creed>i{grid-column:1 / -1;height:1px;margin:22px calc(var(--g) * -1) 0;transform-origin:0 50%;background:linear-gradient(90deg,transparent,rgba(20,211,194,.5) 18%,rgba(20,211,194,.5) 55%,transparent);transform:scaleY(.5)}
 .wk-ac{display:grid;grid-template-columns:26px 1fr;row-gap:8px;font-size:17px;color:#8F8B84;letter-spacing:-.012em;margin:64px 0 10px}
 .wk-ac>b{color:var(--t);font-weight:600}
 .wk-ac span b{color:var(--tx);font-weight:500}
@@ -927,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "105";
+var BUILD = "106";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1519,7 +1523,7 @@ function endCard(s){
     '<div class="e-st"><div><b>' + s.setCount + '</b><span>' + (s.setCount === 1 ? "set" : "sets") + '</span></div><div><b' + (s.prs.length ? ' class="t"' : '') + '>' + s.prs.length + '</b><span>new ' + (s.prs.length === 1 ? "best" : "bests") + '</span></div><div><b class="t">' + n + '</b><span>of ' + goal + ' this week</span></div></div>' +
     '<h2>' + (prev ? "Top sets" + (ups ? " · " + ups + " up on last time" : "") : "Top sets") + '</h2><div style="margin-top:8px">' + lines + '</div>' +
     '<div class="stack"><button type="button" class="btn go" data-act="end-done">Done</button></div>' +
-    '<div class="wk-ac"><b>W</b><span><b>Work</b> in silence.</span><b>A</b><span><b>Arrive</b> every day.</span><b>K</b><span><b>Keep</b> the promise.</span><b>E</b><span><b>Earn</b> the calm.</span></div>';
+    '';
   var show = function(){ el.hidden = false; el.scrollTop = 0; render(); };
   if(calm){ show(); return; }
   veil.animate([{ clipPath:"inset(100% 0 0 0)" }, { clipPath:"inset(0 0 0 0)" }], { duration:620, easing:IO, fill:"forwards" }).onfinish = function(){
@@ -1891,8 +1895,19 @@ document.addEventListener("click", function(ev){
         a.exercises.push(mkEx({ name:nm, sets:3, reps:"", rest:150 }, histIndex())); saveActive(); closeSheet(); render(); })(); break;
     case "finish": finishWorkout(); break;
     case "cancel": ask("Cancel this workout?", "Everything logged in this session will be thrown away.", "Cancel workout", function(){ S.active = null; S.pick = true; saveActive(); render(); }); break;
-    case "end-done": (function(){ var e = $("#end"); haptic(); if(calm){ e.hidden = true; return; } e.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translate3d(0,-30px,0)" }], { duration:420, easing:"ease-in" }).onfinish = function(){ e.hidden = true; e.innerHTML = ""; };
-        if(viewName() !== "today"){ history.replaceState(null, "", "#today"); render(); } })(); break;
+    case "end-done": (function(){ var e = $("#end"), SLOW = "cubic-bezier(.19,1,.22,1)", fin = function(){ e.hidden = true; e.innerHTML = ""; e.onclick = null; e.getAnimations().forEach(function(q){ q.cancel(); }); }; haptic();
+        if(viewName() !== "today"){ history.replaceState(null, "", "#today"); render(); }
+        if(calm){ fin(); return; }
+        [].forEach.call(e.children, function(k){ k.animate([{ opacity:1, transform:"none" }, { opacity:0, transform:"translate3d(0,-22px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
+        setTimeout(function(){ if(e.hidden) return; e.scrollTop = 0;
+          /* the close of every session: what Wake stands for, one line at a time */
+          e.innerHTML = '<div class="creed" aria-label="Work in silence. Arrive every day. Keep the promise. Earn the calm."><b>W</b><span><b>Work</b> in silence.</span><b>A</b><span><b>Arrive</b> every day.</span><b>K</b><span><b>Keep</b> the promise.</span><b>E</b><span><b>Earn</b> the calm.</span><i></i></div>';
+          var c = e.firstChild, kids = c.children, GAP = 520;
+          for(var i = 0; i < 8; i++) kids[i].animate([{ opacity:0, transform:"translate3d(0,16px,0)", filter:"blur(4px)" }, { opacity:1, transform:"none", filter:"blur(0px)" }], { duration:1100, delay:150 + Math.floor(i / 2) * GAP, easing:SLOW, fill:"backwards" });
+          kids[8].animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1200, delay:150 + 4 * GAP, easing:"cubic-bezier(.65,0,.35,1)", fill:"backwards" });
+          var out = e.animate([{ opacity:1 }, { opacity:0 }], { duration:900, delay:150 + 4 * GAP + 1900, easing:"ease-in-out", fill:"forwards" }); out.onfinish = fin;
+          e.onclick = function(){ e.onclick = null; out.onfinish = null; e.animate([{ opacity:1 }, { opacity:0 }], { duration:320, easing:"ease-in", fill:"forwards" }).onfinish = fin; };
+        }, 400); })(); break;
     /* rest */
     case "rest-toggle": if(!a) break; if(a.restEnd){ if(a.restPaused != null){ a.restEnd = Date.now() + a.restPaused * 1000; delete a.restPaused; } else a.restPaused = Math.max(1, (a.restEnd - Date.now()) / 1000); saveActive(); haptic(); tick(); }
       else if(a.openEx != null) restStart(Math.round(a.exercises[a.openEx].rest || 150)); break;
