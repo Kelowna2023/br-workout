@@ -987,6 +987,10 @@ main{gap:26px!important;padding-top:34px!important}
 .hrow .chev.ok{color:var(--acc)!important;font-size:20px}
 .hrow:active .done-t,.hrow:active .chev.ok{color:var(--acc)!important}
 .pgb .v{font-size:11px!important;white-space:nowrap}.pgb{flex-basis:58px}
+.bsel-l{display:flex;flex-direction:column;margin:14px auto 0;max-width:300px;text-align:left}
+.bsel-l span{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid var(--line)}
+.bsel-l i{font:600 15px/1.2 var(--font);font-style:normal;color:var(--text);text-transform:none;letter-spacing:-.01em}
+.bsel-l em{font-style:normal;color:var(--dim);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2198,7 +2202,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "67";
+var BUILD = "68";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2426,10 +2430,11 @@ function applyBodySel(){
   document.querySelectorAll("button.bg-r[data-g]").forEach(function(r){ r.classList.toggle("sel", !!g && r.dataset.g === g[0]); r.setAttribute("aria-pressed", !!g && r.dataset.g === g[0]); });
   var info = $("#bsel-info"); if(!info) return;
   if(!g){ info.innerHTML = "Tap a body part to light it up"; return; }
-  var n = weekSets().grp[g[0]] || 0, names = [];
-  S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ var m = mmFor(x.name); if(!m) return; var P = mmExpand(m[0]);
-    if(keys.some(function(k){ return P[k]; }) && names.indexOf(x.name) < 0) names.push(x.name); }); });
-  info.innerHTML = '<b>' + g[0] + ' · ' + n + (n === 1 ? " set" : " sets") + ' this week</b>' + (names.length ? esc(names.slice(0, 4).join(" · ")) + (names.length > 4 ? " +" + (names.length - 4) : "") : "Nothing in your plan trains this yet");
+  var n = weekSets().grp[g[0]] || 0, ws = weekStart(Date.now()), done = {}, order = [], add = function(name, c){ if(!c) return; var m = mmFor(name); if(!m) return; var P = mmExpand(m[0]);
+    if(!keys.some(function(k){ return P[k]; })) return; if(!done[name]){ done[name] = 0; order.push(name); } done[name] += c; };
+  S.sessions.forEach(function(q){ if(q.startedAt >= ws) q.exercises.forEach(function(x){ add(x.name, x.sets.length); }); });
+  [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.startedAt >= ws) w.exercises.forEach(function(x){ add(x.name, x.sets.filter(function(t){ return t.done; }).length); }); });
+  info.innerHTML = '<b>' + g[0] + ' · ' + n + (n === 1 ? " set" : " sets") + ' this week</b>' + (order.length ? '<span class="bsel-l">' + order.map(function(nm){ return '<span><i>' + esc(nm) + '</i><em>' + done[nm] + (done[nm] === 1 ? " set" : " sets") + '</em></span>'; }).join("") + '</span>' : "Nothing logged for this yet this week");
 }
 function bodySel(name, scroll){ S.bodySel = S.bodySel === name ? null : name; applyBodySel(); }
 function phOn(y, mo, d){ var t0 = new Date(y, mo, d).getTime(), t1 = t0 + 864e5; return S.photos.some(function(p){ return p.at >= t0 && p.at < t1; }); }
