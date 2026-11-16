@@ -1,7 +1,7 @@
 /* Offline copy of the app.
    The app page itself: always try the network first (so a new version shows the moment you open it),
    fall back to the saved copy when there's no signal. Everything else: saved copy first. */
-var CACHE = "wake-v81";
+var CACHE = "wake-v82";
 var CORE = ["./", "index.html", "manifest.webmanifest", "icon-w-180.png", "icon-w-192.png", "icon-w-512.png", "fonts/inter-tight.woff2"];
 self.addEventListener("install", function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){

@@ -95,7 +95,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .wk{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
 .wk-n{font:600 40px/1 var(--font);letter-spacing:-.045em}
 .wk-n b{color:var(--t);font-weight:600}.wk-n span{color:var(--dim)}
-.wk-l{font-size:13px;color:var(--mu)}
+.wk-l{font-size:13px;color:var(--mu);flex:1;margin-left:-6px}
 .segs{display:flex;gap:6px;margin-top:20px}
 .segs span{flex:1;height:4px;border-radius:2px;background:#1E1E1E;overflow:hidden}
 .segs i{display:block;height:100%;background:var(--t);transform-origin:0 50%;transform:scaleX(0);transition:transform .9s var(--out)}
@@ -114,11 +114,45 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 /* a horizon under each page title, and a thought at the foot of each page */
 .hz{height:1px;margin:22px calc(var(--g) * -1) 0;background:linear-gradient(90deg,transparent,var(--t) 22%,var(--t) 60%,transparent);opacity:.45;transform-origin:0 50%}
 .th{position:relative;margin:84px 0 36px;padding-right:10%}
-.th::before{content:"\201C";position:absolute;left:-10px;top:-62px;font:400 180px/1 Georgia,"Times New Roman",serif;color:var(--tx);opacity:.06;pointer-events:none}
+.th::before{content:attr(data-g);position:absolute;left:-10px;top:-62px;font:400 180px/1 Georgia,"Times New Roman",serif;color:var(--tx);opacity:.06;pointer-events:none}
+.th[data-g="?"]::before{top:-112px;left:-4px;font-size:170px}
+.th[data-g="~"]::before{top:-118px;font-size:230px;font-style:italic}
+.th em{position:relative;display:block;font-style:normal;font-size:11px;font-weight:500;color:var(--t);margin-bottom:12px}
 .th p{position:relative;font:400 18px/1.36 var(--font);letter-spacing:-.012em;color:#8F8B84}
 .th p b{font-weight:500;color:var(--tx)}
 .th span{position:relative;display:block;font-size:12px;color:var(--mu2);margin-top:10px}
 .th::after{content:"";display:block;width:6px;height:6px;border-radius:50%;background:var(--t);margin-top:26px;opacity:.9}
+/* the inline dial: drag sideways on a number, it turns like a wheel */
+.hw{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:6px calc(var(--g) * -1) 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);touch-action:pan-x}
+.hw::-webkit-scrollbar{display:none}
+.hw-t{display:flex;width:max-content;padding:0 calc(50% - 65px)}
+.hw span{flex:none;width:130px;text-align:center;scroll-snap-align:center;font:600 58px/1.12 var(--font);letter-spacing:-.045em;font-variant-numeric:tabular-nums;transform:scale(.36);opacity:.14;will-change:transform,opacity}
+.hw.ghost span{color:var(--mu)}
+.hw-u{text-align:center;font-size:12px;color:var(--mu2);margin-bottom:14px}
+.hw-u button{color:var(--t);font-weight:500;padding:6px 0 6px 8px;font-size:12px}
+.hw.sm{flex:1;margin:0 6px;min-width:0}
+.hw.sm .hw-t{padding:0 calc(50% - 39px)}
+.hw.sm span{width:78px;font:500 26px/44px var(--font);letter-spacing:-.03em}
+.rest[data-st="idle"] #rest-n{display:none}
+.rest:not([data-st="idle"]) .hw{visibility:hidden}
+/* moon and the year in weeks */
+.mn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu2);flex:none}
+.mn svg{width:18px;height:18px;flex:none}
+.yg{margin-top:44px}
+.yg-g{display:grid;grid-template-columns:repeat(26,1fr);gap:5px}
+.yg-g i{aspect-ratio:1;border-radius:50%;border:1px solid #232323}
+.yg-g i.p{background:#2A2A2A;border-color:#2A2A2A}
+.yg-g i.t{background:var(--t);border-color:var(--t)}
+.yg-g i.n{border-color:var(--tx)}
+.yg-c{display:flex;justify-content:space-between;font-size:12px;color:var(--mu2);margin-top:12px}
+/* rest: the tide comes in */
+.ck-tide{position:absolute!important;inset:0;border-radius:28px 28px 0 0;overflow:hidden;pointer-events:none}
+.ck-tide b{position:absolute;inset:0;background:rgba(20,211,194,.14);transform:translate3d(0,100%,0);transition:transform .3s linear;will-change:transform}
+.ck-tide svg{position:absolute;left:0;bottom:100%;width:200%;height:12px;fill:rgba(20,211,194,.14);animation:drift2 7s linear infinite;margin-bottom:-1px}
+@keyframes drift2{to{transform:translate3d(-50%,0,0)}}
+#clock .ck-bar{display:none}
+.bmap path.sel{animation:zap .8s var(--out)}
+@keyframes zap{from{fill-opacity:.1}}
 .ck-q{font-size:13px;line-height:1.4;color:var(--mu2);text-align:center;max-width:84%;margin-top:6px}
 .ck-q b{font-weight:500;color:var(--mu)}
 .foot{margin-top:22px;display:grid;gap:2px}
@@ -404,6 +438,7 @@ html[data-dir="tab"]::view-transition-new(root){animation:vt-fade-in .45s var(--
   </nav>
   <div id="clock" hidden>
     <div class="ck-bg"></div>
+    <div class="ck-tide"><b id="ck-tide"><svg viewBox="0 0 400 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 12V6q25-8 50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0V12Z"/></svg></b></div>
     <button type="button" class="ck-hide" data-act="clock-hide" aria-label="Shrink timer"></button>
     <div class="cl-l"><i class="breathe"></i><span id="ck-l">Rest</span></div>
     <div id="ck-t" role="timer" data-act="clock-hide">0:00</div>
@@ -809,7 +844,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "81";
+var BUILD = "82";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -831,7 +866,74 @@ function rel(t){ var n = Math.round((dayStart(Date.now()) - dayStart(t)) / 864e5
 function isoWeek(t){ var d = new Date(t); d.setHours(0,0,0,0); d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); var w1 = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - w1) / 864e5 - 3 + (w1.getDay() + 6) % 7) / 7); }
 function blank(v){ return v === "" || v == null; }
 function lineAt(off){ return LINES[(Math.round(dayStart(Date.now()) / 864e5) + off) % LINES.length]; }
-function thought(off){ var q = lineAt(off * 5); return '<div class="th" data-rv><p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p>' + (q[2] ? '<span>' + esc(q[2]) + '</span>' : '') + '</div>'; }
+var ASKS = [
+  ["What would this hour look like ", "if you gave it everything?"],
+  ["Who are you ", "when no one is counting?"],
+  ["What are you building ", "that will outlast today?"],
+  ["If today repeated for a year, ", "where would it take you?"],
+  ["What is the one thing ", "you keep putting off?"],
+  ["What would you attempt ", "if you weren't afraid of being seen trying?"],
+  ["Is this the effort ", "of the man you intend to become?"],
+  ["What did you learn ", "the last time it got hard?"],
+  ["What would be enough? ", "And would you notice if you had it?"],
+  ["Which of today's worries ", "will matter in five years?"]
+];
+function facts(){
+  var d = new Date(), y = d.getFullYear(), doy = Math.round((dayStart(d) - new Date(y, 0, 1).getTime()) / 864e5) + 1, tot = (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 366 : 365, wk = isoWeek(d);
+  return [
+    ["Day " + doy + " of " + tot + ". ", (tot - doy) + " remain in " + y + "."],
+    ["Your heart will beat about 100,000 times today. ", "None of them are owed to you."],
+    ["A wave moves energy across an ocean. ", "The water itself barely travels."],
+    ["Week " + wk + " of 52. ", Math.max(0, 52 - wk) + " left to make the year count."],
+    ["Sunlight takes about eight minutes to reach you. ", "You are always seeing the past."],
+    ["Muscle isn't built during the set. ", "It's built in the rest that follows."],
+    ["The tide rises twice a day ", "without ever being in a hurry."],
+    ["You'll take about 20,000 breaths today. ", "You might notice ten."]
+  ];
+}
+/* a thought at the foot of a page: a line from someone wiser, a question, or a fact worth sitting with */
+function thought(off){
+  var day = Math.round(dayStart(Date.now()) / 864e5), kind = (day + off) % 3, q, g, lab;
+  if(kind === 0){ q = lineAt(off * 5); g = "“"; lab = ""; }
+  else if(kind === 1){ q = ASKS[(day + off * 3) % ASKS.length]; g = "?"; lab = "A question"; }
+  else { var f = facts(); q = f[(day + off * 3) % f.length]; g = "~"; lab = "Worth knowing"; }
+  return '<div class="th" data-rv data-g="' + g + '">' + (lab ? '<em>' + lab + '</em>' : '') + '<p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p>' + (q[2] ? '<span>' + esc(q[2]) + '</span>' : '') + '</div>';
+}
+function moon(){
+  var p = ((Date.now() / 864e5 - 10962.76) % 29.530588853) / 29.530588853; if(p < 0) p += 1;
+  var nm = ["New moon","Waxing crescent","First quarter","Waxing gibbous","Full moon","Waning gibbous","Last quarter","Waning crescent"][Math.floor(p * 8 + 0.5) % 8], c = Math.cos(2 * Math.PI * p), rx = (Math.abs(c) * 8).toFixed(2), wax = p < 0.5, sw = wax ? (c > 0 ? 0 : 1) : (c > 0 ? 1 : 0);
+  return '<span class="mn"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="#141414" stroke="#2E2E2E" stroke-width=".8"/><path fill="#F5F2EC" d="M10 2A8 8 0 0 ' + (wax ? 1 : 0) + ' 10 18A' + rx + ' 8 0 0 ' + sw + ' 10 2Z"/></svg>' + nm + '</span>';
+}
+function yearGrid(){
+  var d = new Date(), y = d.getFullYear(), wk = isoWeek(d), tr = {}, h = "", i;
+  S.sessions.forEach(function(s){ var sd = new Date(s.startedAt); if(sd.getFullYear() === y) tr[isoWeek(sd)] = 1; });
+  for(i = 1; i <= 52; i++) h += '<i class="' + (tr[i] ? "t" : i < wk ? "p" : "") + (i === wk ? " n" : "") + '"></i>';
+  return '<div class="yg" data-rv><div class="yg-g">' + h + '</div><div class="yg-c"><span>' + y + ' in weeks</span><span>Week ' + wk + ' of 52 · ' + Math.max(0, 52 - wk) + ' left</span></div></div>';
+}
+/* inline dials */
+function hwVals(k){ var a = [], i, st = wStep(); if(k === "w") for(i = 0; i <= (S.cfg.units === "kg" ? 300 : 500); i += st) a.push(i); else if(k === "r") for(i = 0; i <= 60; i++) a.push(i); else for(i = 15; i <= 360; i += 15) a.push(i); return a; }
+function hw(k, cur, ghost, cls){
+  var v = hwVals(k), idx = 0, best = 1e9; cur = num(cur);
+  if(k !== "t" && v.indexOf(cur) < 0){ v.push(cur); v.sort(function(p, q){ return p - q; }); }
+  v.forEach(function(x, i){ if(Math.abs(x - cur) < best){ best = Math.abs(x - cur); idx = i; } });
+  return '<div class="hw ' + (cls || "") + (ghost ? " ghost" : "") + '" data-k="' + k + '" data-i="' + idx + '"><div class="hw-t">' + v.map(function(x){ return '<span data-v="' + x + '">' + (k === "t" ? fmtClock(x) : fmtW(x)) + '</span>'; }).join("") + '</div></div>';
+}
+function wheelPaint(el){ var sp = el.firstChild.children, W = el._w, c = el.scrollLeft / W, a = Math.max(0, Math.floor(c) - 3), b = Math.min(sp.length - 1, Math.ceil(c) + 3);
+  for(var i = a; i <= b; i++){ var d = Math.abs(i - c); sp[i].style.transform = "scale(" + Math.max(0.36, 1 - d * 0.64).toFixed(3) + ")"; sp[i].style.opacity = Math.max(0.14, 1 - d * 0.86).toFixed(3); } }
+function wheelSet(el, v){ var sp = el.firstChild.children, idx = 0, best = 1e9; for(var i = 0; i < sp.length; i++){ var dd = Math.abs(+sp[i].dataset.v - v); if(dd < best){ best = dd; idx = i; } } el._live = false; el.scrollLeft = idx * el._w; wheelPaint(el); }
+function initWheels(){
+  [].forEach.call(view.querySelectorAll(".hw"), function(el){
+    var sp = el.firstChild.children, tm = 0, last = +el.dataset.i; el._w = sp[0].offsetWidth; el._live = false; el.scrollLeft = last * el._w; wheelPaint(el);
+    var live = function(){ el._live = true; }; el.addEventListener("touchstart", live, { passive:true }); el.addEventListener("pointerdown", live); el.addEventListener("wheel", live, { passive:true });
+    el.addEventListener("scroll", function(){
+      if(!el._r) el._r = requestAnimationFrame(function(){ el._r = 0; wheelPaint(el); var i = Math.round(el.scrollLeft / el._w); if(i !== last){ last = i; if(el._live) try{ if(navigator.vibrate) navigator.vibrate(3); }catch(e){} } });
+      clearTimeout(tm); tm = setTimeout(function(){ if(!el._live || !el.isConnected) return; var i = clamp(Math.round(el.scrollLeft / el._w), 0, sp.length - 1), v = +sp[i].dataset.v, a = S.active; if(!a || a.openEx == null) return;
+        var x = a.exercises[a.openEx], k = el.dataset.k;
+        if(k === "t") x.rest = v; else { var ci = curIdx(x); if(ci < 0) return; x.sets[ci][k] = v; if(k === "w") delete x.sets[ci].pl; }
+        el.classList.remove("ghost"); saveActive(); }, 140);
+    }, { passive:true });
+  });
+}
 function wave(amp){ var d = "M0 10"; for(var i = 0; i < 8; i++) d += (i ? " t19 0" : " q9.5 " + (-amp * 2) + " 19 0"); return '<span class="wv" aria-hidden="true"><svg viewBox="0 0 152 20"><path d="' + d + '"/></svg></span>'; }
 function setTxt(w, r, u){ return (w > 0 ? fmtW(w) + " " + u + " × " : "") + r + (w > 0 ? "" : " reps"); }
 
@@ -870,7 +972,7 @@ function render(){
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
   if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor((view.clientHeight - lst.offsetTop - 14) / UI.rows.length), 84, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
   view.scrollTop = fresh ? 0 : keep;
-  paint(); tick();
+  initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ [].forEach.call(view.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); }); }); });
   afterRender();
@@ -969,7 +1071,7 @@ function topOf(sets){ var b = null; (sets || []).forEach(function(q){ var w = nu
 function completeSet(ei, si){
   var a = S.active, x = a.exercises[ei], st = x.sets[si], h0 = hint(x, si);
   var w = blank(st.w) ? num(h0.w) : num(st.w), r = blank(st.r) ? num(h0.r) : num(st.r);
-  if(!(r > 0)){ toast("Enter reps first"); var ir = $("#in-r"); if(ir) ir.focus(); return; }
+  if(!(r > 0)){ toast("Set your reps first"); return; }
   if(!a.exercises.some(function(o){ return o.sets.some(function(q){ return q.done; }); })) a.startedAt = Date.now();
   var b = bestOf(x.name); x.sets.forEach(function(o){ if(o.done && beats(num(o.w), num(o.r), b || { w:-1, r:0 })) b = { w:num(o.w), r:num(o.r) }; });
   st.w = w; st.r = r; st.done = true; delete st.pr;
@@ -1003,7 +1105,7 @@ function tick(){
     if(rem <= 0){ a.restEnd = null; delete a.restPaused; ls.set("active", a); restFlash = now + 3000; buzz([200,100,200]); st = "go"; }
   } else if(now < restFlash) st = "go";
   var frac = st === "idle" ? 0 : st === "go" ? 1 : clamp(1 - rem / tot, 0, 1);
-  if(row){ var x = a && a.exercises[a.openEx]; row.dataset.st = st;
+  if(row){ var x = a && a.exercises[a.openEx], was = row.dataset.st; row.dataset.st = st; if(st === "idle" && was !== "idle" && x){ var rw = row.querySelector(".hw"); if(rw && rw._w) wheelSet(rw, x.rest); }
     $("#rest-n").textContent = st === "go" ? "Go" : st === "idle" ? fmtClock(x ? x.rest : 150) : fmtClock(rem);
     $("#rest-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest";
     $("#rest-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; }
@@ -1011,15 +1113,16 @@ function tick(){
   if(UI.clock){
     if(st === "idle") closeClock();
     else { ck.classList.toggle("go", st === "go"); $("#ck-t").textContent = st === "go" ? "Go" : fmtClock(rem); $("#ck-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest · of " + fmtClock(tot);
-      $("#ck-p").textContent = st === "paused" ? "Resume" : "Pause"; $("#ck-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; }
+      $("#ck-p").textContent = st === "paused" ? "Resume" : "Pause"; $("#ck-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; $("#ck-tide").style.transform = "translate3d(0," + ((1 - frac) * 100).toFixed(2) + "%,0)"; }
   }
 }
 /* the timer grows out of its row into the lower half of the screen, and shrinks back the same way */
-function clockParts(){ var ck = $("#clock"); return [].slice.call(ck.querySelectorAll(".cl-l,.ck-bar,.chips,.ck-hide,.ck-q")); }
+function clockParts(){ var ck = $("#clock"); return [].slice.call(ck.querySelectorAll(".cl-l,.ck-tide,.chips,.ck-hide,.ck-q")); }
 function flipFrom(){ var n0 = $("#rest-n"), n1 = $("#ck-t"); if(!n0) return null; var r0 = n0.getBoundingClientRect(), r1 = n1.getBoundingClientRect(); if(!r1.height) return null;
+  if(!r0.height){ var hr = $("#restrow .hw").getBoundingClientRect(); r0 = { left:hr.left + hr.width / 2 - 34, top:hr.top + 8, height:28 }; }
   return "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")"; }
 function openClock(){
-  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.rq = (UI.rq || 0) + 1; (function(q){ $("#ck-q").innerHTML = esc(q[0]) + "<b>" + esc(q[1]) + "</b>" + (q[2] ? " · " + esc(q[2]) : ""); })(lineAt(11 + UI.rq * 3)); ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); tick();
+  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.rq = (UI.rq || 0) + 1; (function(q){ $("#ck-q").innerHTML = esc(q[0]) + "<b>" + esc(q[1]) + "</b>" + (q[2] ? " · " + esc(q[2]) : ""); })(UI.rq % 3 === 0 ? lineAt(11 + UI.rq) : UI.rq % 3 === 1 ? facts()[UI.rq % 8] : ASKS[UI.rq % ASKS.length]); ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); tick();
   if(calm) return;
   var SM = "cubic-bezier(.2,.9,.2,1)", f = flipFrom();
   ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:900, easing:SM });
@@ -1084,10 +1187,10 @@ function vHome(){
       '<span class="wr">' + (prog[r.id] ? '<span class="tag q">In progress</span>' : done[r.id] ? '<span class="tag">Complete</span>' : '') + wave(1.2 + Math.min(cnt[r.id] || 0, 6) * 0.55) + '</span></button>'; });
   var need = bkNeed();
   return '<div class="hero"></div>' +
-    '<div data-rv><div class="wk"><div class="wk-n"><b>' + n + '</b><span> of ' + goal + '</span></div><div class="wk-l">this week</div></div><div class="segs">' + segs + '</div></div>' +
+    '<div data-rv><div class="wk"><div class="wk-n"><b>' + n + '</b><span> of ' + goal + '</span></div><div class="wk-l">this week</div>' + moon() + '</div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     (need ? '<div class="foot" data-rv><button type="button" class="t" data-act="backup">Back up your ' + need + (need === 1 ? " new workout" : " new workouts") + '</button></div>' : '') +
-    thought(1) + '<div style="height:70px"></div>';
+    yearGrid() + thought(1) + '<div style="height:70px"></div>';
 }
 
 /* ---------- workout: the list of lifts ---------- */
@@ -1124,8 +1227,8 @@ function vExercise(){
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
   if(ci >= 0){ var st = x.sets[ci], hn = hint(x, ci);
     o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' of ' + x.sets.length + '</div>' +
-      '<div class="stp"><button type="button" class="sb" data-act="step" data-k="w" data-d="-1" aria-label="Less weight">−</button><div class="nw"><input id="in-w" class="num" readonly data-act="w-wheel" inputmode="decimal" enterkeyhint="done" aria-label="Weight" data-k="w" value="' + (blank(st.w) ? "" : esc(st.w)) + '" placeholder="' + (blank(hn.w) ? "0" : esc(fmtW(num(hn.w)))) + '"><small>' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</small><div class="sweep"></div></div><button type="button" class="sb" data-act="step" data-k="w" data-d="1" aria-label="More weight">+</button></div>' +
-      '<div class="stp"><button type="button" class="sb" data-act="step" data-k="r" data-d="-1" aria-label="Fewer reps">−</button><div class="nw"><input id="in-r" class="num" inputmode="numeric" enterkeyhint="done" aria-label="Reps" data-k="r" value="' + (blank(st.r) ? "" : esc(st.r)) + '" placeholder="' + (blank(hn.r) ? "0" : esc(hn.r)) + '"><small>' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</small><div class="sweep"></div></div><button type="button" class="sb" data-act="step" data-k="r" data-d="1" aria-label="More reps">+</button></div>' +
+      hw("w", blank(st.w) ? hn.w : st.w, blank(st.w)) + '<div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + ' <button type="button" data-act="w-type">Type it</button></div>' +
+      hw("r", blank(st.r) ? hn.r : st.r, blank(st.r)) + '<div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
       '<button type="button" class="btn go x-go" data-act="check" data-e="' + ei + '" data-s="' + ci + '">Complete set</button></div>';
   } else {
     var nx = -1, j; for(j = 1; j <= a.exercises.length; j++){ var k2 = (ei + j) % a.exercises.length; if(curIdx(a.exercises[k2]) >= 0){ nx = k2; break; } }
@@ -1135,7 +1238,7 @@ function vExercise(){
   }
   var grp = groupOf(a, ei);
   if(grp.length > 1){ var pi = grp[(grp.indexOf(ei) + 1) % grp.length]; o += '<button type="button" class="btn x-sup" data-act="ex-open" data-e="' + pi + '">Superset: go to ' + esc(a.exercises[pi].name) + '</button>'; }
-  o += '<div class="rest" id="restrow" data-st="idle" data-rv><button type="button" class="rest-t" data-act="rest-time" aria-label="Rest timer"><i></i><span id="rest-l">Rest</span><b id="rest-n" class="num">' + fmtClock(x.rest) + '</b></button>' +
+  o += '<div class="rest" id="restrow" data-st="idle" data-rv><button type="button" class="rest-t" data-act="rest-time" aria-label="Rest timer"><i></i><span id="rest-l">Rest</span><b id="rest-n" class="num">' + fmtClock(x.rest) + '</b></button>' + hw("t", x.rest, false, "sm") +
     '<span class="rest-b"><button type="button" class="rb x" data-act="rest-cancel" aria-label="Cancel rest">' + IC.x + '</button><button type="button" class="rb" data-act="rest-toggle" aria-label="Start or pause rest">' + IC.play + IC.pause + '</button></span><div class="rest-bar"><i id="rest-b"></i></div></div>';
   var dl = "";
   for(var i = x.sets.length - 1; i >= 0; i--){ var q = x.sets[i]; if(!q.done) continue; var has = !!String(q.note || "").trim();
@@ -1151,7 +1254,7 @@ function afterRender(){
   var j = UI.just; UI.just = null; if(!j || calm || view.dataset.v !== "ex") return;
   var row = view.querySelector('.dset[data-s="' + j.s + '"]'), cur = $("#cur");
   if(row) row.animate([{ opacity:0, transform:"translate3d(0,-18px,0)" }, { opacity:1, transform:"none" }], { duration:560, easing:OUT });
-  if(cur) [].forEach.call(cur.querySelectorAll("input,.lab,.btn"), function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,22px,0)" }, { opacity:1, transform:"none" }], { duration:520, delay:i * 45, easing:OUT, fill:"backwards" }); });
+  if(cur) [].forEach.call(cur.querySelectorAll(".hw,.lab,.btn"), function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,22px,0)" }, { opacity:1, transform:"none" }], { duration:520, delay:i * 45, easing:OUT, fill:"backwards" }); });
   if(j.best && row){ var sw = document.createElement("div"); sw.className = "sweep"; row.style.position = "relative"; row.style.overflow = "hidden"; row.appendChild(sw);
     sw.animate([{ transform:"translateX(-130%)" }, { transform:"translateX(130%)" }], { duration:1200, delay:150, easing:"cubic-bezier(.65,0,.35,1)" }).onfinish = function(){ sw.remove(); };
     var tg = row.querySelector(".tag"); if(tg) tg.animate([{ opacity:0, transform:"scale(.6)" }, { opacity:1, transform:"none" }], { duration:600, delay:250, easing:SPRING, fill:"backwards" }); }
@@ -1197,7 +1300,7 @@ function vHistory(){
       : '<span class="cd' + (t === today ? " td" : "") + '"><span>' + i + '</span></span>'; }
   S.sessions.forEach(function(s){ var d = new Date(s.startedAt); if(d.getFullYear() !== y || d.getMonth() !== mo) return; cnt++;
     list += '<button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '" data-rv><span><b>' + esc(s.name) + '</b><small>' + esc(fmtDate(s.startedAt)) + '</small></span><span class="r">' + s.setCount + (s.setCount === 1 ? " set" : " sets") + '</span></button>'; });
-  return '<h1 class="big">History</h1><div class="sub" data-rv>' + S.sessions.length + (S.sessions.length === 1 ? " workout" : " workouts") + ' logged</div><div class="hz" data-rv></div>' +
+  return '<h1 class="big">History</h1><div class="sub" data-rv>' + S.sessions.length + (S.sessions.length === 1 ? " workout" : " workouts") + ' logged</div><div class="hz" data-rv></div>' + yearGrid() +
     '<div class="cal-h" data-rv><button type="button" class="ib" data-act="cal" data-v="-1" aria-label="Previous month">' + IC.back + '</button><b>' + m.toLocaleDateString("en-US", { month:"long", year:"numeric" }) + '</b><button type="button" class="ib" data-act="cal" data-v="1" aria-label="Next month">' + IC.chev + '</button></div>' +
     '<div class="cal" data-rv>' + cells + '</div>' +
     '<div class="sec" data-rv><h2>' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") + " this month" : "Nothing logged this month") + '</h2></div><div class="list" style="margin-top:8px">' + list + '</div>' + thought(4);
@@ -1257,7 +1360,7 @@ function sets7(){
 function bodyFig(shapes, dx, mus, sel){
   var h = '<g transform="translate(' + dx + ',0)"><g fill="#131313" stroke="#2A2A2A" stroke-width=".4">' + MM_NEUTRAL + '</g>';
   shapes.forEach(function(sh){ var v = mus[sh[0]] || 0, s = !!sel[sh[0]], p = '<path data-act="bmus" data-m="' + sh[0] + '" d="' + sh[1] + '" ' +
-      (v ? 'fill="#14D3C2" fill-opacity="' + (s ? 1 : Math.min(.9, 0.3 + v / 14)).toFixed(2) + '"' : 'fill="' + (s ? "#2B2B2B" : "#1B1B1B") + '"') + ' stroke="' + (s ? "#F5F2EC" : v ? "#000" : "#333") + '" stroke-width="' + (s ? ".7" : ".4") + '"/>';
+      (s ? 'class="sel" fill="#14D3C2" fill-opacity="1" stroke="#000" stroke-width=".5"' : v ? 'fill="#14D3C2" fill-opacity="' + Math.min(.55, 0.18 + v / 30).toFixed(2) + '" stroke="#000" stroke-width=".4"' : 'fill="#1B1B1B" stroke="#333" stroke-width=".4"') + '/>';
     h += p; if(sh[2]) h += '<g transform="translate(100,0) scale(-1,1)">' + p + '</g>'; });
   return h + '</g>'; }
 function vBody(){
@@ -1458,6 +1561,7 @@ document.addEventListener("click", function(ev){
   if(ev.target.id === "sheet"){ closeSheet(); return; }
   var tab = ev.target.closest("#tabs a"); if(tab){ ev.preventDefault(); var hsh = tab.getAttribute("href"); haptic();
     nav(function(){ if(hsh === "#today") S.pick = true; if(hsh === "#progress" && viewName() === "progress") UI.pgEx = null; if(location.hash !== hsh) history.replaceState(null, "", hsh); render(); }, "tab"); return; }
+  var hs = ev.target.closest(".hw span"); if(hs){ var he = hs.closest(".hw"), hi = [].indexOf.call(hs.parentNode.children, hs); he._live = true; he.scrollTo({ left:hi * he._w, behavior:"smooth" }); return; }
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
@@ -1512,7 +1616,9 @@ document.addEventListener("click", function(ev){
       else if(a.openEx != null) restStart(Math.round(a.exercises[a.openEx].rest || 150)); break;
     case "rest-cancel": closeClock(); if(a){ a.restEnd = null; delete a.restPaused; ls.set("active", a); } restFlash = 0; tick(); break;
     case "rest-add": if(a && a.restEnd){ var dd = +b.dataset.v * 1000; a.restEnd += dd; if(a.restPaused != null) a.restPaused = Math.max(1, a.restPaused + dd / 1000); a.restTotal = Math.max(1, a.restTotal + dd / 1000); ls.set("active", a); tick(); } break;
-    case "rest-time": if(a && a.restEnd) openClock(); else if(a && a.openEx != null) wheelSheet(a.openEx); break;
+    case "rest-time": if(a && a.restEnd) openClock(); break;
+    case "w-type": sheet('<div><div class="eyebrow">' + esc(a.exercises[a.openEx].name) + '</div><h2>Weight</h2></div><input class="field num" id="w-in" inputmode="decimal" placeholder="0" aria-label="Weight"><button class="btn go" type="button" data-act="w-use">Use this weight</button>'); setTimeout(function(){ var t = $("#w-in"); if(t) t.focus(); }, 350); break;
+    case "w-use": (function(){ var x = a.exercises[a.openEx], ci = curIdx(x), v = $("#w-in").value.trim(); if(ci < 0 || v === ""){ closeSheet(); return; } x.sets[ci].w = Math.max(0, num(v)); delete x.sets[ci].pl; saveActive(); closeSheet(); render(); })(); break;
     case "clock-hide": closeClock(); break;
     case "w-wheel": if(b.readOnly) weightSheet(); break;
     case "ww-use": (function(){ var x = a.exercises[a.openEx], ci = curIdx(x); if(ci < 0) return; var v = Math.round($("#ww").scrollTop / 44) * wStep(), st = x.sets[ci], old = blank(st.w) ? -1 : num(st.w);
@@ -1572,7 +1678,7 @@ document.addEventListener("change", function(ev){ var t = ev.target;
 document.addEventListener("toggle", function(ev){ var d = ev.target; if(d.dataset && d.dataset.rid){ if(d.open) S.openRoutine = d.dataset.rid; else if(S.openRoutine === d.dataset.rid) S.openRoutine = null; } }, true);
 document.addEventListener("keydown", function(ev){
   if(ev.key === "Escape" && !$("#sheet").hidden) closeSheet();
-  if(ev.key === "Enter"){ var t = ev.target; if(t.id === "new-ex"){ var b = document.querySelector('[data-act="add-ex"]'); if(b) b.click(); } else if(t.id === "in-w" || t.id === "in-r") t.blur(); } });
+  if(ev.key === "Enter"){ var t = ev.target; if(t.id === "w-in"){ var wb = document.querySelector('[data-act="w-use"]'); if(wb) wb.click(); } else if(t.id === "new-ex"){ var b = document.querySelector('[data-act="add-ex"]'); if(b) b.click(); } else if(t.id === "in-w" || t.id === "in-r") t.blur(); } });
 window.addEventListener("hashchange", function(){ render(); });
 
 /* ---------- installed app: offline copy, quiet updates ---------- */
