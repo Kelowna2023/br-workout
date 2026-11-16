@@ -931,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "115";
+var BUILD = "116";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1186,33 +1186,11 @@ function render(){
 function revealList(){ var out = []; [].forEach.call(view.children, function(c){ if(c.classList.contains("hero") || !c.offsetHeight) return; if(c.classList.contains("list") && c.children.length > 1) [].forEach.call(c.children, function(k){ out.push(k); }); else out.push(c); }); return out.slice(0, 18); }
 function reveal(){
   if(calm) return;
-  var dir = UI.navDir, type = view.dataset.v, big = view.querySelector(".big"), list = revealList(), d0 = 30, SLOW = "cubic-bezier(.19,1,.22,1)", INOUT = "cubic-bezier(.65,0,.35,1)", carry = UI.carry; UI.navDir = null;
-  if(dir === "back"){ list.forEach(function(el, i){ el.animate([{ opacity:0 }, { opacity:1 }], { duration:300, delay:i * 14, easing:"ease-out", fill:"backwards" }); }); return; }
-  if(carry && big){ var br = big.getBoundingClientRect(), bcs = getComputedStyle(big), bfs = parseFloat(bcs.fontSize) || 46;
-    if(br.height < bfs * 1.6){ /* the name you tapped: it swells where it sits, then travels into the title */
-      var s0 = carry.fs / bfs, dx = carry.l - br.left, dy = carry.b - br.bottom, lsEnd = ((parseFloat(bcs.letterSpacing) || 0) / bfs).toFixed(4) + "em";
-      var wk = !!carry.zoom;
-      if(wk){ /* one move, one object, one unbroken curve: it comes at you the way things do when you approach them (slow, then all at once), floats for an instant at its closest, and eases away into the title. No bounce: the speed passes through zero at the turn. */
-        var lh = (parseFloat(bcs.lineHeight) || bfs * 1.02) / bfs, f0 = carry.fs, fB = Math.min(bfs * 6, window.innerHeight * 0.34), wEnd = parseFloat(bcs.fontWeight) || 700, w0 = parseFloat(carry.fw) || 500, ls1 = (parseFloat(bcs.letterSpacing) || 0) / bfs;
-        var bot0 = carry.b, botB = window.innerHeight * 0.56 + fB * 0.3, bot1 = br.top + lh * bfs, xB = -br.left + window.innerWidth * 0.04, sm = function(x){ return x * x * x * (x * (x * 6 - 15) + 10); }, N = 54, TP = 0.54, kfs = [];
-        for(var i = 0; i <= N; i++){ var t = i / N, f, k, x, bot, wgt, ls;
-          if(t <= TP){ var p = sm(Math.pow(t / TP, 1.3)); f = f0 * Math.pow(fB / f0, p); k = (f - f0) / (fB - f0); x = dx + (xB - dx) * k; bot = bot0 + (botB - bot0) * k; wgt = w0 + (wEnd - w0) * p; ls = carry.ls + (ls1 - carry.ls) * p; }
-          else { var q = 1 - sm(Math.pow((t - TP) / (1 - TP), 0.9)); f = bfs * Math.pow(fB / bfs, q); k = (f - bfs) / (fB - bfs); x = xB * k; bot = bot1 + (botB - bot1) * k; wgt = wEnd; ls = ls1; }
-          kfs.push({ offset:t, transform:"translate3d(" + x.toFixed(2) + "px," + (bot - br.top - lh * f).toFixed(2) + "px,0)", fontSize:f.toFixed(2) + "px", fontWeight:Math.round(wgt), letterSpacing:ls.toFixed(4) + "em" }); }
-        big.style.height = br.height + "px"; big.style.whiteSpace = "nowrap"; big.style.overflow = "visible";
-        var za = big.animate(kfs, { duration:1300, easing:"linear" });
-        za.onfinish = za.oncancel = function(){ big.style.height = ""; big.style.whiteSpace = ""; big.style.overflow = ""; }; }
-      else big.animate([
-        { transform:"translate3d(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px,0) scale(" + s0.toFixed(4) + ")", fontWeight:carry.fw, letterSpacing:carry.ls.toFixed(4) + "em", easing:"cubic-bezier(.3,0,.4,1)" },
-        { transform:"translate3d(" + (dx * 0.94).toFixed(1) + "px," + (dy * 0.9).toFixed(1) + "px,0) scale(" + (s0 * 1.14).toFixed(4) + ")", offset:0.3, easing:"cubic-bezier(.68,0,.14,1)" },
-        { transform:"translate3d(0,0,0) scale(1)", fontWeight:bcs.fontWeight, letterSpacing:lsEnd }], { duration:700 });
-      list = list.filter(function(el){ return el !== big; }); d0 = wk ? 900 : 300; big.style.zIndex = 5; big.style.position = "relative"; } }
-  var own = type === "history" ? ".cal" : null;
-  list = list.filter(function(el){ return !el.classList.contains("hz") && !(own && el.matches(own)); });
-  list.forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,16px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:760, delay:d0 + i * 45, easing:SLOW, fill:"backwards" }); });
-  var each = function(sel, fn){ [].forEach.call(view.querySelectorAll(sel), fn); };
-  each(".hz", function(el){ el.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1000, delay:d0 + 60, easing:INOUT, fill:"backwards" }); });
-  if(type === "history") each(".cal .cd", function(el, i){ el.animate([{ opacity:0 }, { opacity:1 }], { duration:520, delay:200 + ((i % 7) + Math.floor(i / 7)) * 30, easing:"ease-out", fill:"backwards" }); });
+  var dir = UI.navDir, type = view.dataset.v, INOUT = "cubic-bezier(.65,0,.35,1)", each = function(sel, fn){ [].forEach.call(view.querySelectorAll(sel), fn); }; UI.navDir = null;
+  /* going forward, the page's contents settle in order: a few pixels, a long ease. Going back or across, the dissolve is enough. */
+  if(dir === "fwd") revealList().forEach(function(el, i){ if(el.classList.contains("hz")) return; el.animate([{ opacity:0, transform:"translate3d(0,10px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:900, delay:90 + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
+  if(dir === "back") return;
+  each(".hz", function(el){ el.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1200, delay:120, easing:INOUT, fill:"backwards" }); });
   if(type === "body") each(".to40 b.num", function(el){ var n = parseInt(el.textContent, 10) || 0, t0 = performance.now(), D = 1200; if(n < 2) return; el.style.fontVariantNumeric = "tabular-nums";
       (function step(now){ var p = clamp((now - t0 - 200) / D, 0, 1), e = 1 - Math.pow(1 - p, 4); if(!el.isConnected) return; el.textContent = Math.round(n * e); if(p < 1) requestAnimationFrame(step); else el.textContent = n; })(t0); });
 }
@@ -1241,37 +1219,20 @@ document.addEventListener("click", function(e){ var t = e.target.closest && e.ta
 /* ---------- moving between screens ---------- */
 function clearVT(){ [].forEach.call(document.querySelectorAll("[data-vt]"), function(e){ e.style.viewTransitionName = ""; e.removeAttribute("data-vt"); }); }
 /* One timeline, no browser snapshots: the old page fades, the page swaps, the new one arrives. The tapped name never leaves the screen. */
-function textRect(el){ try{ var rg = document.createRange(); rg.selectNodeContents(el); var r = rg.getBoundingClientRect(); if(r.width) return r; }catch(e){} return el.getBoundingClientRect(); }
-function mkGhost(el, r, cs){ var g = document.createElement("div"), fs = parseFloat(cs.fontSize) || 16; g.textContent = el.textContent; g.setAttribute("aria-hidden", "true");
-  g.style.cssText = "position:fixed;left:0;top:0;z-index:60;margin:0;pointer-events:none;white-space:nowrap;color:#F5F2EC;will-change:transform;font-family:" + cs.fontFamily + ";font-size:" + fs + "px;font-weight:" + cs.fontWeight + ";line-height:" + ((parseFloat(cs.lineHeight) || fs * 1.1) / fs).toFixed(3) + ";letter-spacing:" + ((parseFloat(cs.letterSpacing) || 0) / fs).toFixed(4) + "em";
-  document.body.appendChild(g); return g; }
-function nav(fn, dir, src, destSel){
+/* Moving between pages: a slow dissolve with a little depth. Going in, the page you leave sinks back and the next one settles forward; going back, the reverse. Nothing flies. */
+function nav(fn, dir){
   UI.navDir = dir || "fwd";
   if(calm || UI.instant || UI.navBusy){ fn(); return; }
-  var back = dir === "back", ghost = null, zoom = false, ret = null, bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:back ? 120 : 150, easing:"ease-in", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], kill = function(){ if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost); ghost = null; };
-  UI.carry = null;
-  if(src && !back){ var r = src.getBoundingClientRect(), cs = getComputedStyle(src), fs = parseFloat(cs.fontSize) || 16, tr = textRect(src);
-    zoom = src.classList.contains("wn");
-    UI.carry = { l:r.left, b:r.bottom, fs:fs, fw:cs.fontWeight, ls:(parseFloat(cs.letterSpacing) || 0) / fs, zoom:zoom };
-    ghost = mkGhost(src, r, cs);
-    ghost.style.transform = "translate3d(" + r.left + "px," + r.top + "px,0)"; }
-  else if(back && destSel){ var big = view.querySelector(".big"); if(big){ var bcs = getComputedStyle(big), bfs = parseFloat(bcs.fontSize) || 46, brr = big.getBoundingClientRect();
-      if(brr.height < bfs * 1.6 && brr.bottom > 0){ ghost = mkGhost(big, brr, bcs); ghost.style.transform = "translate3d(" + brr.left + "px," + brr.top + "px,0)"; ret = { l:brr.left, t:brr.top, fs:bfs, fw:bcs.fontWeight }; } } }
-  UI.navBusy = true;
-  outs.push(view.animate(kf, fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
+  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:230, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }];
+  UI.navBusy = true; view.style.transformOrigin = "50% " + (view.scrollTop + view.clientHeight * 0.38).toFixed(0) + "px";
+  outs.push(view.animate([{ opacity:1, transform:"scale(1)" }, { opacity:0, transform:"scale(" + (tab ? 1 : back ? 1.014 : 0.986) + ")" }], fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
   var done = false, swap = function(){ if(done) return; done = true;
     try{ fn(); } finally {
-      outs.forEach(function(q){ try{ q.cancel(); }catch(e){} }); UI.navBusy = false; UI.carry = null;
-      if(ret){ /* going back: the title stays on screen and settles into its row while the list returns around it */
-        var d = view.querySelector(destSel), ok = false;
-        if(d){ var dr = d.getBoundingClientRect(), dcs = getComputedStyle(d), dfs = parseFloat(dcs.fontSize) || 20;
-          if(dr.bottom > 0 && dr.top < window.innerHeight){ ok = true; d.style.visibility = "hidden";
-            var ra = ghost.animate([{ transform:"translate3d(" + ret.l + "px," + ret.t + "px,0)", fontSize:ret.fs + "px", fontWeight:ret.fw }, { transform:"translate3d(" + dr.left.toFixed(1) + "px," + dr.top.toFixed(1) + "px,0)", fontSize:dfs + "px", fontWeight:dcs.fontWeight, lineHeight:((parseFloat(dcs.lineHeight) || dfs * 1.1) / dfs).toFixed(3), letterSpacing:((parseFloat(dcs.letterSpacing) || 0) / dfs).toFixed(4) + "em" }], { duration:560, easing:"cubic-bezier(.6,0,.16,1)", fill:"forwards" });
-            ra.onfinish = ra.oncancel = function(){ d.style.visibility = ""; kill(); }; setTimeout(function(){ d.style.visibility = ""; kill(); }, 900); } }
-        if(!ok) kill();
-      } else kill();
-      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:360, easing:"ease-out" });
-      if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:360, easing:"ease-out" }); } };
+      outs.forEach(function(q){ try{ q.cancel(); }catch(e){} }); UI.navBusy = false;
+      var IN = "cubic-bezier(.22,1,.36,1)"; view.style.transformOrigin = "50% " + (view.clientHeight * 0.38).toFixed(0) + "px";
+      view.animate([{ opacity:0, transform:"scale(" + (tab ? 1 : back ? 0.986 : 1.014) + ")" }, { opacity:1, transform:"scale(1)" }], { duration:760, easing:IN });
+      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN });
+      if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN }); } };
   outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
 }
 function goBack(){
