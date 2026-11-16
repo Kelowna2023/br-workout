@@ -290,6 +290,9 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .cd.td:not(.on){color:var(--tx)}.cd.td:not(.on) span{border:1px solid var(--ln2)}
 .cd.ph::after{content:"";position:absolute;top:5px;right:calc(50% - 20px);width:6px;height:6px;border-radius:50%;background:var(--tx);border:1.5px solid #000}
 .cd.ph:not(.on){color:var(--tx)}
+.cd.pa{color:var(--mu)}.cd.pa:active span{background:var(--ln)}
+.lg-r{width:100%;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:.5px solid var(--ln);font-size:16px;font-weight:500;color:var(--t);text-align:left;transition:opacity .2s}.lg-r:active{opacity:.5}.lg-r svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.bd{margin-top:14px}
 .hrow{width:100%;min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:.5px solid var(--ln)}
 .hrow b{font:500 17px/1.2 var(--font);letter-spacing:-.02em;display:block}
 .hrow small{display:block;font-size:13px;color:var(--mu);margin-top:3px}
@@ -902,7 +905,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "93";
+var BUILD = "94";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1208,6 +1211,7 @@ function goWorkout(r){
   if(i >= 0){ S.active = S.parked.splice(i, 1)[0]; relabel(); }
   else { var hist = histIndex(); S.active = { id:uid(), routineId:r.id, name:r.name, startedAt:Date.now(), restEnd:null, restTotal:0,
     exercises: r.exercises.filter(function(x){ return key(x.name); }).map(function(x){ return mkEx(x, hist); }) }; }
+  if(!hasWork(S.active)) delete S.active.forDay;
   S.active.openEx = null; S.pick = false; saveActive();
 }
 function curIdx(x){ for(var i = 0; i < x.sets.length; i++) if(!x.sets[i].done) return i; return -1; }
@@ -1247,7 +1251,8 @@ function finishWorkout(){
       var o = { w:num(s.w), r:num(s.r) }; vol += o.w * o.r; cnt++; if(s.pr){ o.pr = true; prs.push(x.name + " " + fmtW(o.w) + " × " + o.r); } if(s.note && String(s.note).trim()) o.note = String(s.note).trim(); if(s.rir) o.rir = s.rir; return o; }) };
   }).filter(function(x){ return x.sets.length; });
   if(!exs.length){ ask("No sets logged", "Nothing is completed yet. Discard this workout?", "Discard workout", function(){ S.active = null; S.pick = true; saveActive(); render(); }); return; }
-  var s = { id:a.id, name:a.name, routineId:a.routineId, startedAt:a.startedAt, endedAt:now, dur:Math.round((now - a.startedAt) / 1000), volume:vol, setCount:cnt, prs:prs, note:(a.note || "").trim(), exercises:exs };
+  var back = a.forDay && a.forDay < dayStart(now), t0 = back ? a.forDay + 432e5 : a.startedAt;
+  var s = { id:a.id, name:a.name, routineId:a.routineId, startedAt:t0, endedAt:back ? t0 : now, dur:back ? 0 : Math.round((now - a.startedAt) / 1000), volume:vol, setCount:cnt, prs:prs, note:(a.note || "").trim(), exercises:exs };
   S.sessions.unshift(s); S.sessions.sort(function(p, q){ return q.startedAt - p.startedAt; }); ls.set("sessions", S.sessions);
   S.pend.add.push(s.id); savePend(); pushSession(s);
   S.active = null; S.pick = true; saveActive();
@@ -1386,7 +1391,7 @@ function vWorkout(){
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
     rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (i === next ? '<small class="t">Up next' + (x.link && nx ? ' · superset with ' + esc(nx.name) : '') + '</small>' : x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
       (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
-  return '<h1 class="big">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div><div class="segs" data-rv>' + segs + '</div>' + thought(2, true) +
+  return '<h1 class="big">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' + thought(2, true) +
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
     '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
@@ -1460,7 +1465,7 @@ function endCard(s){
     return '<div class="fs-r"><span>' + esc(x.name) + (x.sets.some(function(t){ return t.pr; }) ? ' <span class="tag" style="margin-left:6px">New best</span>' : '') + '</span><span>' + (b.w > 0 ? fmtW(b.w) + ' × ' : '') + b.r + tag + '</span></div>'; }).join("");
   var ws = weekStart(Date.now()), n = S.sessions.filter(function(z){ return z.startedAt >= ws; }).length, goal = Math.max(1, +S.cfg.weeklyGoal || 5);
   var el = $("#end"), veil = $("#veil");
-  el.innerHTML = '<div class="eyebrow">Workout complete · ' + fmtMin(s.dur) + '</div><div class="e-t">' + esc(s.name) + '</div>' +
+  el.innerHTML = '<div class="eyebrow">' + (s.dur ? 'Workout complete · ' + fmtMin(s.dur) : 'Logged for ' + esc(fmtDate(s.startedAt))) + '</div><div class="e-t">' + esc(s.name) + '</div>' +
     '<div class="e-st"><div><b>' + s.setCount + '</b><span>' + (s.setCount === 1 ? "set" : "sets") + '</span></div><div><b' + (s.prs.length ? ' class="t"' : '') + '>' + s.prs.length + '</b><span>new ' + (s.prs.length === 1 ? "best" : "bests") + '</span></div><div><b class="t">' + n + '</b><span>of ' + goal + ' this week</span></div></div>' +
     '<h2>' + (prev ? "Top sets" + (ups ? " · " + ups + " up on last time" : "") : "Top sets") + '</h2><div style="margin-top:8px">' + lines + '</div>' +
     '<div class="stack"><button type="button" class="btn go" data-act="end-done">Done</button></div>' +
@@ -1482,7 +1487,7 @@ function vHistory(){
   ["M","T","W","T","F","S","S"].forEach(function(d){ cells += '<span class="dw">' + d + '</span>'; });
   for(i = 0; i < lead; i++) cells += '<span></span>';
   for(i = 1; i <= nd; i++){ var t = new Date(y, mo, i).getTime(), on = !!by[t], p = !!ph[t];
-    cells += on || p ? '<button type="button" class="cd' + (on ? " on" : "") + (p ? " ph" : "") + (t === today ? " td" : "") + '" data-act="cal-day" data-t="' + t + '" aria-label="' + esc(fmtDate(t)) + (on ? ", workout" : "") + (p ? ", photo" : "") + '"><span>' + i + '</span></button>'
+    cells += on || p || t <= today ? '<button type="button" class="cd' + (on ? " on" : "") + (p ? " ph" : "") + (t === today ? " td" : "") + (t < today && !on ? " pa" : "") + '" data-act="cal-day" data-t="' + t + '" aria-label="' + esc(fmtDate(t)) + (on ? ", workout" : "") + (p ? ", photo" : "") + '"><span>' + i + '</span></button>'
       : '<span class="cd' + (t === today ? " td" : "") + '"><span>' + i + '</span></span>'; }
   S.sessions.forEach(function(s){ var d = new Date(s.startedAt); if(d.getFullYear() !== y || d.getMonth() !== mo) return; cnt++;
     list += '<button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '" data-rv><span><b>' + esc(s.name) + '</b><small>' + esc(fmtDate(s.startedAt)) + '</small></span><span class="r">' + s.setCount + (s.setCount === 1 ? " set" : " sets") + '</span></button>'; });
@@ -1494,11 +1499,12 @@ function vHistory(){
 function daySheet(t){
   var u = S.cfg.units, ss = S.sessions.filter(function(s){ return dayStart(s.startedAt) === t; }), ps = S.photos.filter(function(p){ return dayStart(p.at) === t; }), h = '<div><div class="eyebrow">' + esc(fmtDate(t)) + '</div></div>';
   ss.forEach(function(s){
-    h += '<div><h2>' + esc(s.name) + '</h2><div class="muted">' + s.setCount + (s.setCount === 1 ? " set" : " sets") + " · " + fmtMin(s.dur) + (s.prs && s.prs.length ? ' · <span class="t">' + s.prs.length + " new " + (s.prs.length === 1 ? "best" : "bests") + '</span>' : '') + '</div>' +
+    h += '<div><h2>' + esc(s.name) + '</h2><div class="muted">' + s.setCount + (s.setCount === 1 ? " set" : " sets") + (s.dur ? " · " + fmtMin(s.dur) : "") + (s.prs && s.prs.length ? ' · <span class="t">' + s.prs.length + " new " + (s.prs.length === 1 ? "best" : "bests") + '</span>' : '') + '</div>' +
       s.exercises.map(function(x){ var notes = x.sets.filter(function(q){ return q.note; }).map(function(q){ return '<em>' + esc(q.note) + '</em>'; }).join("");
         return '<div class="dx-ex"><b>' + esc(x.name) + '</b><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + (num((x.sets[0] || {}).w) > 0 ? " " + esc(u) : " reps") + '</span>' + notes + '</div>'; }).join("") +
       '<button type="button" class="btn ghost danger" style="margin-top:8px" data-act="del-session" data-id="' + esc(s.id) + '">Delete this workout</button></div>'; });
   if(ps.length) h += '<div class="ph-strip">' + ps.map(function(q){ return '<button type="button" data-act="ph-view" data-id="' + q.id + '"><img src="' + q.url + '" alt="Progress photo"></button>'; }).join("") + '</div>';
+  if(t <= dayStart(Date.now())) h += '<div><div class="muted">' + (ss.length ? "Log another workout for this day" : t === dayStart(Date.now()) ? "Nothing logged today. Start one" : "Nothing logged. Add the workout you did") + '</div><div style="margin-top:6px">' + S.cfg.routines.map(function(r){ return '<button type="button" class="lg-r" data-act="log-day" data-id="' + esc(r.id) + '" data-t="' + t + '"><span>' + esc(r.name) + '</span>' + IC.chev + '</button>'; }).join("") + '</div></div>';
   sheet(h + '<button type="button" class="btn" data-act="sheet-close">Close</button>');
 }
 
@@ -1774,6 +1780,7 @@ document.addEventListener("click", function(ev){
     case "cal": (function(){ var n0 = new Date(), c = UI.month ? new Date(UI.month) : new Date(n0.getFullYear(), n0.getMonth(), 1); UI.month = new Date(c.getFullYear(), c.getMonth() + (+b.dataset.v), 1).getTime(); render();
         var g = view.querySelector(".cal"); if(g && !calm) g.animate([{ opacity:0, transform:"translate3d(" + (+b.dataset.v * 24) + "px,0,0)" }, { opacity:1, transform:"none" }], { duration:420, easing:OUT }); })(); break;
     case "cal-day": daySheet(+b.dataset.t); break;
+    case "log-day": (function(r, t){ if(!r) return; haptic(); closeSheet(); goWorkout(r); if(t < dayStart(Date.now()) && !hasWork(S.active)) S.active.forDay = t; else if(!hasWork(S.active)) delete S.active.forDay; saveActive(); if(viewName() === "today") render(); else location.hash = "today"; })(rs.filter(function(r){ return r.id === b.dataset.id; })[0], +b.dataset.t); break;
     /* logging */
     case "step": (function(){ var x = a.exercises[a.openEx], ci = curIdx(x); if(ci < 0) return; var st = x.sets[ci], k = b.dataset.k, d = +b.dataset.d, inp = $("#in-" + k);
         var cur = blank(st[k]) ? num(inp.placeholder) : num(st[k]), nv = Math.max(0, Math.round((cur + d * (k === "w" ? wStep() : 1)) * 100) / 100);
