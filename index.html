@@ -63,7 +63,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 .breathe{animation:breathe 2.8s cubic-bezier(.45,0,.55,1) infinite}
 
 /* ---- the scrolling page ---- */
-main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 48px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
+main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
 .big{font:600 32px/1.1 var(--font);letter-spacing:-.03em;margin:6px 0 0;transform-origin:0 100%;will-change:transform,opacity;view-transition-name:title}
 .sub{color:var(--mu);font-size:14px;margin-top:6px}
@@ -113,7 +113,10 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 @keyframes drift{to{transform:translate3d(-76px,0,0)}}
 /* a horizon under each page title, and a thought at the foot of each page */
 .hz{height:1px;margin:22px calc(var(--g) * -1) 0;background:linear-gradient(90deg,transparent,var(--t) 22%,var(--t) 60%,transparent);opacity:.45;transform-origin:0 50%}
-.th{position:relative;margin:84px 0 36px;padding-right:10%}
+.th{position:relative;margin:84px 0 6px;padding-right:10%}
+.th.top{margin:44px 0 6px}
+.th.top::after{display:none}
+.th.top p{font-size:17px}
 .th::before{content:attr(data-g);position:absolute;left:-10px;top:-62px;font:400 180px/1 Georgia,"Times New Roman",serif;color:var(--tx);opacity:.06;pointer-events:none}
 .th[data-g="?"]::before{top:-112px;left:-4px;font-size:170px}
 .th[data-g="~"]::before{top:-118px;font-size:230px;font-style:italic}
@@ -846,7 +849,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "83";
+var BUILD = "84";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -894,12 +897,12 @@ function facts(){
   ];
 }
 /* a thought at the foot of a page: a line from someone wiser, a question, or a fact worth sitting with */
-function thought(off){
+function thought(off, top){
   var day = Math.round(dayStart(Date.now()) / 864e5), kind = (day + off) % 3, q, g, lab;
   if(kind === 0){ q = lineAt(off * 5); g = "“"; lab = ""; }
   else if(kind === 1){ q = ASKS[(day + off * 3) % ASKS.length]; g = "?"; lab = "A question"; }
   else { var f = facts(); q = f[(day + off * 3) % f.length]; g = "~"; lab = "Worth knowing"; }
-  return '<div class="th" data-rv data-g="' + g + '">' + (lab ? '<em>' + lab + '</em>' : '') + '<p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p>' + (q[2] ? '<span>' + esc(q[2]) + '</span>' : '') + '</div>';
+  return '<div class="th' + (top ? " top" : "") + '" data-rv data-g="' + g + '">' + (lab ? '<em>' + lab + '</em>' : '') + '<p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p>' + (q[2] ? '<span>' + esc(q[2]) + '</span>' : '') + '</div>';
 }
 function moon(){
   var p = ((Date.now() / 864e5 - 10962.76) % 29.530588853) / 29.530588853; if(p < 0) p += 1;
@@ -1218,7 +1221,7 @@ function vHome(){
     '<div data-rv><div class="wk"><div class="wk-n"><b>' + n + '</b><span> of ' + goal + '</span></div><div class="wk-l">this week</div>' + moon() + '</div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     (need ? '<div class="foot" data-rv><button type="button" class="t" data-act="backup">Back up your ' + need + (need === 1 ? " new workout" : " new workouts") + '</button></div>' : '') +
-    yearGrid() + thought(1) + '<div style="height:70px"></div>';
+    yearGrid() + thought(1);
 }
 
 /* ---------- workout: the list of lifts ---------- */
@@ -1229,10 +1232,10 @@ function vWorkout(){
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
     rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (i === next ? '<small class="t">Up next' + (x.link && nx ? ' · superset with ' + esc(nx.name) : '') + '</small>' : x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
       (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
-  return '<h1 class="big">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div><div class="segs" data-rv>' + segs + '</div>' +
+  return '<h1 class="big">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div><div class="segs" data-rv>' + segs + '</div>' + thought(2, true) +
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
-    '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>' + thought(2);
+    '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
 }
 
 /* ---------- exercise: one set in focus ---------- */
@@ -1275,7 +1278,7 @@ function vExercise(){
       (has ? '<div class="dnote muted">' + esc(q.note) + '</div>' : ''); }
   if(dl) o += '<div class="dsets">' + dl + '</div>';
   if(ci >= 0) o += '<div class="x-more"><button type="button" data-act="add-set" data-e="' + ei + '">+ Add a set</button></div>';
-  return o + thought(3 + ei) + '<div style="height:20px"></div>';
+  return o;
 }
 /* small moments after a re-render: the set you just finished slides into the list, a new best catches the light */
 function afterRender(){
@@ -1331,7 +1334,7 @@ function vHistory(){
   return '<h1 class="big">History</h1><div class="sub" data-rv>' + S.sessions.length + (S.sessions.length === 1 ? " workout" : " workouts") + ' logged</div><div class="hz" data-rv></div>' + yearGrid() +
     '<div class="cal-h" data-rv><button type="button" class="ib" data-act="cal" data-v="-1" aria-label="Previous month">' + IC.back + '</button><b>' + m.toLocaleDateString("en-US", { month:"long", year:"numeric" }) + '</b><button type="button" class="ib" data-act="cal" data-v="1" aria-label="Next month">' + IC.chev + '</button></div>' +
     '<div class="cal" data-rv>' + cells + '</div>' +
-    '<div class="sec" data-rv><h2>' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") + " this month" : "Nothing logged this month") + '</h2></div><div class="list" style="margin-top:8px">' + list + '</div>' + thought(4);
+    '<div class="sec" data-rv><h2>' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") + " this month" : "Nothing logged this month") + '</h2></div><div class="list" style="margin-top:8px">' + list + '</div>';
 }
 function daySheet(t){
   var u = S.cfg.units, ss = S.sessions.filter(function(s){ return dayStart(s.startedAt) === t; }), ps = S.photos.filter(function(p){ return dayStart(p.at) === t; }), h = '<div><div class="eyebrow">' + esc(fmtDate(t)) + '</div></div>';
@@ -1363,7 +1366,7 @@ function vProgress(){
     h += '<div class="acc' + (open ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="' + esc(r.id) + '" aria-expanded="' + open + '">' + esc(r.name) + IC.chev + '</button><div class="acc-b"><div>' + rows + '</div></div></div>'; });
   var other = Object.keys(idx).filter(function(k){ return !seen[k]; });
   if(other.length) h += '<div class="acc' + (UI.pgGrp === "_o" ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="_o">Other lifts' + IC.chev + '</button><div class="acc-b"><div>' + other.map(function(k){ return rowFor(idx[k].name); }).join("") + '</div></div></div>';
-  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div><div class="list" style="margin-top:28px;border-top:0">' + h + '</div>' + thought(6);
+  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div>' + thought(6, true) + '<div class="list" style="margin-top:34px;border-top:0">' + h + '</div>';
 }
 function vProgEx(){
   var d = pgData(UI.pgEx), u = S.cfg.units, name = (histIndex()[UI.pgEx] || {}).name || "", g = gearOf(name), rows = "";
@@ -1412,7 +1415,7 @@ function vBody(){
   if(S.photosOff) h += '<div class="empty">Photos save in the Wake app on your phone.</div>';
   else if(!S.photos.length) h += '<div class="empty">One every few weeks, same spot, same light. They stay on this phone.</div>';
   else h += '<div class="ph-strip">' + S.photos.map(function(q){ return '<button type="button" data-act="ph-view" data-id="' + q.id + '"><img src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '" loading="lazy"><span>' + esc(fmtShort(q.at)) + '</span></button>'; }).join("") + '</div>';
-  return h + thought(8);
+  return h;
 }
 function measSheet(){
   var ms = S.cfg.meas || [], last = ms.length ? ms[ms.length - 1].v : {}, mu = measUnit();
