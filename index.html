@@ -429,10 +429,14 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 #wm-ref .h-w{transform:scaleY(-1)}
 #wm-hz{position:absolute;left:calc(var(--g) * -1);width:min(100vw,560px);top:.868em;height:1px;pointer-events:none;will-change:opacity}
 #wm-hz::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--t) 16%,var(--t) 62%,transparent);opacity:.5}
-#wm-hz::after,.h-line::after{content:"";position:absolute;left:0;top:0;width:110px;height:1px;background:linear-gradient(90deg,transparent,#3FE6D7 62%,#C4FFF9);opacity:0;will-change:transform,opacity;animation:hz-glint 5.2s linear 1.2s infinite}
-.h-line::after{animation-delay:2.7s}
-@keyframes hz-glint{0%{opacity:0;transform:translate3d(-110px,0,0);animation-timing-function:cubic-bezier(.55,0,.2,1)}1.5%{opacity:1}10%{opacity:1}12%{opacity:0;transform:translate3d(min(100vw,560px),0,0)}100%{opacity:0;transform:translate3d(min(100vw,560px),0,0)}}
-@media (prefers-reduced-motion:reduce){#wm-hz::after,.h-line::after{animation:none}}
+.gl,.gr{position:absolute;left:0;width:180px;opacity:0;font-style:normal;pointer-events:none;will-change:transform,opacity;animation:hz-glint 8.4s linear .62s infinite}
+.gl{top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(190,255,250,.75) 38%,#fff 50%,rgba(190,255,250,.75) 62%,transparent)}
+.gl::before{content:"";position:absolute;left:8%;right:8%;top:-7px;height:15px;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(235,255,253,.5),rgba(120,240,230,.16) 45%,transparent 72%);filter:blur(2.5px)}
+.gr{top:1px;height:40px;background:linear-gradient(180deg,rgba(215,255,252,.3),rgba(63,230,215,.09) 40%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 50%,transparent);mask-image:linear-gradient(90deg,transparent,#000 50%,transparent);filter:blur(2px)}
+.h-line .gl,.h-line .gr{animation-delay:1.55s}.h-line .gr{height:66px}
+@keyframes hz-glint{0%{opacity:0;transform:translate3d(-180px,0,0);animation-timing-function:cubic-bezier(.62,0,.38,1)}4%{opacity:.9}14%{opacity:.9}18%{opacity:0;transform:translate3d(min(100vw,560px),0,0)}100%{opacity:0;transform:translate3d(min(100vw,560px),0,0)}}
+@media (prefers-reduced-motion:reduce){.gl,.gr{animation:none}}
+.h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(20,211,194,.2),rgba(20,211,194,.05) 50%,transparent 72%);opacity:.5;pointer-events:none;will-change:transform,opacity}
 .h-top{position:absolute;left:var(--g);right:var(--g);top:calc(var(--st) + 18px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
 .h-sea{will-change:transform;position:absolute;left:0;right:0;top:49%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
 .h-rise{position:absolute;left:0;right:0;bottom:0;height:.868em;overflow:hidden;display:flex;justify-content:center}
@@ -484,11 +488,11 @@ html[data-dir="tab"]::view-transition-new(root){animation:fade .28s ease-out bot
 <body>
 <div id="app" data-s="home">
   <div id="bar"><span id="bar-l"></span><span id="bar-t"></span><span id="bar-r"></span><span id="bar-date"></span></div>
-  <div id="wm" aria-label="Wake">Wake<i class="breathe"></i><div id="wm-hz" aria-hidden="true"></div><div id="wm-ref" aria-hidden="true"></div></div>
+  <div id="wm" aria-label="Wake">Wake<i class="breathe"></i><div id="wm-hz" aria-hidden="true"><em class="gl"></em><em class="gr"></em></div><div id="wm-ref" aria-hidden="true"></div></div>
   <div id="hero" hidden>
     <div class="h-bg"></div>
     <div class="h-top"><span id="h-date"></span><span id="h-week"></span></div>
-    <div class="h-sea" id="h-sea"><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
+    <div class="h-sea" id="h-sea"><div class="h-glow"></div><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"><em class="gl"></em><em class="gr"></em></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
     <p class="h-ms">Your wake is the trail you leave behind. <b>Make it worth following.</b></p>
     <div class="h-bot"><div class="h-cd" id="h-cd"></div>
       <button type="button" class="btn go" id="h-go" data-act="enter"><span>Enter</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button></div>
@@ -769,8 +773,8 @@ function gearOf(name){
   var o = S.cfg.gear && S.cfg.gear[key(name)]; if(o && GEAR[o]) return o;
   var n = String(name || "").toLowerCase();
   if(/cable|pulldown|pushdown|face ?pull|crossover|pull-?through/.test(n)) return "cable";
-  if(/goblet|dumbbell|\bdb\b|\brdl\b|romanian|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
   if(/smith/.test(n)) return "bar";
+  if(/goblet|dumbbell|\bdb\b|\brdl\b|romanian|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
   if(/machine|leg press|leg curl|hamstring curl|leg extension|pec deck|hack squat|seated calf/.test(n)) return "machine";
   if(/pull-?up|chin-?up|\bdips?\b|push-?up|plank|hanging|sit-?up/.test(n)) return "body";
   return "db";
@@ -911,7 +915,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "98";
+var BUILD = "100";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1717,14 +1721,18 @@ function hero(){
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   if(calm) return;
   var SLOW = "cubic-bezier(.19,1,.22,1)", SOFT = "cubic-bezier(.33,0,.1,1)", w = $("#h-w");
-  el.querySelector(".h-line").animate([{ transform:"scaleX(0)", opacity:0 }, { transform:"scaleX(1)", opacity:1 }], { duration:1800, delay:150, easing:SOFT, fill:"backwards" });
-  w.animate([{ transform:"translate3d(0,102%,0)" }, { transform:"none" }], { duration:2900, delay:650, easing:SLOW, fill:"backwards" });
-  ref.animate([{ transform:"translate3d(0,-102%,0)", opacity:0 }, { transform:"none", opacity:1 }], { duration:2900, delay:650, easing:SLOW, fill:"backwards" });
+  var sea0 = $("#h-sea"), INOUT = "cubic-bezier(.7,0,.2,1)", T = 950;
+  el.querySelector(".h-line").animate([{ transform:"scaleX(0)", opacity:0 }, { opacity:1, offset:0.25 }, { transform:"scaleX(1)", opacity:1 }], { duration:1500, delay:200, easing:INOUT, fill:"backwards" });
+  el.querySelector(".h-glow").animate([{ opacity:0, transform:"scale(.2,.4)" }, { opacity:1, transform:"scale(1.15,1.1)", offset:0.45 }, { opacity:0.5, transform:"none" }], { duration:3600, delay:700, easing:"cubic-bezier(.3,0,.2,1)", fill:"backwards" });
+  sea0.animate([{ transform:"scale(1.16)" }, { transform:"none" }], { duration:5200, easing:"cubic-bezier(.16,1,.3,1)" });
+  w.animate([{ transform:"translate3d(0,104%,0)", filter:"blur(9px)", opacity:0.4 }, { opacity:1, offset:0.3 }, { filter:"blur(0px)", offset:0.55 }, { transform:"none", filter:"blur(0px)", opacity:1 }], { duration:2700, delay:T, easing:SLOW, fill:"backwards" });
+  ref.animate([{ transform:"translate3d(0,-104%,0)", clipPath:"inset(104% 0 -20px 0)", opacity:0 }, { transform:"none", clipPath:"inset(0% 0 -20px 0)", opacity:1 }], { duration:2700, delay:T, easing:SLOW, fill:"backwards" });
   ref.style.clipPath = "inset(0 0 -20px 0)";
-  [[".h-top", 1500, 0], [".h-ms", 1900, 14], [".h-cd", 2200, 18], ["#h-go", 2500, 22]].forEach(function(q){
+  w.querySelector("i").animate([{ transform:"scale(0)" }, { transform:"scale(1)" }], { duration:800, delay:T + 1650, easing:"cubic-bezier(.34,1.7,.5,1)", fill:"backwards" });
+  [].forEach.call(ref.querySelectorAll("i"), function(d){ d.animate([{ opacity:0 }, { opacity:1 }], { duration:600, delay:T + 1750, fill:"backwards" }); });
+  [[".h-top", 1900, 0], [".h-ms", 2700, 14], [".h-cd", 3050, 18], ["#h-go", 3300, 22]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
 }
-/* the reflection: the name, flipped, cut into thin strips that slide like the surface of water */
 function buildRef(ref, fs, N, base){
   var H = Math.round(fs * 0.868), sh = Math.ceil(H / N), html = "";
   for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
@@ -1750,6 +1758,7 @@ function leave(){
   wm.style.opacity = 0; sea.style.transformOrigin = (sl - sr.left).toFixed(1) + "px " + (rise.top - sr.top).toFixed(1) + "px";
   el.querySelector(".h-bg").animate([{ opacity:0 }, { opacity:1 }], { duration:520, easing:"ease-out" });
   el.querySelector(".h-line").animate([{ opacity:0 }, { opacity:1 }], { duration:800, delay:500, fill:"backwards" });
+  el.querySelector(".h-glow").animate([{ opacity:0 }, { opacity:0.5 }], { duration:1400, delay:700, fill:"backwards" });
   $("#h-ref").animate([{ opacity:0.6 }, { opacity:1 }], { duration:1100 });
   [[".h-top", 700, 0], [".h-ms", 850, 12], [".h-cd", 1000, 14], ["#h-go", 1150, 16]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:q[1], easing:SLOW, fill:"backwards" }); });
@@ -1762,7 +1771,7 @@ function leave(){
 })();
 function enter(){
   var el = $("#hero"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
-  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; wm.querySelector("i").classList.add("breathe"); view.scrollTop = 0; paint(); };
+  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; wm.querySelector("i").classList.add("breathe"); [].forEach.call(wm.querySelectorAll(".gl,.gr"), function(g){ g.style.animation = "none"; void g.offsetWidth; g.style.animation = ""; }); view.scrollTop = 0; paint(); };
   if(calm){ done(); return; }
   el.getAnimations({ subtree:true }).forEach(function(q){ try{ q.finish(); }catch(e){} });
   var sea = $("#h-sea"), fs = parseFloat(getComputedStyle(sea).fontSize), rise = sea.querySelector(".h-rise").getBoundingClientRect(), sr = sea.getBoundingClientRect(), sl = $("#h-w").getBoundingClientRect().left;
@@ -1771,6 +1780,7 @@ function enter(){
   sea.style.transformOrigin = (sl - sr.left).toFixed(1) + "px " + (rise.top - sr.top).toFixed(1) + "px";
   [".h-top", ".h-ms", ".h-cd", "#h-go"].forEach(function(q){ el.querySelector(q).animate([{ opacity:1 }, { opacity:0, transform:"translate3d(0,10px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
   el.querySelector(".h-line").animate([{ opacity:1 }, { opacity:0 }], { duration:700, delay:150, fill:"forwards" });
+  el.querySelector(".h-glow").animate([{ opacity:0.5 }, { opacity:0 }], { duration:500, fill:"forwards" });
   $("#h-ref").animate([{ opacity:1 }, { opacity:0.6 }], { duration:1200, delay:150, fill:"forwards" });
   el.querySelector(".h-bg").animate([{ opacity:1 }, { opacity:0 }], { duration:900, delay:520, easing:"ease-in-out", fill:"forwards" });
   revealList().forEach(function(r, k){ r.animate([{ opacity:0, transform:"translate3d(0,40px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:760 + k * 70, easing:OUT, fill:"backwards" }); });
