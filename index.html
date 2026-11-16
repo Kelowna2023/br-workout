@@ -911,7 +911,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "97";
+var BUILD = "98";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1739,6 +1739,27 @@ function water(ts){
   if(app.dataset.s === "home" && UI.refOn && WMS.length) sway(WMS, t, 1.3, HR.px);
 }
 /* entering: no wipe. The name leaves the horizon and travels to its place at the top of your workouts, reflection and all */
+function leave(){
+  var el = $("#hero"); if(!el.hidden || HR.busy || app.dataset.s !== "home") return; haptic();
+  view.scrollTop = 0; hero(); HR.busy = true;
+  if(calm){ HR.busy = false; return; }
+  el.getAnimations({ subtree:true }).forEach(function(q){ if(!q.animationName) try{ q.cancel(); }catch(e){} });
+  var sea = $("#h-sea"), fs = parseFloat(getComputedStyle(sea).fontSize), rise = sea.querySelector(".h-rise").getBoundingClientRect(), sr = sea.getBoundingClientRect(), sl = $("#h-w").getBoundingClientRect().left;
+  wm.style.transform = "translate3d(0," + HERO_Y + "px,0)";
+  var tr = wm.getBoundingClientRect(), sc = tr.height / fs, EASE = "cubic-bezier(.66,0,.18,1)", SLOW = "cubic-bezier(.19,1,.22,1)";
+  wm.style.opacity = 0; sea.style.transformOrigin = (sl - sr.left).toFixed(1) + "px " + (rise.top - sr.top).toFixed(1) + "px";
+  el.querySelector(".h-bg").animate([{ opacity:0 }, { opacity:1 }], { duration:520, easing:"ease-out" });
+  el.querySelector(".h-line").animate([{ opacity:0 }, { opacity:1 }], { duration:800, delay:500, fill:"backwards" });
+  $("#h-ref").animate([{ opacity:0.6 }, { opacity:1 }], { duration:1100 });
+  [[".h-top", 700, 0], [".h-ms", 850, 12], [".h-cd", 1000, 14], ["#h-go", 1150, 16]].forEach(function(q){
+    el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:q[1], easing:SLOW, fill:"backwards" }); });
+  sea.animate([{ transform:"translate3d(" + (tr.left - sl).toFixed(1) + "px," + (tr.top - rise.top).toFixed(1) + "px,0) scale(" + sc.toFixed(4) + ")" }, { transform:"none" }], { duration:1250, easing:EASE }).onfinish = function(){ sea.style.transformOrigin = ""; HR.busy = false; };
+}
+(function(){ var y0 = null;
+  view.addEventListener("touchstart", function(e){ y0 = app.dataset.s === "home" && $("#hero").hidden && view.scrollTop <= 0 && e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive:true });
+  view.addEventListener("touchmove", function(e){ if(y0 == null) return; if(view.scrollTop > 2){ y0 = null; return; } if(e.touches[0].clientY - y0 > 120){ y0 = null; leave(); } }, { passive:true });
+  view.addEventListener("touchend", function(){ y0 = null; }, { passive:true });
+})();
 function enter(){
   var el = $("#hero"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
   var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; wm.querySelector("i").classList.add("breathe"); view.scrollTop = 0; paint(); };
