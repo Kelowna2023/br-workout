@@ -1029,6 +1029,8 @@ main{gap:26px!important;padding-top:34px!important}
 .pgb.gh .d{color:var(--dim)}
 .px .pgc{margin-bottom:40px}
 .px .pgb:not(.sel):not(.gh) i{opacity:.32}
+#sheet .panel::before{width:44px;margin:4px 0 10px;flex:none}
+#sheet .panel{overscroll-behavior:contain;will-change:transform}
 </style>
 </head>
 <body>
@@ -2240,7 +2242,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "71";
+var BUILD = "72";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2960,6 +2962,21 @@ function fxAfterRender(main, changed){
   main.querySelectorAll(".pbar i,.bg-b i,.gbar i").forEach(function(b, k){ gsap.from(b, { scaleX:0, transformOrigin:"0 50%", duration:0.9, ease:"expo.out", delay:0.2 + k * 0.04 }); });
   var ln = main.querySelector(".chart polyline"); if(ln && ln.getTotalLength){ var len = ln.getTotalLength(); gsap.fromTo(ln, { strokeDasharray:len, strokeDashoffset:len }, { strokeDashoffset:0, duration:1.4, ease:"power2.inOut", delay:0.25 }); }
 }
+/* sheets: drag down to close */
+(function(){ var sh = document.getElementById("sheet"), D = null;
+  sh.addEventListener("touchstart", function(e){ var p = sh.querySelector(".panel"); if(!p || e.touches.length !== 1) return; var t = e.touches[0], r = p.getBoundingClientRect();
+    if(t.clientY < r.top) return; var grab = t.clientY - r.top < 64;
+    if(!grab && (p.scrollTop > 0 || e.target.closest(".wh,.stk,.stk-t,input,textarea,select,[contenteditable]"))) return;
+    D = { p:p, y0:t.clientY, x0:t.clientX, y:t.clientY, t:performance.now(), v:0, on:false, grab:grab }; }, { passive:true });
+  sh.addEventListener("touchmove", function(e){ if(!D) return; var t = e.touches[0], dy = t.clientY - D.y0, dx = t.clientX - D.x0, now = performance.now();
+    D.v = D.v * 0.5 + ((t.clientY - D.y) / Math.max(1, now - D.t)) * 0.5; D.y = t.clientY; D.t = now;
+    if(!D.on){ if(dy > 8 && dy > Math.abs(dx) * 1.2 && (D.grab || D.p.scrollTop <= 0)){ D.on = true; D.off = dy; D.p.style.transition = "none"; D.p.style.animation = "none"; } else { if(dy < -6 || Math.abs(dx) > 14) D = null; return; } }
+    if(e.cancelable) e.preventDefault(); var m = Math.max(0, dy - D.off); D.m = m; D.p.style.transform = "translate3d(0," + m.toFixed(1) + "px,0)"; sh.style.background = "rgba(0,0,0," + (0.6 * Math.max(0, 1 - m / 500)).toFixed(3) + ")"; }, { passive:false });
+  var end = function(){ var d = D; D = null; if(!d || !d.on) return; var p = d.p, close = d.m > 120 || (d.v > 0.5 && d.m > 30);
+    p.style.transition = "transform .32s cubic-bezier(.2,.8,.2,1)"; sh.style.transition = "background .32s ease";
+    if(close){ p.style.transform = "translate3d(0,105%,0)"; sh.style.background = "rgba(0,0,0,0)"; setTimeout(function(){ sh.style.transition = ""; sh.style.background = ""; if(p.isConnected) closeSheet(); }, 300); }
+    else { p.style.transform = ""; sh.style.background = ""; setTimeout(function(){ p.style.transition = ""; sh.style.transition = ""; }, 340); } };
+  sh.addEventListener("touchend", end); sh.addEventListener("touchcancel", end); })();
 render();
 setInterval(tick, 250);
 connect();
