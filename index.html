@@ -295,15 +295,23 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .ms-in{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:16px}
 .ms-in .field{width:120px;text-align:center}
 
-/* ---- full rest clock ---- */
-#clock{position:absolute;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:var(--g);animation:fade .35s both}
+/* ---- rest, grown: press play and the timer swells into the lower half of the screen ---- */
+#clock{position:absolute;left:0;right:0;bottom:0;height:54%;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:26px var(--g) calc(var(--sb) + 18px)}
+.ck-bg{position:absolute;inset:0;background:#000;border-top:.5px solid var(--ln2);border-radius:28px 28px 0 0;transform-origin:50% 100%;will-change:transform}
+#clock>*:not(.ck-bg){position:relative}
+.ck-hide{position:absolute!important;top:0;left:0;right:0;height:34px;display:grid;place-items:center}
+.ck-hide::before{content:"";width:36px;height:4px;border-radius:2px;background:var(--ln2)}
 #clock .cl-l{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:15px}
 #clock .cl-l i{width:9px;height:9px;border-radius:50%;background:var(--t)}
-#ck-t{font:700 112px/1 var(--font);letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+#ck-t{display:inline-block;font:700 min(34vw,150px)/.95 var(--font);letter-spacing:-.06em;font-variant-numeric:tabular-nums;transform-origin:0 0;will-change:transform}
 #clock.go #ck-t{color:var(--t)}
-.ck-bar{width:100%;height:3px;background:#1A1A1A;border-radius:2px;overflow:hidden}
+.ck-bar{width:100%;height:4px;background:#1A1A1A;border-radius:2px;overflow:hidden}
 .ck-bar i{display:block;height:100%;background:var(--t);transform-origin:0 50%;transition:transform .3s linear}
-#clock .chips{justify-content:center;margin-top:10px}
+#clock .chips{justify-content:center;margin-top:8px;flex-wrap:nowrap;gap:8px}
+#clock .chips button{padding:0 14px;min-height:48px}
+#clock .chips button.p{background:var(--t);border-color:var(--t);color:#000;font-weight:600}
+.wheel.one{font-size:34px;letter-spacing:-.03em}
+.wheel.one>div{width:150px}
 
 /* ---- finish card ---- */
 #end{position:absolute;inset:0;z-index:55;background:var(--bg);overflow-y:auto;padding:calc(var(--st) + 56px) var(--g) calc(var(--sb) + 28px)}
@@ -378,11 +386,12 @@ html[data-dir="tab"]::view-transition-new(root){animation:vt-fade-in .45s var(--
     <a href="#body" id="tab-body"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><path d="M6 9.5h12M12 9.5v5M9 21l3-6.5 3 6.5"/></svg>Body</a>
   </nav>
   <div id="clock" hidden>
+    <div class="ck-bg"></div>
+    <button type="button" class="ck-hide" data-act="clock-hide" aria-label="Shrink timer"></button>
     <div class="cl-l"><i class="breathe"></i><span id="ck-l">Rest</span></div>
-    <div id="ck-t" role="timer">0:00</div>
+    <div id="ck-t" role="timer" data-act="clock-hide">0:00</div>
     <div class="ck-bar"><i id="ck-b"></i></div>
-    <div class="chips"><button type="button" data-act="rest-add" data-v="-15">−15 s</button><button type="button" data-act="rest-add" data-v="30">+30 s</button><button type="button" data-act="rest-toggle" id="ck-p">Pause</button><button type="button" data-act="rest-cancel">Cancel</button></div>
-    <button class="btn ghost" type="button" data-act="clock-hide" style="width:auto">Hide timer</button>
+    <div class="chips"><button type="button" data-act="rest-add" data-v="-15">−15 s</button><button type="button" data-act="rest-add" data-v="30">+30 s</button><button type="button" class="p" data-act="rest-toggle" id="ck-p">Pause</button><button type="button" data-act="rest-cancel">Cancel</button></div>
   </div>
   <div id="veil" aria-hidden="true"></div>
   <div id="end" hidden></div>
@@ -782,7 +791,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "76";
+var BUILD = "77";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -827,6 +836,7 @@ function render(){
   UI.key = k;
   var html = type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
   view.innerHTML = html; view.dataset.v = type; app.dataset.s = type;
+  if(type !== "ex" && UI.clock){ UI.clock = false; $("#clock").hidden = true; }
   if(type === "home") r = ib("setup-open", "Setup", IC.gear);
   else if(type === "wk"){ l = bk("to-list", "Workouts"); t = a.name; }
   else if(type === "ex"){ l = bk("ex-close", a.name); t = a.exercises[a.openEx].name; r = ib("ex-more", "Options", IC.more, ' data-e="' + a.openEx + '"'); }
@@ -962,7 +972,7 @@ function finishWorkout(){
 }
 
 /* ---------- rest clock ---------- */
-function restStart(secs){ var a = S.active; if(!a) return; a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; restFlash = 0; saveActive(); haptic(); tick(); }
+function restStart(secs){ var a = S.active; if(!a) return; a.restTotal = secs; a.restEnd = Date.now() + secs * 1000; delete a.restPaused; restFlash = 0; saveActive(); haptic(); tick(); openClock(); }
 function tick(){
   var a = S.active, row = $("#restrow"), ck = $("#clock"), now = Date.now(), st = "idle", rem = 0, tot = 1;
   if(a && a.restEnd){
@@ -975,11 +985,33 @@ function tick(){
     $("#rest-n").textContent = st === "go" ? "Go" : st === "idle" ? fmtClock(x ? x.rest : 150) : fmtClock(rem);
     $("#rest-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest";
     $("#rest-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; }
+  if(row) row.style.visibility = UI.clock ? "hidden" : "";
   if(UI.clock){
-    if(st === "idle"){ UI.clock = false; ck.hidden = true; }
-    else { ck.hidden = false; ck.classList.toggle("go", st === "go"); $("#ck-t").textContent = st === "go" ? "Go" : fmtClock(rem); $("#ck-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest · of " + fmtClock(tot);
+    if(st === "idle") closeClock();
+    else { ck.classList.toggle("go", st === "go"); $("#ck-t").textContent = st === "go" ? "Go" : fmtClock(rem); $("#ck-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest · of " + fmtClock(tot);
       $("#ck-p").textContent = st === "paused" ? "Resume" : "Pause"; $("#ck-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; }
-  } else ck.hidden = true;
+  }
+}
+/* the timer grows out of its row into the lower half of the screen, and shrinks back the same way */
+function clockParts(){ var ck = $("#clock"); return [].slice.call(ck.querySelectorAll(".cl-l,.ck-bar,.chips,.ck-hide")); }
+function flipFrom(){ var n0 = $("#rest-n"), n1 = $("#ck-t"); if(!n0) return null; var r0 = n0.getBoundingClientRect(), r1 = n1.getBoundingClientRect(); if(!r1.height) return null;
+  return "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")"; }
+function openClock(){
+  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); tick();
+  if(calm) return;
+  var SM = "cubic-bezier(.2,.9,.2,1)", f = flipFrom();
+  ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:900, easing:SM });
+  if(f) $("#ck-t").animate([{ transform:f }, { transform:"none" }], { duration:1050, easing:SM });
+  clockParts().forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,26px,0)" }, { opacity:1, transform:"none" }], { duration:800, delay:260 + i * 70, easing:OUT, fill:"backwards" }); });
+}
+function closeClock(){
+  var ck = $("#clock"); if(!UI.clock) return; UI.clock = false;
+  var fin = function(){ ck.hidden = true; ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); tick(); };
+  if(calm || ck.hidden || view.dataset.v !== "ex"){ fin(); return; }
+  var SM = "cubic-bezier(.5,0,.2,1)", f = flipFrom();
+  clockParts().forEach(function(el){ el.animate([{ opacity:1 }, { opacity:0 }], { duration:220, fill:"forwards" }); });
+  if(f) $("#ck-t").animate([{ transform:"none" }, { transform:f }], { duration:620, easing:SM, fill:"forwards" });
+  ck.querySelector(".ck-bg").animate([{ transform:"scaleY(1)" }, { transform:"scaleY(0)" }], { duration:620, easing:SM, fill:"forwards" }).onfinish = fin;
 }
 
 /* ---------- sheet, confirm, toast ---------- */
@@ -1070,7 +1102,7 @@ function vExercise(){
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
   if(ci >= 0){ var st = x.sets[ci], hn = hint(x, ci);
     o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' of ' + x.sets.length + '</div>' +
-      '<div class="stp"><button type="button" class="sb" data-act="step" data-k="w" data-d="-1" aria-label="Less weight">−</button><div class="nw"><input id="in-w" class="num" inputmode="decimal" enterkeyhint="done" aria-label="Weight" data-k="w" value="' + (blank(st.w) ? "" : esc(st.w)) + '" placeholder="' + (blank(hn.w) ? "0" : esc(fmtW(num(hn.w)))) + '"><small>' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</small><div class="sweep"></div></div><button type="button" class="sb" data-act="step" data-k="w" data-d="1" aria-label="More weight">+</button></div>' +
+      '<div class="stp"><button type="button" class="sb" data-act="step" data-k="w" data-d="-1" aria-label="Less weight">−</button><div class="nw"><input id="in-w" class="num" readonly data-act="w-wheel" inputmode="decimal" enterkeyhint="done" aria-label="Weight" data-k="w" value="' + (blank(st.w) ? "" : esc(st.w)) + '" placeholder="' + (blank(hn.w) ? "0" : esc(fmtW(num(hn.w)))) + '"><small>' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</small><div class="sweep"></div></div><button type="button" class="sb" data-act="step" data-k="w" data-d="1" aria-label="More weight">+</button></div>' +
       '<div class="stp"><button type="button" class="sb" data-act="step" data-k="r" data-d="-1" aria-label="Fewer reps">−</button><div class="nw"><input id="in-r" class="num" inputmode="numeric" enterkeyhint="done" aria-label="Reps" data-k="r" value="' + (blank(st.r) ? "" : esc(st.r)) + '" placeholder="' + (blank(hn.r) ? "0" : esc(hn.r)) + '"><small>' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</small><div class="sweep"></div></div><button type="button" class="sb" data-act="step" data-k="r" data-d="1" aria-label="More reps">+</button></div>' +
       '<button type="button" class="btn go x-go" data-act="check" data-e="' + ei + '" data-s="' + ci + '">Complete set</button></div>';
   } else {
@@ -1290,6 +1322,16 @@ function wheelSheet(ei){
     '<button class="btn go" type="button" data-act="wh-go" data-e="' + ei + '">Start rest</button><button class="btn" type="button" data-act="wh-set" data-e="' + ei + '">Set without starting</button>');
   $("#wh-m").scrollTop = Math.floor(v / 60) * 44; $("#wh-s").scrollTop = (v % 60) / 5 * 44;
 }
+function weightSheet(){
+  var a = S.active, x = a.exercises[a.openEx], ci = curIdx(x); if(ci < 0) return;
+  var st = x.sets[ci], u = S.cfg.units, step = wStep(), cur = blank(st.w) ? num($("#in-w").placeholder) : num(st.w), n = Math.round((u === "kg" ? 300 : 500) / step), h = "", i;
+  for(i = 0; i <= n; i++) h += '<span>' + fmtW(i * step) + '</span>';
+  sheet('<div><div class="eyebrow">' + esc(x.name) + ' · set ' + (ci + 1) + '</div><h2>Weight</h2></div>' +
+    '<div class="wheel one"><div id="ww">' + h + '</div><b>' + esc(u) + '</b></div>' +
+    '<button class="btn go" type="button" data-act="ww-use">Use this weight</button><button class="btn" type="button" data-act="ww-type">Type it instead</button>');
+  var w = $("#ww"), last = -1; w.scrollTop = Math.round(cur / step) * 44;
+  w.addEventListener("scroll", function(){ var k = Math.round(w.scrollTop / 44); if(k !== last){ last = k; try{ if(navigator.vibrate) navigator.vibrate(4); }catch(e){} } }, { passive:true });
+}
 function wheelValue(){ return Math.round($("#wh-m").scrollTop / 44) * 60 + Math.round($("#wh-s").scrollTop / 44) * 5; }
 
 /* ---------- the opening: first light. The name rises over a horizon; its reflection is water you can stir ---------- */
@@ -1404,10 +1446,14 @@ document.addEventListener("click", function(ev){
     /* rest */
     case "rest-toggle": if(!a) break; if(a.restEnd){ if(a.restPaused != null){ a.restEnd = Date.now() + a.restPaused * 1000; delete a.restPaused; } else a.restPaused = Math.max(1, (a.restEnd - Date.now()) / 1000); saveActive(); haptic(); tick(); }
       else if(a.openEx != null) restStart(Math.round(a.exercises[a.openEx].rest || 150)); break;
-    case "rest-cancel": if(a){ a.restEnd = null; delete a.restPaused; ls.set("active", a); } restFlash = 0; UI.clock = false; tick(); break;
+    case "rest-cancel": closeClock(); if(a){ a.restEnd = null; delete a.restPaused; ls.set("active", a); } restFlash = 0; tick(); break;
     case "rest-add": if(a && a.restEnd){ var dd = +b.dataset.v * 1000; a.restEnd += dd; if(a.restPaused != null) a.restPaused = Math.max(1, a.restPaused + dd / 1000); a.restTotal = Math.max(1, a.restTotal + dd / 1000); ls.set("active", a); tick(); } break;
-    case "rest-time": if(a && a.restEnd){ UI.clock = true; tick(); } else if(a && a.openEx != null) wheelSheet(a.openEx); break;
-    case "clock-hide": UI.clock = false; tick(); break;
+    case "rest-time": if(a && a.restEnd) openClock(); else if(a && a.openEx != null) wheelSheet(a.openEx); break;
+    case "clock-hide": closeClock(); break;
+    case "w-wheel": if(b.readOnly) weightSheet(); break;
+    case "ww-use": (function(){ var x = a.exercises[a.openEx], ci = curIdx(x); if(ci < 0) return; var v = Math.round($("#ww").scrollTop / 44) * wStep(), st = x.sets[ci], old = blank(st.w) ? -1 : num(st.w);
+        st.w = v; delete st.pl; saveActive(); closeSheet(); haptic(); var inp = $("#in-w"); if(inp) roll(inp, fmtW(v), v >= old ? 1 : -1); })(); break;
+    case "ww-type": (function(){ closeSheet(); var inp = $("#in-w"); if(!inp) return; inp.readOnly = false; inp.focus(); })(); break;
     case "wh-pre": (function(v){ $("#wh-m").scrollTo({ top:Math.floor(v / 60) * 44, behavior:"smooth" }); $("#wh-s").scrollTo({ top:(v % 60) / 5 * 44, behavior:"smooth" });
         [].forEach.call(document.querySelectorAll("#sheet .chips button"), function(q){ q.setAttribute("aria-pressed", q === b); }); })(+b.dataset.v); break;
     case "wh-go": case "wh-set": (function(){ var secs = wheelValue(); if(secs < 5){ toast("Pick a time first"); return; } a.exercises[ei].rest = secs; saveActive(); closeSheet(); if(act === "wh-go") restStart(secs); else tick(); })(); break;
@@ -1455,7 +1501,8 @@ document.addEventListener("input", function(ev){
     else r[d.k] = t.value;
     saveCfg(); }
 });
-document.addEventListener("focusin", function(ev){ var t = ev.target; if(t.id === "in-w" || t.id === "in-r") setTimeout(function(){ try{ t.select(); }catch(e){} }, 0); });
+document.addEventListener("focusin", function(ev){ var t = ev.target; if((t.id === "in-w" && !t.readOnly) || t.id === "in-r") setTimeout(function(){ try{ t.select(); }catch(e){} }, 0); });
+document.addEventListener("focusout", function(ev){ if(ev.target.id === "in-w") ev.target.readOnly = true; });
 document.addEventListener("change", function(ev){ var t = ev.target;
   if(t.id === "ph-file" && t.files && t.files[0]){ addPhoto(t.files[0]); t.value = ""; } });
 document.addEventListener("toggle", function(ev){ var d = ev.target; if(d.dataset && d.dataset.rid){ if(d.open) S.openRoutine = d.dataset.rid; else if(S.openRoutine === d.dataset.rid) S.openRoutine = null; } }, true);
