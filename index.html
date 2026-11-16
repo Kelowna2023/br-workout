@@ -48,11 +48,11 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 #bar>*{position:relative;pointer-events:auto}
 .bk{display:flex;align-items:center;gap:2px;height:44px;padding:0 10px 0 4px;color:var(--t);font-size:15px;font-weight:500;max-width:min(240px,56vw);transition:transform .3s var(--spring),color .2s}
 .bk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.bk:active{transform:scale(.94);opacity:.6}
+.bk.tap{transform:scale(.94);opacity:.6}
 .bk svg{width:20px;height:20px}
 #bar-t{position:absolute;left:50%;top:var(--st);height:52px;display:flex;align-items:center;transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:-.02em;opacity:var(--tp,0);max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .ib{width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:50%;transition:transform .3s var(--spring),color .2s}
-.ib:active{transform:scale(.88);color:var(--tx)}
+.ib.tap{transform:scale(.88);color:var(--tx)}
 #bar-date{position:absolute;left:var(--g);top:var(--st);height:52px;display:flex;align-items:center;font-size:14px;color:#A8A49C;font-weight:500;pointer-events:none;will-change:opacity,transform}
 
 /* ---- the wordmark: big on arrival, rides your scroll up into the bar ---- */
@@ -85,7 +85,7 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 .tag.q{color:var(--mu);border-color:var(--ln2)}
 
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 18px;border-radius:14px;border:.5px solid var(--ln2);font-weight:500;font-size:15px;color:var(--tx);transition:transform .35s var(--spring),background .2s,opacity .2s}
-.btn:active{transform:scale(.965)}
+.btn.tap{transform:scale(.965)}
 .btn.go{background:var(--t);border-color:var(--t);color:#000;font-weight:500}
 .btn.danger{color:var(--red)}
 .btn.ghost{border-color:transparent;color:var(--mu)}
@@ -119,14 +119,14 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .segs i.on{transform:scaleX(1)}
 .list{margin-top:32px;border-top:.5px solid var(--ln)}
 .wrow{width:100%;min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln);will-change:transform,opacity;transform-origin:0 50%}
-.wrow:active .wn{color:var(--t)}
+.wrow.tap .wn{color:var(--t)}
 .wn{display:block;font:500 23px/1.1 var(--font);letter-spacing:-.035em;transition:color .15s}
 .wrow small{display:block;font-size:13px;color:var(--mu);margin-top:5px}
 .wr{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex:none}
 .wv{width:76px;height:20px;overflow:hidden;color:var(--dim);transition:color .4s}
 .wv svg{display:block;width:152px;height:20px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;animation:drift 16s linear infinite;will-change:transform}
 .wrow.on .wv{color:var(--t)}
-.wrow:active .wv{color:var(--t)}
+.wrow.tap .wv{color:var(--t)}
 @keyframes drift{to{transform:translate3d(-76px,0,0)}}
 /* a horizon under each page title, and a thought at the foot of each page */
 .hz{height:1px;margin:22px calc(var(--g) * -1) 0;background:linear-gradient(90deg,transparent,var(--t) 22%,var(--t) 60%,transparent);opacity:.45;transform-origin:0 50%}
@@ -156,7 +156,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hwx{position:relative}
 .hw-ar{position:absolute;left:50%;top:50%;margin:-44px 0 0 -15px;width:44px;height:88px;display:flex;flex-direction:column;color:var(--t);transform:translate3d(var(--ax,30px),0,0);transition:transform .32s var(--out);z-index:2}
 .hw-ar button{flex:1;display:flex;justify-content:center;color:inherit;opacity:.85;transition:opacity .15s,transform .2s var(--spring)}.hw-ar button:first-child{align-items:flex-end;padding-bottom:14px}.hw-ar button:last-child{align-items:flex-start;padding-top:14px}
-.hw-ar button:active{opacity:1;transform:scale(1.35)}
+.hw-ar button.tap{opacity:1;transform:scale(1.35)}
 .hw-ar svg{display:block;width:14px;height:8px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .hw.v span{color:var(--t)}
 .hw.v.ghost span{color:var(--mu)}
@@ -179,7 +179,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .tn span{position:absolute;left:10px;bottom:8px;font-size:12px;font-weight:500;text-shadow:0 1px 5px rgba(0,0,0,.85)}
 .sc{width:100%;min-height:60px;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:10px 0;border-bottom:.5px solid var(--ln);text-align:left}
 .sc b{font:500 17px/1.2 var(--font);letter-spacing:-.02em;transition:color .15s}
-.sc:active b{color:var(--t)}
+.sc.tap b{color:var(--t)}
 .sc small{grid-column:1;font-size:13px;color:var(--mu);font-variant-numeric:tabular-nums}
 .sc em{grid-row:1/3;grid-column:2;font-style:normal;font-size:14px;font-weight:600;color:var(--t);font-variant-numeric:tabular-nums}
 .sc em.z{color:var(--mu2);font-weight:400}
@@ -214,7 +214,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .xrow .ct{font-size:14px;color:var(--mu2);font-variant-numeric:tabular-nums;font-weight:500}
 .xrow.done .nm{color:var(--mu)}
 .xrow .nm,.prow>span:first-child,.hrow b,.acc>button,.mrow>span:first-child,.grow-r div span:first-child{transition:color .15s}
-.xrow:active .nm,.prow:active>span:first-child,.hrow:active b,.acc>button:active,.mrow:active>span:first-child,.grow-r:active div span:first-child{color:var(--t)}
+.xrow.tap .nm,.prow.tap>span:first-child,.hrow.tap b,.acc>button.tap,.mrow.tap>span:first-child,.grow-r.tap div span:first-child{color:var(--t)}
 .xrow small.t{color:var(--t);font-weight:500}
 .xrow .ct b{color:var(--t);font-weight:600}
 .sub b{color:var(--t);font-weight:600}
@@ -236,7 +236,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .stp{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
 .stp+.stp{margin-top:14px}
 .sb{width:52px;height:52px;border-radius:50%;border:.5px solid var(--ln2);display:grid;place-items:center;font-size:24px;font-weight:400;color:var(--tx);flex:none;transition:transform .28s var(--spring),background .2s,border-color .2s}
-.sb:active{transform:scale(.86);background:var(--sf);border-color:var(--mu2)}
+.sb.tap{transform:scale(.86);background:var(--sf);border-color:var(--mu2)}
 .nw{position:relative;flex:1;text-align:center;overflow:hidden}
 .nw input{width:100%;background:none;border:0;outline:0;text-align:center;font:600 58px/1.06 var(--font);letter-spacing:-.045em;font-variant-numeric:tabular-nums;color:var(--tx);padding:0;caret-color:var(--t)}
 .nw input::placeholder{color:var(--dim);opacity:1}
@@ -255,7 +255,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .rest[data-st="go"] .rest-t b{color:var(--t)}
 .rest-b{display:flex;gap:8px}
 .rb{width:44px;height:44px;border-radius:50%;border:.5px solid var(--ln2);display:grid;place-items:center;color:var(--t);transition:transform .28s var(--spring)}
-.rb:active{transform:scale(.86)}
+.rb.tap{transform:scale(.86)}
 .rb svg{width:18px;height:18px}
 .rb.x{color:var(--mu)}
 .rest[data-st="idle"] .rb.x,.rest[data-st="go"] .rb.x{display:none}
@@ -277,7 +277,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 /* ---- tabs ---- */
 #tabs{flex:none;display:flex;justify-content:space-around;padding:8px 6px calc(var(--sb) + 6px);border-top:.5px solid #1A1A1A;background:var(--bg);z-index:15;view-transition-name:tabs}
 #tabs a{flex:1;display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--mu2);padding:4px 0;text-decoration:none;transition:color .2s,transform .3s var(--spring)}
-#tabs a:active{transform:scale(.9)}
+#tabs a.tap{transform:scale(.9)}
 #tabs a[aria-current="page"]{color:var(--t)}
 #app[data-s="wk"] #tabs,#app[data-s="ex"] #tabs,#app[data-s="setup"] #tabs{display:none}
 
@@ -290,12 +290,12 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .cd{position:relative;height:48px;display:grid;place-items:center;font-size:15px;color:var(--dim);font-variant-numeric:tabular-nums}
 .cd span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;transition:transform .3s var(--spring)}
 .cd.on{color:#000;font-weight:600}.cd.on span{background:var(--t)}
-.cd.on:active span{transform:scale(.86)}
+.cd.on.tap span{transform:scale(.86)}
 .cd.td:not(.on){color:var(--tx)}.cd.td:not(.on) span{border:1px solid var(--ln2)}
 .cd.ph::after{content:"";position:absolute;top:5px;right:calc(50% - 20px);width:6px;height:6px;border-radius:50%;background:var(--tx);border:1.5px solid #000}
 .cd.ph:not(.on){color:var(--tx)}
-.cd.pa{color:var(--mu)}.cd.pa:active span{background:var(--ln)}
-.lg-r{width:100%;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:.5px solid var(--ln);font-size:16px;font-weight:500;color:var(--t);text-align:left;transition:opacity .2s}.lg-r:active{opacity:.5}.lg-r svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cd.pa{color:var(--mu)}.cd.pa.tap span{background:var(--ln)}
+.lg-r{width:100%;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:.5px solid var(--ln);font-size:16px;font-weight:500;color:var(--t);text-align:left;transition:opacity .2s}.lg-r.tap{opacity:.5}.lg-r svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .bd{margin-top:14px}
 .hrow{width:100%;min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:.5px solid var(--ln)}
 .hrow b{font:500 17px/1.2 var(--font);letter-spacing:-.02em;display:block}
@@ -376,7 +376,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .panel h2{font-size:24px;letter-spacing:-.035em}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips button{min-height:44px;padding:0 16px;border-radius:12px;border:.5px solid var(--ln2);font-size:15px;font-weight:500;transition:transform .28s var(--spring)}
-.chips button:active{transform:scale(.94)}
+.chips button.tap{transform:scale(.94)}
 .chips button[aria-pressed="true"]{border-color:var(--t);color:var(--t)}
 .wheel{position:relative;display:flex;justify-content:center;gap:6px;height:220px;font:500 26px/44px var(--font);font-variant-numeric:tabular-nums}
 .wheel::before{content:"";position:absolute;left:0;right:0;top:88px;height:44px;border-top:.5px solid var(--ln2);border-bottom:.5px solid var(--ln2);pointer-events:none}
@@ -501,6 +501,7 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .5s .3s ease-out 
 @keyframes title-swell{0%{transform:scale(1)}36%{transform:scale(1.2)}100%{transform:scale(1)}}
 ::view-transition-old(title),::view-transition-new(title){height:100%;width:auto;object-fit:contain;object-position:left center;animation-duration:.5s}
 @media (prefers-reduced-motion: reduce){*,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}}
+.tap,.tap *{transition-duration:0s!important}
 .bk-st{color:var(--mu);font-size:14px;line-height:1.5}.bk-st b{color:var(--tx)}
 </style>
 </head>
@@ -933,7 +934,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "108";
+var BUILD = "109";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1225,6 +1226,8 @@ function paint(){
   }
 }
 view.addEventListener("scroll", onScroll, { passive:true });
+/* pressed states show only on a real tap, never while a finger is just resting or scrolling */
+document.addEventListener("click", function(e){ var t = e.target.closest && e.target.closest("button,a,[data-act]"); if(!t) return; t.classList.add("tap"); setTimeout(function(){ t.classList.remove("tap"); }, 260); }, true);
 
 /* ---------- moving between screens ---------- */
 function clearVT(){ [].forEach.call(document.querySelectorAll("[data-vt]"), function(e){ e.style.viewTransitionName = ""; e.removeAttribute("data-vt"); }); }
