@@ -105,7 +105,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .wk-s{font-size:15px;color:var(--mu)}
 .wk-s b{color:var(--t);font-weight:600}
 .wk+.segs{margin-top:12px}
-.h-cd{margin-bottom:26px}
+.h-cd{margin-bottom:18px}
 .h-cd-n{font:400 17px/1.4 var(--font);letter-spacing:-.008em;color:#7C7972}
 .h-cd-n b{font-weight:500;color:#D9D5CD}
 .h-cd .yg{margin-top:16px}
@@ -469,8 +469,9 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-q p{position:relative;font:400 19px/1.32 var(--font);letter-spacing:-.012em;color:#A29E96}
 .h-q p b{font-weight:500;color:var(--tx)}
 .h-q span{position:relative;display:block;font-size:12px;color:var(--mu2);margin-top:10px}
-#h-go{margin-top:0;min-height:64px;justify-content:space-between;padding:0 22px;font-size:17px;border-radius:16px}
-#h-go svg{width:22px;height:22px;stroke-width:2}
+#h-go{display:flex;width:88px;height:48px;margin:0 auto -8px;align-items:center;justify-content:center;color:var(--t)}
+#h-go svg{width:24px;height:12px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;animation:h-up 2.3s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes h-up{0%{opacity:0;transform:translate3d(0,9px,0)}35%{opacity:.9}70%{opacity:.9}100%{opacity:0;transform:translate3d(0,-9px,0)}}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
 #tide i{position:absolute;left:0;right:0;background:var(--t);will-change:transform;transform:scaleY(0)}
 #tide .a{top:0;transform-origin:50% 100%}#tide .b{bottom:0;transform-origin:50% 0}
@@ -513,7 +514,7 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .5s .3s ease-out 
     <div class="h-sea" id="h-sea"><div class="h-glow"></div><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"><em class="gl"></em><em class="gr"></em></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
     <p class="h-ms">Your wake is the trail you leave behind. <b>Make it worth following.</b></p>
     <div class="h-bot"><div class="h-cd" id="h-cd"></div>
-      <button type="button" class="btn go" id="h-go" data-act="enter"><span>Enter</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button></div>
+      <button type="button" id="h-go" data-act="enter" aria-label="Enter. Swipe up"><svg viewBox="0 0 24 12" aria-hidden="true"><path d="M3 10l9-8 9 8"/></svg></button></div>
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
   <main id="view"></main>
@@ -932,7 +933,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "107";
+var BUILD = "108";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1821,6 +1822,12 @@ function leave(){
   view.addEventListener("touchstart", function(e){ y0 = app.dataset.s === "home" && $("#hero").hidden && view.scrollTop <= 0 && e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive:true });
   view.addEventListener("touchmove", function(e){ if(y0 == null) return; if(view.scrollTop > 2){ y0 = null; return; } if(e.touches[0].clientY - y0 > 120){ y0 = null; leave(); } }, { passive:true });
   view.addEventListener("touchend", function(){ y0 = null; }, { passive:true });
+})();
+(function(){ var el = $("#hero"), y0 = null;
+  el.addEventListener("touchstart", function(e){ y0 = e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive:true });
+  el.addEventListener("touchmove", function(e){ if(y0 == null) return; if(y0 - e.touches[0].clientY > 56){ y0 = null; enter(); } }, { passive:true });
+  el.addEventListener("touchend", function(){ y0 = null; }, { passive:true });
+  el.addEventListener("wheel", function(e){ if(e.deltaY > 12) enter(); }, { passive:true });
 })();
 function enter(){
   var el = $("#hero"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
