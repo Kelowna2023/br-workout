@@ -91,7 +91,7 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 
 /* ---- home ---- */
-.hero{height:98px}
+.hero{height:136px}
 .wk{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
 .wk-n{font:600 40px/1 var(--font);letter-spacing:-.045em}
 .wk-n b{color:var(--t);font-weight:600}.wk-n span{color:var(--dim)}
@@ -377,9 +377,14 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 
 
 /* ---- the opening: first light. The name rises over a horizon and its reflection moves like water ---- */
-#hero{position:absolute;inset:0;z-index:52;background:var(--bg);touch-action:none;overflow:hidden}
+#hero{position:absolute;inset:0;z-index:52;touch-action:none;overflow:hidden}
+.h-bg{position:absolute;inset:0;background:var(--bg);will-change:opacity}
+#wm-ref{position:absolute;left:0;top:.868em;pointer-events:none;will-change:opacity}
+#wm-ref .st{overflow:hidden;display:flex;will-change:transform}
+#wm-ref .h-w{transform:scaleY(-1)}
+#wm-hz{position:absolute;left:calc(var(--g) * -1);width:min(100vw,560px);top:.868em;height:1px;background:linear-gradient(90deg,transparent,var(--t) 16%,var(--t) 62%,transparent);opacity:.5;pointer-events:none;will-change:opacity}
 .h-top{position:absolute;left:var(--g);right:var(--g);top:calc(var(--st) + 18px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
-.h-sea{position:absolute;left:0;right:0;top:43%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
+.h-sea{will-change:transform;position:absolute;left:0;right:0;top:43%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
 .h-rise{position:absolute;left:0;right:0;bottom:0;height:.868em;overflow:hidden;display:flex;justify-content:center}
 .h-w{display:flex;align-items:flex-end;height:1em;white-space:nowrap;will-change:transform}
 .h-w i{width:.19em;height:.19em;border-radius:50%;background:var(--t);margin:0 0 .136em .07em;flex:none}
@@ -424,8 +429,9 @@ html[data-dir="tab"]::view-transition-new(root){animation:vt-fade-in .45s var(--
 <body>
 <div id="app" data-s="home">
   <div id="bar"><span id="bar-l"></span><span id="bar-t"></span><span id="bar-r"></span><span id="bar-date"></span></div>
-  <div id="wm" aria-label="Wake"><span>W</span><span>a</span><span>k</span><span>e</span><i class="breathe"></i></div>
+  <div id="wm" aria-label="Wake"><span>W</span><span>a</span><span>k</span><span>e</span><i class="breathe"></i><div id="wm-hz" aria-hidden="true"></div><div id="wm-ref" aria-hidden="true"></div></div>
   <div id="hero" hidden>
+    <div class="h-bg"></div>
     <div class="h-top"><span id="h-date"></span><span id="h-week"></span></div>
     <div class="h-sea" id="h-sea"><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
     <div class="h-bot"><div class="h-q"><p id="h-qt"></p><span id="h-qa"></span></div>
@@ -849,11 +855,11 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "84";
+var BUILD = "85";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
-var HERO_Y = 50;
+var HERO_Y = 46;
 var OUT = "cubic-bezier(.22,1,.36,1)", SPRING = "cubic-bezier(.34,1.56,.64,1)", IO = "cubic-bezier(.76,0,.24,1)";
 var IC = {
   back:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
@@ -996,6 +1002,7 @@ function paint(){
   if(type === "home"){
     var p = clamp(y / 78, 0, 1), e = p * p * (3 - 2 * p), pull = y < 0 ? Math.min(-y, 140) / 520 : 0;
     if(!UI.intro) wm.style.transform = "translate3d(0," + ((1 - e) * HERO_Y - Math.min(0, y) * 0.5) + "px,0) scale(" + (1 - e * 0.57 + pull) + ")";
+    var rfo = clamp(1 - p * 2.2, 0, 1).toFixed(3); $("#wm-ref").style.opacity = rfo; $("#wm-hz").style.opacity = (rfo * 0.5).toFixed(3); UI.refOn = p < 0.5;
     var bd = $("#bar-date"); bd.style.opacity = (1 - clamp(y / 40, 0, 1)).toFixed(3); bd.style.transform = "translate3d(0," + (-clamp(y, 0, 60) * 0.35) + "px,0)";
     bar.style.setProperty("--bp", clamp((y - 58) / 18, 0, 1).toFixed(3)); bar.style.setProperty("--tp", 0);
   } else {
@@ -1218,7 +1225,7 @@ function vHome(){
       '<span class="wr">' + (prog[r.id] ? '<span class="tag q">In progress</span>' : done[r.id] ? '<span class="tag">Complete</span>' : '') + wave(1.2 + Math.min(cnt[r.id] || 0, 6) * 0.55) + '</span></button>'; });
   var need = bkNeed();
   return '<div class="hero"></div>' +
-    '<div data-rv><div class="wk"><div class="wk-n"><b>' + n + '</b><span> of ' + goal + '</span></div><div class="wk-l">this week</div>' + moon() + '</div><div class="segs">' + segs + '</div></div>' +
+    '<div data-rv><div class="wk"><div class="wk-n"><b>' + n + '</b><span> of ' + goal + '</span></div><div class="wk-l">this week</div></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     (need ? '<div class="foot" data-rv><button type="button" class="t" data-act="backup">Back up your ' + need + (need === 1 ? " new workout" : " new workouts") + '</button></div>' : '') +
     yearGrid() + thought(1);
@@ -1543,12 +1550,8 @@ function hero(){
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "Week " + isoWeek(d);
   $("#h-qt").innerHTML = esc(q[0]) + "<b>" + esc(q[1]) + "</b>"; $("#h-qa").textContent = q[2];
   UI.intro = true; el.hidden = false; HR.busy = false;
-  /* the reflection: the name, flipped, cut into thin strips that slide like the surface of water */
-  var sea = $("#h-sea"), ref = $("#h-ref"), fs = parseFloat(getComputedStyle(sea).fontSize), H = Math.round(fs * 0.868), N = 36, sh = Math.ceil(H / N), html = "";
-  for(i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (0.5 * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
-  ref.innerHTML = html; HR.strips = [].slice.call(ref.children); HR.hz = sea.offsetTop; HR.on = true; HR.t0 = performance.now();
+  var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   if(calm) return;
-  requestAnimationFrame(water);
   var SLOW = "cubic-bezier(.19,1,.22,1)", SOFT = "cubic-bezier(.33,0,.1,1)", w = $("#h-w");
   el.querySelector(".h-line").animate([{ transform:"scaleX(0)", opacity:0 }, { transform:"scaleX(1)", opacity:1 }], { duration:1800, delay:150, easing:SOFT, fill:"backwards" });
   w.animate([{ transform:"translate3d(0,102%,0)" }, { transform:"none" }], { duration:2900, delay:650, easing:SLOW, fill:"backwards" });
@@ -1557,28 +1560,40 @@ function hero(){
   [[".h-top", 1500, 0], [".h-q", 1900, 16], ["#h-go", 2300, 22]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
 }
-function water(ts){
-  if(!HR.on) return;
-  var t = (ts - HR.t0) / 1000, N = HR.strips.length, amp = 2.2 + HR.energy; HR.energy *= 0.955;
-  for(var i = 0; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + HR.px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2;
-    HR.strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; }
-  requestAnimationFrame(water);
+/* the reflection: the name, flipped, cut into thin strips that slide like the surface of water */
+function buildRef(ref, fs, N, base){
+  var H = Math.round(fs * 0.868), sh = Math.ceil(H / N), html = "";
+  for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
+  ref.innerHTML = html; return [].slice.call(ref.children);
 }
-/* the tide: teal opens from the horizon, fills the screen, then lifts away to show your workouts */
+function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
+var WMS = [];
+function water(ts){
+  requestAnimationFrame(water); if(document.hidden) return;
+  var t = ts / 1000; HR.energy *= 0.955;
+  if(HR.on) sway(HR.strips, t, 2.2 + HR.energy, HR.px);
+  if(app.dataset.s === "home" && UI.refOn && WMS.length) sway(WMS, t, 0.9, 0);
+}
+/* entering: no wipe. The name leaves the horizon and travels to its place at the top of your workouts, reflection and all */
 function enter(){
-  var el = $("#hero"), td = $("#tide"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
-  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; view.scrollTop = 0; paint(); };
+  var el = $("#hero"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
+  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; view.scrollTop = 0; paint(); };
   if(calm){ done(); return; }
-  var H = app.clientHeight, hz = HR.hz, A = td.querySelector(".a"), B = td.querySelector(".b"), SOFT = "cubic-bezier(.7,0,.2,1)", n = 0;
-  A.style.height = (hz + 1) + "px"; B.style.height = (H - hz) + "px"; td.hidden = false;
-  var open = function(){ if(++n < 2) return;
-    done();
-    td.animate([{ transform:"translate3d(0,0,0)" }, { transform:"translate3d(0,-100%,0)" }], { duration:1050, delay:80, easing:SOFT, fill:"forwards" }).onfinish = function(){ td.hidden = true; [td, A, B].forEach(function(z){ z.getAnimations().forEach(function(q){ q.cancel(); }); }); };
-    wm.animate([{ opacity:0, transform:"translate3d(0," + (HERO_Y + 80) + "px,0)" }, { opacity:1, transform:"translate3d(0," + HERO_Y + "px,0)" }], { duration:1300, delay:420, easing:OUT, fill:"backwards" });
-    [].slice.call(view.querySelectorAll("[data-rv]"), 0, 10).forEach(function(r, k){ r.animate([{ opacity:0, transform:"translate3d(0,48px,0)" }, { opacity:1, transform:"none" }], { duration:1200, delay:520 + k * 75, easing:OUT, fill:"backwards" }); });
-    [].forEach.call(view.querySelectorAll(".segs i[data-on]"), function(e){ e.classList.remove("on"); setTimeout(function(){ e.classList.add("on"); }, 950); });
+  el.getAnimations({ subtree:true }).forEach(function(q){ try{ q.finish(); }catch(e){} });
+  var sea = $("#h-sea"), fs = parseFloat(getComputedStyle(sea).fontSize), rise = sea.querySelector(".h-rise").getBoundingClientRect(), sr = sea.getBoundingClientRect(), sl = $("#h-w").getBoundingClientRect().left;
+  wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; wm.style.opacity = 0;
+  var tr = wm.getBoundingClientRect(), sc = tr.height / fs, EASE = "cubic-bezier(.66,0,.18,1)";
+  sea.style.transformOrigin = (sl - sr.left).toFixed(1) + "px " + (rise.top - sr.top).toFixed(1) + "px";
+  [".h-top", ".h-q", "#h-go"].forEach(function(q){ el.querySelector(q).animate([{ opacity:1 }, { opacity:0, transform:"translate3d(0,10px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
+  el.querySelector(".h-line").animate([{ opacity:1 }, { opacity:0 }], { duration:700, delay:150, fill:"forwards" });
+  $("#h-ref").animate([{ opacity:1 }, { opacity:0.6 }], { duration:1200, delay:150, fill:"forwards" });
+  el.querySelector(".h-bg").animate([{ opacity:1 }, { opacity:0 }], { duration:900, delay:520, easing:"ease-in-out", fill:"forwards" });
+  [].slice.call(view.querySelectorAll("[data-rv]"), 0, 10).forEach(function(r, k){ r.animate([{ opacity:0, transform:"translate3d(0,40px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:760 + k * 70, easing:OUT, fill:"backwards" }); });
+  [].forEach.call(view.querySelectorAll(".segs i[data-on]"), function(e){ e.classList.remove("on"); setTimeout(function(){ e.classList.add("on"); }, 1300); });
+  sea.animate([{ transform:"none" }, { transform:"translate3d(" + (tr.left - sl).toFixed(1) + "px," + (tr.top - rise.top).toFixed(1) + "px,0) scale(" + sc.toFixed(4) + ")" }], { duration:1250, delay:150, easing:EASE, fill:"forwards" }).onfinish = function(){
+    done(); el.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); sea.style.transformOrigin = "";
+    $("#wm-hz").animate([{ opacity:0 }, { opacity:0.5 }], { duration:700, easing:"ease-out" });
   };
-  [A, B].forEach(function(z){ z.animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:850, easing:SOFT, fill:"forwards" }).onfinish = open; });
 }
 /* a finger on the water stirs it; it never opens the app. Only the button does */
 (function(){ var el = $("#hero"), lx = 0, ly = 0, on = false;
@@ -1732,8 +1747,10 @@ if(migrated){ migrated = false; saveCfg(); }
 if(dropStale() || trimActive()) saveActive();
 S.pick = true; if(S.active) S.active.openEx = null;
 if(!/^#(today|history|progress|body)$/.test(location.hash)) history.replaceState(null, "", "#today");
+WMS = buildRef($("#wm-ref"), 60, 18, 0.3);
 render();
 if(viewName() === "today") hero();
+if(!calm) requestAnimationFrame(water);
 connect(); loadPhotos();
 setInterval(tick, 250);
 })();
