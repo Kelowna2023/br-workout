@@ -1,5 +1,5 @@
-# BR Workout
+# Wake
 
-A personal gym log that runs as a home-screen web app. Workout data is stored on the phone only; nothing is sent anywhere.
+A personal training log. Black, warm white, one teal. Open `index.html`, or add the hosted page to your iPhone home screen.
 
-Open the site in Safari on an iPhone, tap Share, then "Add to Home Screen".
+Your workouts are stored on the phone (the app's own storage). Use Setup > Backup to save a copy.
