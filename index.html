@@ -991,6 +991,9 @@ main{gap:26px!important;padding-top:34px!important}
 .bsel-l span{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid var(--line)}
 .bsel-l i{font:600 15px/1.2 var(--font);font-style:normal;color:var(--text);text-transform:none;letter-spacing:-.01em}
 .bsel-l em{font-style:normal;color:var(--dim);white-space:nowrap}
+.pglog.sc button span:first-child{font:700 17px/1.2 var(--font)!important;text-transform:none!important;letter-spacing:-.02em!important;color:var(--text)!important}
+.pglog.sc button{min-height:72px;padding-top:12px!important;padding-bottom:12px!important}
+.pg-x{margin:-14px 0 0;font:400 15px/1.45 var(--font);color:var(--dim)}
 </style>
 </head>
 <body>
@@ -2202,7 +2205,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "68";
+var BUILD = "69";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2818,33 +2821,25 @@ function pgExercise(){
 
 /* ---- progress: overall trends ---- */
 function pgOverall(){
-  var u = S.cfg.units, wk = {}, order = [];
-  for(var i = S.sessions.length - 1; i >= 0; i--){ var s = S.sessions[i], w0 = weekStart(s.startedAt); if(!wk[w0]){ wk[w0] = { t:w0, vol:0, n:0, sets:0, list:[] }; order.push(w0); }
-    var W = wk[w0], v = 0, c = 0; (s.exercises || []).forEach(function(x){ (x.sets || []).forEach(function(st){ v += num(st.w) * num(st.r); c++; }); }); W.vol += v; W.sets += c; W.n++; W.list.push({ t:s.startedAt, name:s.name || "Workout", vol:v, sets:c }); }
-  if(!order.length) return '<div class="pgc ghost"><div class="pgs"><div class="pgbars">' + [30,42,40,55,62,60].map(function(p){ return '<span class="pgb" style="--h:' + p + ';--d:0s"><i></i></span>'; }).join("") + '</div></div><div class="pge">Finish your first workout and your weekly trend starts here.</div></div>';
-  order.sort(function(a, b){ return a - b; }); var weeks = [], cur = weekStart(Date.now());
-  for(var t = order[0]; t <= cur; t = weekStart(t + 8 * 864e5)) weeks.push(wk[t] || { t:t, vol:0, n:0, sets:0, list:[] });
-  var vals = weeks.map(function(w){ return w.vol; }), mx = Math.max.apply(null, vals), sel = S.pgWeek == null || S.pgWeek >= weeks.length ? weeks.length - 1 : S.pgWeek, run = -1;
-  var last = weeks[weeks.length - 1], prev = weeks.length > 1 ? weeks[weeks.length - 2] : null, best = weeks.slice().sort(function(a, b){ return b.vol - a.vol; })[0], dw = prev ? last.vol - prev.vol : null;
-  var kf = function(n){ return n >= 10000 ? (n / 1000).toFixed(1) + "k" : fmtVol(n); };
-  var h = '<div class="pgst"><div><b>' + kf(last.vol) + ' ' + esc(u) + '</b><span>This week · ' + last.n + (last.n === 1 ? " workout" : " workouts") + '</span></div>' +
-    '<div><b class="' + (dw > 0 ? "up" : dw < 0 ? "dn" : "") + '">' + (dw == null ? "—" : (dw > 0 ? "+" : dw < 0 ? "−" : "") + kf(Math.abs(dw)) + ' ' + esc(u)) + '</b><span>Against last week</span></div>' +
-    '<div><b>' + kf(best.vol) + ' ' + esc(u) + '</b><span>Best week · ' + fmtShort(best.t) + '</span></div><div><b>' + S.sessions.length + '</b><span>Workouts logged</span></div></div>';
-  h += '<div class="pgc' + (S.pgNoAnim ? " noanim" : "") + '"><div class="pgc-h"><span>Weight moved each week, ' + esc(u) + '</span><span>' + (weeks.length > 6 ? "Swipe for older" : "") + '</span></div><div class="pgs" id="pg-scroll"><div class="pgbars">' +
-    weeks.map(function(w, i){ var rec = i > 0 && w.vol > run && w.vol > 0, pv = i ? vals[i - 1] : null, pct = mx > 0 ? Math.max(3, 100 * w.vol / mx) : 3; if(w.vol > run) run = w.vol;
-      return '<button type="button" class="pgb' + (i === sel ? " sel" : "") + (pv != null && w.vol <= pv ? " eq" : "") + '" data-act="pg-week" data-i="' + i + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (weeks.length - 8)) * 0.05).toFixed(2) + 's" aria-label="Week of ' + fmtShort(w.t) + ', ' + fmtVol(w.vol) + ' ' + esc(u) + '">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + kf(w.vol) + '</span><i></i><span class="d">' + fmtShort(w.t) + '</span></button>'; }).join("") + '</div></div></div>';
-  var d = weeks[sel];
-  h += '<div class="card pgd"><div class="pgd-h"><span><b>Week of ' + fmtShort(d.t) + '</b><small>' + d.n + (d.n === 1 ? " workout" : " workouts") + ' · ' + d.sets + ' sets</small></span>' + pgDelta(sel ? d.vol - vals[sel - 1] : null, u) + '</div>' +
-    (d.list.length ? d.list.map(function(q){ return '<div class="pgd-r" style="grid-template-columns:64px 1fr auto"><span>' + new Date(q.t).toLocaleDateString("en-US", { weekday:"short" }) + '</span><b>' + esc(q.name) + '</b><span>' + kf(q.vol) + ' ' + esc(u) + '</span></div>'; }).join("") : '<div class="pgd-f">No workouts this week.</div>') + '</div>';
-  var names = {}, st = [], seenK = {};
-  S.sessions.forEach(function(s){ (s.exercises || []).forEach(function(x){ var k = key(x.name); if(!seenK[k] && x.sets && x.sets.length){ seenK[k] = 1; names[k] = x.name; } }); });
-  Object.keys(names).forEach(function(k){ var dd = pgData(k), a = dd[dd.length - 1], b = dd.length > 1 ? dd[dd.length - 2] : null, byW = !!(b && a.top !== b.top), diff = b ? (byW ? a.top - b.top : a.topR - b.topR) : null;
-    st.push({ k:k, name:names[k], a:a, b:b, diff:diff, unit: byW || !b ? u : "reps", rank: diff == null ? 3 : diff > 0 ? 0 : diff === 0 ? 1 : 2 }); });
-  st.sort(function(x, y){ return x.rank - y.rank || (y.diff || 0) - (x.diff || 0) || x.name.localeCompare(y.name); });
-  var cnt = [0, 0, 0, 0]; st.forEach(function(x){ cnt[x.rank]++; });
-  h += '<h2>Exercises, last session against the one before</h2><div class="pgsc"><div class="up"><b>' + cnt[0] + '</b><span>Up</span></div><div><b>' + cnt[1] + '</b><span>Same</span></div><div class="dn"><b>' + cnt[2] + '</b><span>Down</span></div></div>' +
-    '<div class="pglog sc">' + st.map(function(x){ return '<button type="button" data-act="pg-go" data-k="' + esc(x.k) + '"><span>' + esc(x.name) + '<small>' + (x.b ? fmtW(x.b.top) + ' × ' + x.b.topR + '  →  ' : '') + fmtW(x.a.top) + ' × ' + x.a.topR + '</small></span>' + pgDelta(x.diff, x.unit) + '</button>'; }).join("") + '</div>';
-  var keep = S.pgScroll; S.pgScroll = null; setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = keep != null ? keep : e.scrollWidth; }, 0);
+  var u = S.cfg.units, goal = Math.max(1, +S.cfg.weeklyGoal || 5), st = weekStats();
+  if(!S.sessions.length) return '<div class="empty">Finish your first workout and it shows up here.</div>';
+  var h = '<div class="pgst"><div style="grid-column:1/-1"><b>' + st.thisWeek + ' of ' + goal + ' workouts</b><span>Done this week</span></div></div>';
+  var names = {}, order = [];
+  S.sessions.forEach(function(s){ (s.exercises || []).forEach(function(x){ var k = key(x.name); if(!names[k] && x.sets && x.sets.length){ names[k] = x.name; order.push(k); } }); });
+  var rows = order.map(function(k){ var dd = pgData(k), a = dd[dd.length - 1], b = dd.length > 1 ? dd[dd.length - 2] : null, tag = '<span class="dl">First</span>', rank = 3;
+    if(b){ if(a.top !== b.top){ var dw = a.top - b.top; rank = dw > 0 ? 0 : 2; tag = '<span class="dl ' + (dw > 0 ? "up" : "dn") + '">' + (dw > 0 ? "+" : "−") + fmtW(Math.abs(dw)) + ' ' + esc(u) + '</span>'; }
+      else if(a.topR !== b.topR){ var dr = a.topR - b.topR; rank = dr > 0 ? 0 : 2; tag = '<span class="dl ' + (dr > 0 ? "up" : "dn") + '">' + (dr > 0 ? "+" : "−") + Math.abs(dr) + (Math.abs(dr) === 1 ? " rep" : " reps") + '</span>'; }
+      else { rank = 1; tag = '<span class="dl">Same</span>'; } }
+    return { k:k, name:names[k], a:a, tag:tag, rank:rank }; });
+  rows.sort(function(x, y){ return x.rank - y.rank || x.name.localeCompare(y.name); });
+  h += '<h2>Your exercises</h2><p class="pg-x">Best set from the last time you did each one, and how it compared with the time before.</p><div class="pglog sc">' + rows.map(function(x){
+      return '<button type="button" data-act="pg-go" data-k="' + esc(x.k) + '"><span>' + esc(x.name) + '<small>' + (x.a.top > 0 ? fmtW(x.a.top) + ' ' + esc(u) + ' × ' + x.a.topR : x.a.topR + ' reps') + ' · ' + fmtShort(x.a.t) + '</small></span>' + x.tag + '</button>'; }).join("") + '</div>';
+  var wk = {}, wo = [];
+  S.sessions.forEach(function(s){ var w0 = weekStart(s.startedAt); if(!wk[w0]){ wk[w0] = []; wo.push(w0); } wk[w0].push(s); });
+  wo.sort(function(a, b){ return b - a; });
+  h += '<h2>Week by week</h2>' + wo.map(function(w0){ var l = wk[w0].slice().sort(function(a, b){ return a.startedAt - b.startedAt; });
+      return '<div class="card pgd"><div class="pgd-h"><span><b>Week of ' + fmtShort(w0) + '</b></span><span class="dl' + (l.length >= goal ? " up" : "") + '">' + l.length + ' of ' + goal + '</span></div>' +
+        l.map(function(q){ return '<div class="pgd-r" style="grid-template-columns:54px 1fr"><span>' + new Date(q.startedAt).toLocaleDateString("en-US", { weekday:"short" }) + '</span><b>' + esc(q.name || "Workout") + '</b></div>'; }).join("") + '</div>'; }).join("");
   return h;
 }
 function renderProgress(){
