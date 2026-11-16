@@ -119,14 +119,12 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .segs i.on{transform:scaleX(1)}
 .list{margin-top:32px;border-top:.5px solid var(--ln)}
 .wrow{width:100%;min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln);will-change:transform,opacity;transform-origin:0 50%}
-.wrow.tap .wn{color:var(--t)}
 .wn{display:block;font:500 23px/1.1 var(--font);letter-spacing:-.035em;transition:color .15s}
 .wrow small{display:block;font-size:13px;color:var(--mu);margin-top:5px}
 .wr{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex:none}
 .wv{width:76px;height:20px;overflow:hidden;color:var(--dim);transition:color .4s}
 .wv svg{display:block;width:152px;height:20px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;animation:drift 16s linear infinite;will-change:transform}
 .wrow.on .wv{color:var(--t)}
-.wrow.tap .wv{color:var(--t)}
 @keyframes drift{to{transform:translate3d(-76px,0,0)}}
 /* a horizon under each page title, and a thought at the foot of each page */
 .hz{height:1px;margin:22px calc(var(--g) * -1) 0;background:linear-gradient(90deg,transparent,var(--t) 22%,var(--t) 60%,transparent);opacity:.45;transform-origin:0 50%}
@@ -214,7 +212,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .xrow .ct{font-size:14px;color:var(--mu2);font-variant-numeric:tabular-nums;font-weight:500}
 .xrow.done .nm{color:var(--mu)}
 .xrow .nm,.prow>span:first-child,.hrow b,.acc>button,.mrow>span:first-child,.grow-r div span:first-child{transition:color .15s}
-.xrow.tap .nm,.prow.tap>span:first-child,.hrow.tap b,.acc>button.tap,.mrow.tap>span:first-child,.grow-r.tap div span:first-child{color:var(--t)}
+.prow.tap>span:first-child,.hrow.tap b,.acc>button.tap,.mrow.tap>span:first-child,.grow-r.tap div span:first-child{color:var(--t)}
 .xrow small.t{color:var(--t);font-weight:500}
 .xrow .ct b{color:var(--t);font-weight:600}
 .sub b{color:var(--t);font-weight:600}
@@ -933,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "110";
+var BUILD = "111";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1188,15 +1186,22 @@ function render(){
 function revealList(){ var out = []; [].forEach.call(view.children, function(c){ if(c.classList.contains("hero") || !c.offsetHeight) return; if(c.classList.contains("list") && c.children.length > 1) [].forEach.call(c.children, function(k){ out.push(k); }); else out.push(c); }); return out.slice(0, 18); }
 function reveal(){
   if(calm) return;
-  var dir = UI.navDir, type = view.dataset.v, big = view.querySelector(".big"), list = revealList(), d0 = 40, SLOW = "cubic-bezier(.19,1,.22,1)", INOUT = "cubic-bezier(.65,0,.35,1)"; UI.navDir = null;
-  var carried = dir === "fwd" && (type === "wk" || type === "ex"), own = type === "history" ? ".cal" : null;
-  if(carried){ list = list.filter(function(el){ return el !== big; }); d0 = 430; }
-  list = list.filter(function(el){ return !el.classList.contains("hz") && !(own && dir !== "back" && el.matches(own)); });
+  var dir = UI.navDir, type = view.dataset.v, big = view.querySelector(".big"), list = revealList(), d0 = 30, SLOW = "cubic-bezier(.19,1,.22,1)", INOUT = "cubic-bezier(.65,0,.35,1)", carry = UI.carry; UI.navDir = null;
+  if(dir === "back"){ list.forEach(function(el, i){ el.animate([{ opacity:0 }, { opacity:1 }], { duration:300, delay:i * 14, easing:"ease-out", fill:"backwards" }); }); return; }
+  if(carry && big){ var br = big.getBoundingClientRect(), bcs = getComputedStyle(big), bfs = parseFloat(bcs.fontSize) || 46;
+    if(br.height < bfs * 1.6){ /* the name you tapped: it swells where it sits, then travels into the title */
+      var s0 = carry.fs / bfs, dx = carry.l - br.left, dy = carry.b - br.bottom, lsEnd = ((parseFloat(bcs.letterSpacing) || 0) / bfs).toFixed(4) + "em";
+      big.animate([
+        { transform:"translate3d(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px,0) scale(" + s0.toFixed(4) + ")", fontWeight:carry.fw, letterSpacing:carry.ls.toFixed(4) + "em", easing:"cubic-bezier(.3,0,.4,1)" },
+        { transform:"translate3d(" + (dx * 0.94).toFixed(1) + "px," + (dy * 0.9).toFixed(1) + "px,0) scale(" + (s0 * 1.14).toFixed(4) + ")", offset:0.3, easing:"cubic-bezier(.68,0,.14,1)" },
+        { transform:"translate3d(0,0,0) scale(1)", fontWeight:bcs.fontWeight, letterSpacing:lsEnd }], { duration:700 });
+      list = list.filter(function(el){ return el !== big; }); d0 = 300; } }
+  var own = type === "history" ? ".cal" : null;
+  list = list.filter(function(el){ return !el.classList.contains("hz") && !(own && el.matches(own)); });
   list.forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,16px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:760, delay:d0 + i * 45, easing:SLOW, fill:"backwards" }); });
   var each = function(sel, fn){ [].forEach.call(view.querySelectorAll(sel), fn); };
   each(".hz", function(el){ el.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1000, delay:d0 + 60, easing:INOUT, fill:"backwards" }); });
-  if(dir === "back") return;
-  if(type === "history") each(".cal .cd", function(el, i){ el.animate([{ opacity:0 }, { opacity:1 }], { duration:520, delay:240 + ((i % 7) + Math.floor(i / 7)) * 30, easing:"ease-out", fill:"backwards" }); });
+  if(type === "history") each(".cal .cd", function(el, i){ el.animate([{ opacity:0 }, { opacity:1 }], { duration:520, delay:200 + ((i % 7) + Math.floor(i / 7)) * 30, easing:"ease-out", fill:"backwards" }); });
   if(type === "body") each(".to40 b.num", function(el){ var n = parseInt(el.textContent, 10) || 0, t0 = performance.now(), D = 1200; if(n < 2) return; el.style.fontVariantNumeric = "tabular-nums";
       (function step(now){ var p = clamp((now - t0 - 200) / D, 0, 1), e = 1 - Math.pow(1 - p, 4); if(!el.isConnected) return; el.textContent = Math.round(n * e); if(p < 1) requestAnimationFrame(step); else el.textContent = n; })(t0); });
 }
@@ -1224,17 +1229,25 @@ document.addEventListener("click", function(e){ var t = e.target.closest && e.ta
 
 /* ---------- moving between screens ---------- */
 function clearVT(){ [].forEach.call(document.querySelectorAll("[data-vt]"), function(e){ e.style.viewTransitionName = ""; e.removeAttribute("data-vt"); }); }
-function nav(fn, dir, src, destSel){
+/* One timeline, no browser snapshots: the old page fades, the page swaps, the new one arrives. The tapped name never leaves the screen. */
+function nav(fn, dir, src){
   UI.navDir = dir || "fwd";
-  if(calm || !document.startViewTransition){ fn(); return; }
-  document.documentElement.dataset.dir = dir || "fwd"; document.documentElement.dataset.carry = src && dir !== "back" ? "1" : "0";
-  var big = view.querySelector(".big");
-  if(src){ if(big){ big.style.viewTransitionName = "none"; big.setAttribute("data-vt", ""); } src.style.viewTransitionName = "title"; src.setAttribute("data-vt", ""); }
-  try{
-    var t = document.startViewTransition(function(){ fn();
-      if(destSel){ var d = view.querySelector(destSel), b = view.querySelector(".big"); if(d){ if(b){ b.style.viewTransitionName = "none"; b.setAttribute("data-vt", ""); } d.style.viewTransitionName = "title"; d.setAttribute("data-vt", ""); } } });
-    t.finished.then(clearVT, clearVT);
-  }catch(e){ clearVT(); fn(); }
+  if(calm || UI.instant || UI.navBusy){ fn(); return; }
+  var back = dir === "back", ghost = null, bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:back ? 110 : 150, easing:"ease-in", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }];
+  UI.carry = null;
+  if(src && !back){ var r = src.getBoundingClientRect(), cs = getComputedStyle(src), fs = parseFloat(cs.fontSize) || 16;
+    UI.carry = { l:r.left, b:r.bottom, fs:fs, fw:cs.fontWeight, ls:(parseFloat(cs.letterSpacing) || 0) / fs };
+    ghost = document.createElement("div"); ghost.textContent = src.textContent; ghost.setAttribute("aria-hidden", "true");
+    ghost.style.cssText = "position:fixed;z-index:60;margin:0;pointer-events:none;white-space:nowrap;color:#F5F2EC;left:" + r.left + "px;top:" + r.top + "px;font-family:" + cs.fontFamily + ";font-size:" + cs.fontSize + ";font-weight:" + cs.fontWeight + ";line-height:" + cs.lineHeight + ";letter-spacing:" + cs.letterSpacing;
+    document.body.appendChild(ghost); }
+  UI.navBusy = true;
+  outs.push(view.animate(kf, fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
+  var done = false, swap = function(){ if(done) return; done = true;
+    try{ fn(); } finally {
+      outs.forEach(function(q){ try{ q.cancel(); }catch(e){} }); if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost); UI.navBusy = false; UI.carry = null;
+      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:360, easing:"ease-out" });
+      if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:360, easing:"ease-out" }); } };
+  outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
 }
 function goBack(){
   var type = view.dataset.v, a = S.active;
@@ -1255,7 +1268,7 @@ function goBack(){
     var fast = dx / Math.max(1, Date.now() - t0) > 0.5, W = app.clientWidth;
     if(dx > W * 0.33 || (fast && dx > 40)){
       var an = view.animate([{ transform:"translate3d(" + dx + "px,0,0)", opacity:view.style.opacity }, { transform:"translate3d(" + W + "px,0,0)", opacity:0 }], { duration:220, easing:"cubic-bezier(.3,0,.6,1)" });
-      an.onfinish = function(){ view.style.transform = ""; view.style.opacity = ""; var sv = document.startViewTransition; document.startViewTransition = null; try{ goBack(); } finally { document.startViewTransition = sv; }
+      an.onfinish = function(){ view.style.transform = ""; view.style.opacity = ""; UI.instant = true; try{ goBack(); } finally { UI.instant = false; }
         view.animate([{ transform:"translate3d(-40px,0,0)", opacity:0 }, { transform:"none", opacity:1 }], { duration:420, easing:OUT }); };
     } else { view.animate([{ transform:"translate3d(" + dx + "px,0,0)", opacity:view.style.opacity }, { transform:"none", opacity:1 }], { duration:420, easing:OUT }); view.style.transform = ""; view.style.opacity = ""; }
   }
