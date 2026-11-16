@@ -792,7 +792,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "79";
+var BUILD = "80";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1337,27 +1337,54 @@ function wheelValue(){ return Math.round($("#wh-m").scrollTop / 44) * 60 + Math.
 
 /* ---------- the opening: first light. The name rises over a horizon; its reflection is water you can stir ---------- */
 var HR = { on:false, strips:[], energy:0, px:0, t0:0, busy:false, hz:0 };
-/* one calm line a day. Each is a real, checkable line; the last two are Brett's own */
+/* one line a day, in a fixed order so nothing repeats for six weeks. Each is from a named work;
+   the two with no author are Brett's own */
 var LINES = [
+  ["The soul becomes dyed ", "with the colour of its thoughts.", "Marcus Aurelius"],
+  ["Life can only be understood backwards; ", "but it must be lived forwards.", "Søren Kierkegaard"],
+  ["If a man knows not to which port he sails, ", "no wind is favourable.", "Seneca"],
+  ["He who conquers others is strong; ", "he who conquers himself is mighty.", "Lao Tzu"],
+  ["Men are disturbed not by things, ", "but by the views which they take of them.", "Epictetus"],
+  ["The cost of a thing is the amount of life ", "which is required to be exchanged for it.", "Henry David Thoreau"],
+  ["He who has a why to live ", "can bear almost any how.", "Friedrich Nietzsche"],
   ["What stands in the way ", "becomes the way.", "Marcus Aurelius"],
-  ["We suffer more often in imagination ", "than in reality.", "Seneca"],
+  ["All of humanity's problems stem from man's inability ", "to sit quietly in a room alone.", "Blaise Pascal"],
+  ["While we are postponing, ", "life speeds by.", "Seneca"],
+  ["No man ever steps ", "in the same river twice.", "Heraclitus"],
+  ["The greatest thing in the world ", "is to know how to belong to oneself.", "Michel de Montaigne"],
   ["First say to yourself what you would be; ", "then do what you have to do.", "Epictetus"],
-  ["It is not that we have a short time to live, ", "but that we waste a lot of it.", "Seneca"],
-  ["A journey of a thousand miles ", "begins with a single step.", "Lao Tzu"],
-  ["Character ", "is destiny.", "Heraclitus"],
-  ["No great thing ", "is created suddenly.", "Epictetus"],
-  ["Begin at once ", "to live.", "Seneca"],
-  ["Waste no more time arguing what a good man should be. ", "Be one.", "Marcus Aurelius"],
-  ["Today is victory ", "over yourself of yesterday.", "Miyamoto Musashi"],
-  ["Confine yourself ", "to the present.", "Marcus Aurelius"],
-  ["It is difficulties ", "that show what men are.", "Epictetus"],
-  ["Nothing great was ever achieved ", "without enthusiasm.", "Ralph Waldo Emerson"],
-  ["Simplify, ", "simplify.", "Henry David Thoreau"],
   ["Build ", "the kingdom.", ""],
-  ["Brick ", "by brick.", ""]
+  ["Look within. Within is the fountain of good, ", "and it will ever bubble up, if you will ever dig.", "Marcus Aurelius"],
+  ["The unexamined life ", "is not worth living.", "Socrates"],
+  ["He suffers more than necessary, ", "who suffers before it is necessary.", "Seneca"],
+  ["All things excellent ", "are as difficult as they are rare.", "Baruch Spinoza"],
+  ["Today is victory ", "over yourself of yesterday.", "Miyamoto Musashi"],
+  ["Things do not change; ", "we change.", "Henry David Thoreau"],
+  ["The best revenge ", "is not to be like your enemy.", "Marcus Aurelius"],
+  ["The art of being wise ", "is the art of knowing what to overlook.", "William James"],
+  ["It is not that we have a short time to live, ", "but that we waste a lot of it.", "Seneca"],
+  ["Do not spoil what you have ", "by desiring what you have not.", "Epicurus"],
+  ["No great thing ", "is created suddenly.", "Epictetus"],
+  ["Trust thyself: ", "every heart vibrates to that iron string.", "Ralph Waldo Emerson"],
+  ["Very little is needed to make a happy life; ", "it is all within yourself, in your way of thinking.", "Marcus Aurelius"],
+  ["The mind is not a vessel to be filled ", "but a fire to be kindled.", "Plutarch"],
+  ["Brick ", "by brick.", ""],
+  ["He who is everywhere ", "is nowhere.", "Seneca"],
+  ["A journey of a thousand miles ", "begins with a single step.", "Lao Tzu"],
+  ["If it is not right, do not do it; ", "if it is not true, do not say it.", "Marcus Aurelius"],
+  ["Live the questions ", "now.", "Rainer Maria Rilke"],
+  ["It is difficulties ", "that show what men are.", "Epictetus"],
+  ["What the superior man seeks is in himself; ", "what the small man seeks is in others.", "Confucius"],
+  ["Begin at once to live, ", "and count each separate day as a separate life.", "Seneca"],
+  ["Character ", "is destiny.", "Heraclitus"],
+  ["Loss is nothing else but change, ", "and change is Nature's delight.", "Marcus Aurelius"],
+  ["Do nothing ", "which is of no use.", "Miyamoto Musashi"],
+  ["Sometimes even to live ", "is an act of courage.", "Seneca"],
+  ["Nothing great was ever achieved ", "without enthusiasm.", "Ralph Waldo Emerson"],
+  ["Dwell on the beauty of life. Watch the stars, ", "and see yourself running with them.", "Marcus Aurelius"]
 ];
 function hero(){
-  var el = $("#hero"), d = new Date(), i, q = LINES[Math.floor(dayStart(Date.now()) / 864e5) % LINES.length];
+  var el = $("#hero"), d = new Date(), i, q = LINES[Math.round(dayStart(Date.now()) / 864e5) % LINES.length];
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "Week " + isoWeek(d);
   $("#h-qt").innerHTML = esc(q[0]) + "<b>" + esc(q[1]) + "</b>"; $("#h-qa").textContent = q[2];
   UI.intro = true; el.hidden = false; HR.busy = false;
