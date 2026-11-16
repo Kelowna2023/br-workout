@@ -154,8 +154,10 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hw.v span{display:block;width:auto;height:64px;line-height:64px}
 .hwx+.hw-u{margin-top:-14px;position:relative}
 .hwx{position:relative}
-.hw-ar{position:absolute;left:50%;top:50%;margin-top:-21px;width:14px;height:42px;color:var(--mu);pointer-events:none;transform:translate3d(var(--ax,30px),0,0);transition:transform .32s var(--out)}
-.hw-ar svg{display:block;width:14px;height:42px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hw-ar{position:absolute;left:50%;top:50%;margin:-44px 0 0 -15px;width:44px;height:88px;display:flex;flex-direction:column;color:var(--t);transform:translate3d(var(--ax,30px),0,0);transition:transform .32s var(--out);z-index:2}
+.hw-ar button{flex:1;display:flex;justify-content:center;color:inherit;opacity:.85;transition:opacity .15s,transform .2s var(--spring)}.hw-ar button:first-child{align-items:flex-end;padding-bottom:14px}.hw-ar button:last-child{align-items:flex-start;padding-top:14px}
+.hw-ar button:active{opacity:1;transform:scale(1.35)}
+.hw-ar svg{display:block;width:14px;height:8px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .hw.v span{color:var(--t)}
 .hw.v.ghost span{color:var(--mu)}
 .hw.sm{flex:1;margin:0 6px;min-width:0}
@@ -530,7 +532,6 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .5s .3s ease-out 
       <div id="ck-t" role="timer" data-act="clock-hide">0:00</div>
       <div class="ck-bar"><i id="ck-b"></i></div>
       <div class="chips"><button type="button" data-act="rest-add" data-v="-15">−15 s</button><button type="button" data-act="rest-add" data-v="30">+30 s</button><button type="button" class="p" data-act="rest-toggle" id="ck-p">Pause</button><button type="button" data-act="rest-cancel">Cancel</button></div>
-      <div class="ck-q" id="ck-q"></div>
     </div>
   </div>
   <div id="veil" aria-hidden="true"></div>
@@ -931,7 +932,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "106";
+var BUILD = "107";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1116,10 +1117,18 @@ function wheelPaint(el){ var sp = el.firstChild.children, W = el._w, c = wPos(el
   for(var i = a; i <= b; i++){ var d = Math.abs(i - c); sp[i].style.transform = "scale(" + Math.max(0.36, 1 - d * 0.64).toFixed(3) + ")"; sp[i].style.opacity = Math.max(0.14, 1 - d * 0.86).toFixed(3); } 
   if(el._v && el.parentNode.classList.contains("hwx")){ var n = sp[clamp(Math.round(c), 0, sp.length - 1)], L = n.textContent.length; el._cw = el._cw || {}; if(!el._cw[L]){ var rg = document.createRange(); rg.selectNodeContents(n); var sc = n.getBoundingClientRect().height / n.offsetHeight || 1; el._cw[L] = rg.getBoundingClientRect().width / sc; } if(el._ax !== L){ el._ax = L; el.parentNode.style.setProperty("--ax", (el._cw[L] / 2 + 12).toFixed(1) + "px"); } } }
 function wheelSet(el, v){ var sp = el.firstChild.children, idx = 0, best = 1e9; for(var i = 0; i < sp.length; i++){ var dd = Math.abs(+sp[i].dataset.v - v); if(dd < best){ best = dd; idx = i; } } el._live = false; wPos(el, idx * el._w); wheelPaint(el); }
+function typeSheet(k){
+  var a = S.active; if(!a || a.openEx == null) return; var x = a.exercises[a.openEx], u = S.cfg.units;
+  sheet('<div><div class="eyebrow">' + esc(x.name) + '</div><h2>' + (k === "w" ? "Weight" : esc(x.repLabel || "Reps")) + '</h2></div>' +
+    '<label class="ms-in"><span>' + esc(k === "w" ? unitLabel(gearOf(x.name), u) : "reps") + '</span><input class="field num" id="hw-in" inputmode="' + (k === "w" ? "decimal" : "numeric") + '" placeholder="0" enterkeyhint="done"></label>' +
+    '<button class="btn go" type="button" data-act="hw-type-ok" data-k="' + k + '">Set</button>');
+  var inp = $("#hw-in"); try{ inp.focus(); }catch(e){} inp.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); $('[data-act="hw-type-ok"]').click(); } });
+}
 function initWheels(){
   [].forEach.call(view.querySelectorAll(".hw"), function(el){
     var sp = el.firstChild.children, tm = 0, last = +el.dataset.i; el._v = el.classList.contains("v"); el._w = el._v ? sp[0].offsetHeight : sp[0].offsetWidth; el._live = false; wPos(el, last * el._w); wheelPaint(el);
     var live = function(){ el._live = true; }; el.addEventListener("touchstart", live, { passive:true }); el.addEventListener("pointerdown", live); el.addEventListener("wheel", live, { passive:true });
+    if(el._v && el.parentNode.classList.contains("hwx")) el.addEventListener("click", function(){ typeSheet(el.dataset.k); });
     el.addEventListener("scroll", function(){
       if(!el._r) el._r = requestAnimationFrame(function(){ el._r = 0; wheelPaint(el); var i = Math.round(wPos(el) / el._w); if(i !== last){ last = i; if(el._live) try{ if(navigator.vibrate) navigator.vibrate(3); }catch(e){} } });
       clearTimeout(tm); tm = setTimeout(function(){ if(!el._live || !el.isConnected) return; var i = clamp(Math.round(wPos(el) / el._w), 0, sp.length - 1), v = +sp[i].dataset.v, a = S.active; if(!a || a.openEx == null) return;
@@ -1366,7 +1375,7 @@ function flipFrom(){ var n0 = $("#rest-n"), n1 = $("#ck-t"); if(!n0) return null
   if(!r0.height){ var hr = $("#restrow .hw").getBoundingClientRect(); r0 = { left:hr.left + hr.width / 2 - 34, top:hr.top + 8, height:28 }; }
   return "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")"; }
 function openClock(){
-  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(clockBase()); UI.rq = (UI.rq || 0) + 1; (function(q){ $("#ck-q").innerHTML = esc(q.a) + "<b>" + esc(q.b) + "</b>" + (q.by && q.g === "\u201C" ? " · " + esc(q.by) : ""); })(drawThought()); tick();
+  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(clockBase()); tick();
   if(calm) return;
   var SM = "cubic-bezier(.2,.9,.2,1)", f = flipFrom();
   ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:900, easing:SM });
@@ -1434,7 +1443,7 @@ function vHome(){
     '<div data-rv><div class="wk"><span class="wk-s"><b>' + n + '</b> of ' + goal + ' this week</span></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     (need ? '<div class="foot" data-rv><button type="button" class="t" data-act="backup">Back up your ' + need + (need === 1 ? " new workout" : " new workouts") + '</button></div>' : '') +
-    (checkin().due ? '<div class="foot" data-rv><button type="button" class="t" data-act="ci-open">Check-in day. Log your photo and weight</button></div>' : '') + goalGrid() + thought(1);
+    (checkin().due ? '<div class="foot" data-rv><button type="button" class="t" data-act="ci-open">Check-in day. Log your photo and weight</button></div>' : '') + goalGrid();
 }
 
 /* ---------- workout: the list of lifts ---------- */
@@ -1471,8 +1480,8 @@ function vExercise(){
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
   if(ci >= 0){ var st = x.sets[ci], hn = hint(x, ci);
     o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' of ' + x.sets.length + '</div>' +
-      '<div class="hwx">' + hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<span class="hw-ar" aria-hidden="true"><svg viewBox="0 0 14 42"><path d="M2 6.5l5-5 5 5M2 35.5l5 5 5-5"/></svg></span>' + '</div><div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</div>' +
-      '<div class="hwx">' + hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<span class="hw-ar" aria-hidden="true"><svg viewBox="0 0 14 42"><path d="M2 6.5l5-5 5 5M2 35.5l5 5 5-5"/></svg></span>' + '</div><div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
+      '<div class="hwx">' + hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<span class="hw-ar"><button type="button" data-act="hw-step" data-d="1" aria-label="Up one step"><svg viewBox="0 0 14 8"><path d="M2 6.5l5-5 5 5"/></svg></button><button type="button" data-act="hw-step" data-d="-1" aria-label="Down one step"><svg viewBox="0 0 14 8"><path d="M2 1.5l5 5 5-5"/></svg></button></span>' + '</div><div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</div>' +
+      '<div class="hwx">' + hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<span class="hw-ar"><button type="button" data-act="hw-step" data-d="1" aria-label="Up one step"><svg viewBox="0 0 14 8"><path d="M2 6.5l5-5 5 5"/></svg></button><button type="button" data-act="hw-step" data-d="-1" aria-label="Down one step"><svg viewBox="0 0 14 8"><path d="M2 1.5l5 5 5-5"/></svg></button></span>' + '</div><div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
       '<button type="button" class="btn go x-go" data-act="check" data-e="' + ei + '" data-s="' + ci + '">Complete set</button></div>';
   } else {
     var nx = -1, j; for(j = 1; j <= a.exercises.length; j++){ var k2 = (ei + j) % a.exercises.length; if(curIdx(a.exercises[k2]) >= 0){ nx = k2; break; } }
@@ -1581,7 +1590,7 @@ function vProgress(){
     h += '<div class="acc' + (open ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="' + esc(r.id) + '" aria-expanded="' + open + '">' + esc(r.name) + IC.chev + '</button><div class="acc-b"><div>' + rows + '</div></div></div>'; });
   var other = Object.keys(idx).filter(function(k){ return !seen[k]; });
   if(other.length) h += '<div class="acc' + (UI.pgGrp === "_o" ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="_o">Other lifts' + IC.chev + '</button><div class="acc-b"><div>' + other.map(function(k){ return rowFor(idx[k].name); }).join("") + '</div></div></div>';
-  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div>' + thought(6, true) + scoreboard() + '<div class="sec"><h2>By workout</h2></div><div class="list">' + h + '</div>';
+  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div>' + scoreboard() + '<div class="sec"><h2>By workout</h2></div><div class="list">' + h + '</div>';
 }
 function vProgEx(){
   var d = pgData(UI.pgEx), u = S.cfg.units, name = (histIndex()[UI.pgEx] || {}).name || "", g = gearOf(name), rows = "";
@@ -1861,6 +1870,9 @@ document.addEventListener("click", function(ev){
     case "cal": (function(){ var n0 = new Date(), c = UI.month ? new Date(UI.month) : new Date(n0.getFullYear(), n0.getMonth(), 1); UI.month = new Date(c.getFullYear(), c.getMonth() + (+b.dataset.v), 1).getTime(); render();
         var g = view.querySelector(".cal"); if(g && !calm) g.animate([{ opacity:0, transform:"translate3d(" + (+b.dataset.v * 24) + "px,0,0)" }, { opacity:1, transform:"none" }], { duration:420, easing:OUT }); })(); break;
     case "cal-day": daySheet(+b.dataset.t); break;
+    case "hw-step": (function(el, d){ if(!el) return; var n = el.firstChild.children.length, i = clamp(Math.round(wPos(el) / el._w) + d, 0, n - 1); el._live = true; haptic(); try{ el.scrollTo({ top:i * el._w, behavior:"smooth" }); }catch(e){ wPos(el, i * el._w); } })(b.closest(".hwx").querySelector(".hw"), +b.dataset.d); break;
+    case "hw-type-ok": (function(k){ var raw = String($("#hw-in").value || "").replace(",", ".").trim(), n = parseFloat(raw), x = a && a.exercises[a.openEx], ci = x ? curIdx(x) : -1; if(!x || ci < 0 || !isFinite(n) || n < 0){ closeSheet(); return; }
+        n = k === "r" ? Math.round(n) : Math.round(n * 100) / 100; if(n > 2000) n = 2000; x.sets[ci][k] = n; if(k === "w") delete x.sets[ci].pl; saveActive(); closeSheet(); render(); })(b.dataset.k); break;
     case "log-day": (function(r, t){ if(!r) return; haptic(); closeSheet(); goWorkout(r); if(t < dayStart(Date.now()) && !hasWork(S.active)) S.active.forDay = t; else if(!hasWork(S.active)) delete S.active.forDay; saveActive(); if(viewName() === "today") render(); else location.hash = "today"; })(rs.filter(function(r){ return r.id === b.dataset.id; })[0], +b.dataset.t); break;
     /* logging */
     case "step": (function(){ var x = a.exercises[a.openEx], ci = curIdx(x); if(ci < 0) return; var st = x.sets[ci], k = b.dataset.k, d = +b.dataset.d, inp = $("#in-" + k);
