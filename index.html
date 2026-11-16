@@ -66,8 +66,9 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 /* ---- the scrolling page ---- */
 main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
-.big{font:600 32px/1.1 var(--font);letter-spacing:-.03em;margin:6px 0 0;transform-origin:0 100%;will-change:transform,opacity;view-transition-name:title}
-.sub{color:var(--mu);font-size:14px;margin-top:6px}
+.big{font:700 46px/1.02 var(--font);letter-spacing:-.052em;margin:16px 0 0;text-wrap:balance;transform-origin:0 100%;will-change:transform,opacity;view-transition-name:title}
+.big.lg{font-size:38px;letter-spacing:-.048em}
+.sub{color:var(--mu);font-size:15px;margin-top:12px}
 .sub.t,.t{color:var(--t)}
 .eyebrow{font-size:13px;color:var(--mu);font-weight:500}
 .muted{color:var(--mu);font-size:14px;line-height:1.5}
@@ -204,8 +205,8 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .foot button.t{color:var(--t)}
 
 /* ---- workout: the list of lifts ---- */
-.xrow{width:100%;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln)}
-.xrow .nm{font:500 18px/1.2 var(--font);letter-spacing:-.025em;display:block}
+.xrow{width:100%;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln)}
+.xrow .nm{font:500 19px/1.2 var(--font);letter-spacing:-.025em;display:block}
 .xrow small{display:block;font-size:12px;color:var(--mu2);margin-top:3px}
 .xrow .ct{font-size:14px;color:var(--mu2);font-variant-numeric:tabular-nums;font-weight:500}
 .xrow.done .nm{color:var(--mu)}
@@ -219,7 +220,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .okc svg{width:14px;height:14px;stroke-width:2.4}
 
 /* ---- exercise: one set in focus, the finished ones underneath ---- */
-.x-of{font-size:13px;color:var(--mu)}
+.x-of{font-size:13px;color:var(--mu)}.x-of+.big{margin-top:8px}
 .x-beat{font-size:14px;font-weight:500;color:var(--t);margin-top:8px;display:flex;flex-wrap:wrap;gap:0 8px;align-items:baseline}
 .x-beat button{color:var(--mu2);font-weight:400;font-size:14px;padding:4px 0}
 .x-note{font-size:13px;color:var(--mu);margin-top:6px}
@@ -412,7 +413,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 
 /* ---- finish card ---- */
 #end{position:absolute;inset:0;z-index:55;background:var(--bg);overflow-y:auto;padding:calc(var(--st) + 56px) var(--g) calc(var(--sb) + 28px)}
-#end .e-t{font:600 44px/1 var(--font);letter-spacing:-.05em;margin-top:8px}
+#end .e-t{font:700 46px/1.02 var(--font);letter-spacing:-.05em;margin-top:8px}
 .e-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:30px 0 26px}
 .e-st b{display:block;font:600 40px/1 var(--font);letter-spacing:-.04em}
 .e-st b.t{color:var(--t)}
@@ -905,7 +906,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "94";
+var BUILD = "95";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1156,9 +1157,9 @@ function paint(){
     var bd = $("#bar-date"); bd.style.opacity = (1 - clamp(y / 40, 0, 1)).toFixed(3); bd.style.transform = "translate3d(0," + (-clamp(y, 0, 60) * 0.35) + "px,0)";
     bar.style.setProperty("--bp", clamp((y - 74) / 18, 0, 1).toFixed(3)); bar.style.setProperty("--tp", 0);
   } else {
-    var b = UI.big, p2 = clamp(y / 54, 0, 1);
+    var b = UI.big, p2 = clamp(y / 76, 0, 1);
     if(b && b.isConnected){ b.style.opacity = (1 - p2).toFixed(3); b.style.transform = "translate3d(0," + (clamp(y, -200, 80) * 0.3) + "px,0) scale(" + (1 - p2 * 0.08 + (y < 0 ? Math.min(-y, 140) / 900 : 0)) + ")"; }
-    var tp = clamp((y - 34) / 24, 0, 1).toFixed(3); bar.style.setProperty("--bp", tp); bar.style.setProperty("--tp", tp);
+    var tp = clamp((y - 52) / 24, 0, 1).toFixed(3); bar.style.setProperty("--bp", tp); bar.style.setProperty("--tp", tp);
   }
 }
 view.addEventListener("scroll", onScroll, { passive:true });
@@ -1391,7 +1392,7 @@ function vWorkout(){
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
     rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (i === next ? '<small class="t">Up next' + (x.link && nx ? ' · superset with ' + esc(nx.name) : '') + '</small>' : x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
       (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
-  return '<h1 class="big">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' + thought(2, true) +
+  return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' + thought(2, true) +
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
     '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
@@ -1411,7 +1412,7 @@ function winTxt(st, u){
 function vExercise(){
   var a = S.active, ei = a.openEx, x = a.exercises[ei], u = S.cfg.units, g = gearOf(x.name), ci = curIdx(x), h = histIndex()[key(x.name)], top = h ? topOf(h.last) : null, note = S.cfg.notes[key(x.name)];
   var beaten = top && x.sets.some(function(q){ return q.done && beats(num(q.w), num(q.r), top); });
-  var o = '<div class="x-of" data-rv>' + (ei + 1) + ' of ' + a.exercises.length + '</div><h1 class="big">' + esc(x.name) + '</h1>' +
+  var o = '<div class="x-of" data-rv>' + (ei + 1) + ' of ' + a.exercises.length + '</div><h1 class="big' + (x.name.length > 16 ? " lg" : "") + '">' + esc(x.name) + '</h1>' +
     '<div class="x-beat" data-rv><span>' + (top ? (beaten ? "Beaten: " : "Beat ") + esc(setTxt(top.w, top.r, u)) : "First time. Today sets the bar") + '</span><button type="button" data-act="gear-pick" data-e="' + ei + '">' + esc(GEAR[g]) + '</button></div>' +
     (note ? '<div class="x-note" data-rv>' + esc(note) + '</div>' : '');
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
@@ -1534,7 +1535,7 @@ function vProgEx(){
   for(var i = d.days.length - 1; i >= 0; i--){ var x = d.days[i], notes = x.sets.filter(function(q){ return q.note; }).map(function(q){ return '<div class="pday-n">' + esc(q.note) + '</div>'; }).join("");
     rows += '<div class="pday" data-rv><div class="pday-h"><span>' + esc(fmtDate(x.t)) + '</span><b>' + (x.top.w > 0 ? fmtW(x.top.w) + ' <small>' + esc(unitLabel(g, u)) + '</small> × ' : '') + x.top.r + (x.top.w > 0 ? '' : ' <small>reps</small>') + '</b></div>' +
       '<div class="pday-s"><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + '</span>' + (x.best ? '<span class="tag">Best</span>' : '') + (x.up ? '<span class="up">▲ ' + esc(x.up) + '</span>' : '') + '</div>' + notes + '</div>'; }
-  return '<h1 class="big">' + esc(name) + '</h1>' +
+  return '<h1 class="big' + (name.length > 16 ? " lg" : "") + '">' + esc(name) + '</h1>' +
     '<div class="sub t" data-rv>' + (d.best ? "Best: " + esc(setTxt(d.best.w, d.best.r, u)) + " · " + esc(fmtShort(d.best.t)) : "") + '</div><div class="sub" data-rv>' + d.days.length + (d.days.length === 1 ? " day" : " days") + ' logged</div>' +
     '<div class="list" style="margin-top:18px">' + rows + '</div><div style="height:60px"></div>';
 }
