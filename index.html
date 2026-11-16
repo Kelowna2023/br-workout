@@ -138,6 +138,24 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hw.sm span{width:78px;font:500 26px/44px var(--font);letter-spacing:-.03em}
 .rest[data-st="idle"] #rest-n{display:none}
 .rest:not([data-st="idle"]) .hw{visibility:hidden}
+/* the road to 40 */
+.to40{margin-top:28px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.to40 b{display:block;font:600 68px/.86 var(--font);letter-spacing:-.055em}
+.to40 small{display:block;font-size:13px;color:var(--mu);margin-top:10px}
+.to40 .ci{text-align:right;font-size:13px;color:var(--mu);line-height:1.5}
+.to40 .ci .btn{width:auto;min-height:46px;padding:0 20px;margin-left:auto}
+.gbar{height:4px;border-radius:2px;background:#1A1A1A;overflow:hidden;margin-top:12px}
+.gbar i{display:block;height:100%;background:var(--t);border-radius:2px}
+.tn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tn button{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--sf)}
+.tn img{width:100%;height:100%;object-fit:cover;display:block}
+.tn span{position:absolute;left:10px;bottom:8px;font-size:12px;font-weight:500;text-shadow:0 1px 5px rgba(0,0,0,.85)}
+.sc{width:100%;min-height:60px;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:10px 0;border-bottom:.5px solid var(--ln);text-align:left}
+.sc b{font:500 17px/1.2 var(--font);letter-spacing:-.02em;transition:color .15s}
+.sc:active b{color:var(--t)}
+.sc small{grid-column:1;font-size:13px;color:var(--mu);font-variant-numeric:tabular-nums}
+.sc em{grid-row:1/3;grid-column:2;font-style:normal;font-size:14px;font-weight:600;color:var(--t);font-variant-numeric:tabular-nums}
+.sc em.z{color:var(--mu2);font-weight:400}
 /* moon and the year in weeks */
 .mn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu2);flex:none}
 .mn svg{width:18px;height:18px;flex:none}
@@ -861,7 +879,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "86";
+var BUILD = "87";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -927,6 +945,59 @@ function yearGrid(){
   for(i = 1; i <= 52; i++) h += '<i class="' + (tr[i] ? "t" : i < wk ? "p" : "") + (i === wk ? " n" : "") + '"></i>';
   return '<div class="yg" data-rv><div class="yg-g">' + h + '</div><div class="yg-c"><span>' + y + ' in weeks</span><span>Week ' + wk + ' of 52 · ' + Math.max(0, 52 - wk) + ' left</span></div></div>';
 }
+/* ---------- the road to 40: a date, a weight, a check-in on the 22nd ---------- */
+function goalDate(){ var p = String(S.cfg.goal.date).split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).getTime(); }
+function daysTo(){ return Math.max(0, Math.round((goalDate() - dayStart(Date.now())) / 864e5)); }
+function goalAge(){ return 40; }
+function goalGrid(){
+  var W = 7 * 864e5, st = weekStart(S.cfg.goal.start), en = weekStart(goalDate()), n = Math.max(1, Math.round((en - st) / W) + 1), cur = Math.round((weekStart(Date.now()) - st) / W), tr = {}, h = "", i;
+  S.sessions.forEach(function(s){ tr[Math.round((weekStart(s.startedAt) - st) / W)] = 1; });
+  for(i = 0; i < n; i++) h += '<i class="' + (tr[i] ? "t" : i < cur ? "p" : "") + (i === cur ? " n" : "") + '"></i>';
+  return '<div class="yg" data-rv><div class="yg-g" style="grid-template-columns:repeat(' + Math.ceil(n / 2) + ',1fr)">' + h + '</div><div class="yg-c"><span>' + daysTo() + ' days to ' + goalAge() + '</span><span>Week ' + clamp(cur + 1, 1, n) + ' of ' + n + '</span></div></div>';
+}
+function checkin(){
+  var d = new Date(), y = d.getFullYear(), m = d.getMonth(), done = (S.cfg.checkins || []).some(function(t){ var q = new Date(t); return q.getFullYear() === y && q.getMonth() === m; });
+  if(!done && d.getDate() >= 22) return { due:true };
+  var nx = new Date(y, m + (done || d.getDate() >= 22 ? 1 : 0), 22).getTime();
+  return { due:false, next:nx, inDays:Math.round((nx - dayStart(Date.now())) / 864e5) };
+}
+function firstLast(arr, pick){ var f = null, l = null; arr.forEach(function(e){ var v = pick(e); if(v == null) return; if(f == null) f = { v:v, at:e.at }; l = { v:v, at:e.at }; }); return f ? { f:f, l:l } : null; }
+function deltaTxt(a, b, unit, dp){ var d = Math.round((b - a) * (dp || 10)) / (dp || 10); return d ? (d > 0 ? "+" : "−") + Math.abs(d) + (unit ? " " + unit : "") : "no change"; }
+function vTo40(){
+  var c = checkin(), gd = new Date(goalDate());
+  return '<div class="to40" data-rv><div><b class="num">' + daysTo() + '</b><small>days to ' + goalAge() + ' · ' + gd.toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }) + '</small></div>' +
+    '<div class="ci">' + (c.due ? 'Check-in day<br><button type="button" class="btn go" data-act="ci-open">Check in</button>' : 'Next check-in<br><span style="color:var(--tx)">' + fmtShort(c.next) + ' · in ' + c.inDays + (c.inDays === 1 ? " day" : " days") + '</span><br><button type="button" class="lnk" style="padding:6px 0" data-act="ci-open">Check in early</button>') + '</div></div>';
+}
+function vThenNow(){
+  var u = S.cfg.units, mu = measUnit(), ms = S.cfg.meas || [], bw = firstLast(S.cfg.bw || [], function(e){ return e.w; }), gw = +S.cfg.goal.w || 180, rows = "", ph = S.photos, h = "";
+  var wa = firstLast(ms, function(e){ return e.v.waist; }), sh = firstLast(ms, function(e){ return e.v.shoulders; }), vr = firstLast(ms, function(e){ return e.v.shoulders != null && e.v.waist ? e.v.shoulders / e.v.waist : null; });
+  var row = function(lab, x, unit, dp, fmt){ if(!x) return ""; var same = x.f.at === x.l.at; return '<div class="fs-r"><span>' + lab + '</span><span>' + (same ? fmt(x.l.v) + (unit ? " " + unit : "") : fmt(x.f.v) + ' → <b style="color:var(--tx)">' + fmt(x.l.v) + '</b>' + (unit ? " " + unit : "") + ' · <span class="up">' + deltaTxt(x.f.v, x.l.v, "", dp) + '</span>') + '</span></div>'; };
+  rows = row("Bodyweight", bw, u, 10, fmtW) + row("Shoulders", sh, mu, 10, fmtW) + row("Waist", wa, mu, 10, fmtW) + row("V ratio", vr, "", 100, function(v){ return v.toFixed(2); });
+  h += '<div class="sec"><h2>Then and now</h2></div>';
+  if(ph.length > 1) h += '<div class="tn"><button type="button" data-act="ph-view" data-id="' + ph[ph.length - 1].id + '"><img src="' + ph[ph.length - 1].url + '" alt="First photo"><span>First · ' + esc(fmtShort(ph[ph.length - 1].at)) + '</span></button><button type="button" data-act="ph-view" data-id="' + ph[0].id + '"><img src="' + ph[0].url + '" alt="Latest photo"><span>Latest · ' + esc(fmtShort(ph[0].at)) + '</span></button></div>';
+  h += rows ? '<div class="list" style="margin-top:14px">' + rows + '</div>' : '<div class="empty">Your first check-in sets the starting line. Photo, bodyweight, shoulders and waist. Everything after is measured against it.</div>';
+  h += '<div class="sec"><h2>Bodyweight</h2><button type="button" class="lnk" data-act="bw-log">+ Log</button></div>';
+  if(bw){ var cur = bw.l.v, st = bw.f.v, span = gw - st, pr = span ? clamp((cur - st) / span, 0, 1) : (cur === gw ? 1 : 0), left = Math.round(Math.abs(gw - cur) * 10) / 10;
+    h += '<div class="fs-r" style="border:0"><span><b style="font:600 30px/1 var(--font);letter-spacing:-.03em;color:var(--tx)">' + fmtW(cur) + '</b> ' + esc(u) + '</span><span>' + (left ? left + " " + esc(u) + " to " + fmtW(gw) : "At " + fmtW(gw) + ". Hold it.") + '</span></div><div class="gbar"><i style="width:' + (pr * 100).toFixed(1) + '%"></i></div><div class="muted" style="margin-top:10px;font-size:12px">Last logged ' + esc(rel(bw.l.at)) + ' · goal ' + fmtW(gw) + ' ' + esc(u) + '</div>'; }
+  else h += '<div class="empty">Log it once a week, same morning, before you eat. The goal is ' + fmtW(gw) + ' ' + esc(u) + '.</div>';
+  return h;
+}
+function ciSheet(){
+  var u = S.cfg.units, mu = measUnit(), ms = S.cfg.meas || [], last = ms.length ? ms[ms.length - 1].v : {}, bw = S.cfg.bw || [], lb = bw.length ? bw[bw.length - 1].w : null; UI.ciFile = null;
+  sheet('<div><div class="eyebrow">' + daysTo() + ' days to ' + goalAge() + '</div><h2>Check-in</h2></div><div class="muted">Same spot, same light, same time of day. Leave anything blank.</div>' +
+    '<label class="ms-in"><span>Bodyweight (' + esc(u) + ')</span><input class="field num" id="ci-bw" inputmode="decimal" placeholder="' + (lb != null ? fmtW(lb) : "0") + '"></label>' +
+    MEAS.map(function(m){ return '<label class="ms-in"><span>' + m[1] + ' (' + mu + ')</span><input class="field num" id="ms-' + m[0] + '" inputmode="decimal" placeholder="' + (last[m[0]] != null ? fmtW(last[m[0]]) : "0") + '"></label>'; }).join("") +
+    '<label class="btn" for="ci-file" id="ci-ph">Add today&#39;s photo</label><input id="ci-file" type="file" accept="image/*" class="vh">' +
+    '<button class="btn go" type="button" data-act="ci-save">Save check-in</button>');
+}
+function scoreboard(){
+  var idx = histIndex(), u = S.cfg.units, rows = Object.keys(idx).map(function(k){ var d = pgData(k); return { k:k, name:idx[k].name, d:d }; }).filter(function(r){ return r.d.days.length; });
+  rows.sort(function(a, b){ return b.d.days.length - a.d.days.length; });
+  var h = rows.slice(0, 8).map(function(r){ var f = r.d.days[0].top, b = r.d.best, up = r.d.days.length > 1 && beats(b.w, b.r, f);
+    return '<button type="button" class="sc" data-act="pg-go" data-k="' + esc(r.k) + '" data-rv><b>' + esc(r.name) + '</b><small>' + (r.d.days.length > 1 ? esc(setTxt(f.w, f.r, u)) + '  →  ' + esc(setTxt(b.w, b.r, u)) : esc(setTxt(f.w, f.r, u)) + ' · the starting line') + '</small>' +
+      (up ? '<em>' + (b.w > f.w ? "+" + fmtW(b.w - f.w) + " " + esc(u) : "+" + (b.r - f.r) + (b.r - f.r === 1 ? " rep" : " reps")) + '</em>' : '<em class="z">' + r.d.days.length + (r.d.days.length === 1 ? " day" : " days") + '</em>') + '</button>'; }).join("");
+  return '<div class="sec" style="margin-top:44px"><h2>Scoreboard</h2><span class="muted" style="font-size:12px">start → best</span></div>' + (h ? '<div class="list" style="margin-top:8px">' + h + '</div>' : '<div class="empty">Log a lift and it lands here with its starting line. Every session after shows how far it has moved.</div>');
+}
 /* inline dials */
 function hwVals(k){ var a = [], i, st = wStep(); if(k === "w") for(i = 0; i <= (S.cfg.units === "kg" ? 300 : 500); i += st) a.push(i); else if(k === "r") for(i = 0; i <= 60; i++) a.push(i); else for(i = 15; i <= 360; i += 15) a.push(i); return a; }
 function hw(k, cur, ghost, cls){
@@ -971,7 +1042,9 @@ function screenKey(){
 }
 function bk(act, label){ return '<button type="button" class="bk" data-act="' + act + '">' + IC.back + '<span>' + esc(label) + '</span></button>'; }
 function ib(act, label, icon, extra){ return '<button type="button" class="ib" data-act="' + act + '" aria-label="' + label + '"' + (extra || "") + '>' + icon + '</button>'; }
+function ensureGoal(){ var c = S.cfg, ch = false; c.bw = c.bw || []; c.checkins = c.checkins || []; if(!c.goal){ c.goal = { date:"2027-10-22", w:180, start:weekStart(Date.now()) }; ch = true; } return ch; }
 function render(){
+  if(ensureGoal()) saveCfg();
   var k = screenKey(), fresh = k !== UI.key, keep = view.scrollTop, type = k.split(":")[0], a = S.active, l = "", t = "", r = "";
   UI.key = k;
   var html = type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
@@ -1234,7 +1307,7 @@ function vHome(){
     '<div data-rv><div class="wk"><div class="wk-n"><b>' + n + '</b><span> of ' + goal + '</span></div><div class="wk-l">this week</div></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     (need ? '<div class="foot" data-rv><button type="button" class="t" data-act="backup">Back up your ' + need + (need === 1 ? " new workout" : " new workouts") + '</button></div>' : '') +
-    yearGrid() + thought(1);
+    (checkin().due ? '<div class="foot" data-rv><button type="button" class="t" data-act="ci-open">Check-in day. Log your photo and weight</button></div>' : '') + goalGrid() + thought(1);
 }
 
 /* ---------- workout: the list of lifts ---------- */
@@ -1345,7 +1418,7 @@ function vHistory(){
       : '<span class="cd' + (t === today ? " td" : "") + '"><span>' + i + '</span></span>'; }
   S.sessions.forEach(function(s){ var d = new Date(s.startedAt); if(d.getFullYear() !== y || d.getMonth() !== mo) return; cnt++;
     list += '<button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '" data-rv><span><b>' + esc(s.name) + '</b><small>' + esc(fmtDate(s.startedAt)) + '</small></span><span class="r">' + s.setCount + (s.setCount === 1 ? " set" : " sets") + '</span></button>'; });
-  return '<h1 class="big">History</h1><div class="sub" data-rv>' + S.sessions.length + (S.sessions.length === 1 ? " workout" : " workouts") + ' logged</div><div class="hz" data-rv></div>' + yearGrid() +
+  return '<h1 class="big">History</h1><div class="sub" data-rv>' + S.sessions.length + (S.sessions.length === 1 ? " workout" : " workouts") + ' logged</div><div class="hz" data-rv></div>' + goalGrid() +
     '<div class="cal-h" data-rv><button type="button" class="ib" data-act="cal" data-v="-1" aria-label="Previous month">' + IC.back + '</button><b>' + m.toLocaleDateString("en-US", { month:"long", year:"numeric" }) + '</b><button type="button" class="ib" data-act="cal" data-v="1" aria-label="Next month">' + IC.chev + '</button></div>' +
     '<div class="cal" data-rv>' + cells + '</div>' +
     '<div class="sec" data-rv><h2>' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") + " this month" : "Nothing logged this month") + '</h2></div><div class="list" style="margin-top:8px">' + list + '</div>';
@@ -1380,7 +1453,7 @@ function vProgress(){
     h += '<div class="acc' + (open ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="' + esc(r.id) + '" aria-expanded="' + open + '">' + esc(r.name) + IC.chev + '</button><div class="acc-b"><div>' + rows + '</div></div></div>'; });
   var other = Object.keys(idx).filter(function(k){ return !seen[k]; });
   if(other.length) h += '<div class="acc' + (UI.pgGrp === "_o" ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="_o">Other lifts' + IC.chev + '</button><div class="acc-b"><div>' + other.map(function(k){ return rowFor(idx[k].name); }).join("") + '</div></div></div>';
-  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div>' + thought(6, true) + '<div class="list" style="margin-top:34px;border-top:0">' + h + '</div>';
+  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div>' + thought(6, true) + scoreboard() + '<div class="sec" style="margin-top:44px"><h2>By workout</h2></div><div class="list" style="margin-top:8px;border-top:0">' + h + '</div>';
 }
 function vProgEx(){
   var d = pgData(UI.pgEx), u = S.cfg.units, name = (histIndex()[UI.pgEx] || {}).name || "", g = gearOf(name), rows = "";
@@ -1416,10 +1489,11 @@ function vBody(){
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
     info = '<b>' + esc(UI.bsel) + ' · ' + n2 + (n2 === 1 ? " set" : " sets") + '</b>' + (ex ? Object.keys(ex).map(function(k){ return esc(k) + " · " + ex[k]; }).join("<br>") : "Nothing logged in the last 7 days"); }
   else info = "Tap a body part";
-  var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets in the last 7 days · aim for 10–20 each</div><div class="hz" data-rv></div>' +
+  var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets in the last 7 days · aim for 10–20 each</div><div class="hz" data-rv></div>' + vTo40() +
     '<div class="bmap" data-rv><svg viewBox="14 0 192 202" role="img" aria-label="Body map shaded by sets in the last 7 days">' + bodyFig(MM_FRONT, 0, w.mus, sel) + bodyFig(MM_BACK, 106, w.mus, sel) + '</svg></div><div class="b-info" id="b-info" aria-live="polite">' + info + '</div>' +
     '<div class="list" style="margin-top:14px">' + rows + '</div>';
   var last = ms.length ? ms[ms.length - 1] : null;
+  h += vThenNow();
   h += '<div class="sec"><h2>Measurements</h2><button type="button" class="lnk" data-act="meas-log">+ Log</button></div>';
   if(!last) h += '<div class="empty">Measure once a month, same time of day.</div>';
   else h += '<div class="list">' + MEAS.map(function(m){ var v = last.v[m[0]], f = null; for(var i = 0; i < ms.length; i++) if(ms[i].v[m[0]] != null){ f = ms[i].v[m[0]]; break; }
@@ -1453,6 +1527,9 @@ function vSetup(){
     '<div class="opt"><span>Units</span><div class="seg">' + ["lb","kg"].map(function(u){ return '<button type="button" data-act="units" data-v="' + u + '" aria-pressed="' + (S.cfg.units === u) + '">' + u + '</button>'; }).join("") + '</div></div>' +
     '<div class="opt"><span>Workouts per week</span><input class="field num" id="wk-goal" inputmode="numeric" style="width:76px;text-align:center" value="' + esc(S.cfg.weeklyGoal) + '" aria-label="Workouts per week"></div>' +
     '<div class="opt"><span>The week resets</span><span class="muted">Monday, midnight</span></div></div>' +
+    '<div class="sec"><h2>The goal</h2></div><div class="list">' +
+    '<div class="opt"><span>Goal bodyweight (' + esc(S.cfg.units) + ')</span><input class="field num" id="goal-w" inputmode="decimal" style="width:92px;text-align:center" value="' + esc(S.cfg.goal.w) + '" aria-label="Goal bodyweight"></div>' +
+    '<div class="opt"><span>The date</span><input class="field" id="goal-d" type="date" style="width:170px" value="' + esc(S.cfg.goal.date) + '" aria-label="Goal date"></div></div>' +
     '<div class="sec"><h2>Backup</h2></div><div class="muted">' + (k ? "Last backup " + esc(fmtShort(k.at)) + ", " + (k.n || 0) + " workouts." : "No backup saved yet.") + ' Your workouts live on this phone only.</div>' +
     '<div class="stack" style="margin-top:14px"><button type="button" class="btn" data-act="backup">Back up or restore</button></div>' +
     '<div class="ver">Wake · build ' + BUILD + '</div>';
@@ -1683,6 +1760,15 @@ document.addEventListener("click", function(ev){
     case "bsel": case "bmus": (function(){ var g = act === "bsel" ? b.dataset.g : (BODY_GROUPS.filter(function(x){ return x[1].indexOf(b.dataset.m) >= 0; })[0] || [])[0]; if(!g) return;
         UI.bsel = UI.bsel === g ? null : g; haptic(); render(); if(act === "bsel" && UI.bsel) view.scrollTo({ top:0, behavior:"smooth" }); })(); break;
     case "meas-log": measSheet(); break;
+    case "ci-open": ciSheet(); break;
+    case "ci-save": (function(){ var v = {}, any = false, now = Date.now(), w = $("#ci-bw").value.trim();
+        MEAS.forEach(function(m){ var x = $("#ms-" + m[0]).value.trim(); if(x !== "" && num(x) > 0){ v[m[0]] = num(x); any = true; } });
+        if(!any && !(num(w) > 0) && !UI.ciFile){ toast("Add a photo, a weight or a measurement"); return; }
+        if(num(w) > 0) S.cfg.bw.push({ at:now, w:num(w) }); if(any) S.cfg.meas.push({ at:now, v:v }); S.cfg.checkins.push(now);
+        var f = UI.ciFile; UI.ciFile = null; saveCfg(); closeSheet(); render(); if(f) addPhoto(f); else toast("Check-in saved"); haptic(); })(); break;
+    case "bw-log": (function(){ var bw = S.cfg.bw, lb = bw.length ? bw[bw.length - 1].w : null;
+        sheet('<h2>Bodyweight</h2><div class="muted">Same morning each week, before you eat.</div><input class="field num" id="bw-in" inputmode="decimal" placeholder="' + (lb != null ? fmtW(lb) : "0") + '" aria-label="Bodyweight"><button class="btn go" type="button" data-act="bw-save">Save</button>'); setTimeout(function(){ var t = $("#bw-in"); if(t) t.focus(); }, 350); })(); break;
+    case "bw-save": (function(){ var w = num($("#bw-in").value); if(!(w > 0)){ toast("Enter your weight"); return; } S.cfg.bw.push({ at:Date.now(), w:w }); saveCfg(); closeSheet(); render(); toast("Bodyweight saved"); })(); break;
     case "meas-save": (function(){ var v = {}, any = false; MEAS.forEach(function(m){ var x = $("#ms-" + m[0]).value.trim(); if(x !== "" && num(x) > 0){ v[m[0]] = num(x); any = true; } });
         if(!any){ toast("Enter at least one measurement"); return; } S.cfg.meas.push({ at:Date.now(), v:v }); saveCfg(); closeSheet(); render(); toast("Measurements saved"); })(); break;
     case "meas-hist": (function(){ var k = b.dataset.k, lab = MEAS.filter(function(m){ return m[0] === k; })[0][1], mu = measUnit();
@@ -1717,6 +1803,8 @@ document.addEventListener("input", function(ev){
   if((t.id === "in-w" || t.id === "in-r") && a && a.openEx != null){ var x = a.exercises[a.openEx], ci = curIdx(x); if(ci < 0) return; x.sets[ci][d.k] = t.value.trim(); if(d.k === "w") delete x.sets[ci].pl; saveActive(); return; }
   if(t.id === "note-t" && a){ a.exercises[+d.e].sets[+d.s].note = t.value; saveActive(); return; }
   if(d.note !== undefined){ if(t.value.trim()) S.cfg.notes[d.note] = t.value; else delete S.cfg.notes[d.note]; saveCfg(); return; }
+  if(t.id === "goal-w"){ var gw = num(t.value); if(gw > 0){ S.cfg.goal.w = gw; saveCfg(); } return; }
+  if(t.id === "goal-d"){ if(/^\d{4}-\d{2}-\d{2}$/.test(t.value)){ S.cfg.goal.date = t.value; saveCfg(); } return; }
   if(t.id === "wk-goal"){ var wg = parseInt(t.value, 10); if(wg > 0){ S.cfg.weeklyGoal = Math.min(14, wg); saveCfg(); } return; }
   if(d.r !== undefined){ var r = S.cfg.routines[+d.r]; if(!r) return;
     if(d.x !== undefined){ var ex = r.exercises[+d.x]; ex[d.k] = d.k === "link" ? t.checked : d.k === "rest" ? (parseInt(t.value, 10) || 150) : t.value; }
@@ -1726,7 +1814,8 @@ document.addEventListener("input", function(ev){
 document.addEventListener("focusin", function(ev){ var t = ev.target; if((t.id === "in-w" && !t.readOnly) || t.id === "in-r") setTimeout(function(){ try{ t.select(); }catch(e){} }, 0); });
 document.addEventListener("focusout", function(ev){ if(ev.target.id === "in-w") ev.target.readOnly = true; });
 document.addEventListener("change", function(ev){ var t = ev.target;
-  if(t.id === "ph-file" && t.files && t.files[0]){ addPhoto(t.files[0]); t.value = ""; } });
+  if(t.id === "ph-file" && t.files && t.files[0]){ addPhoto(t.files[0]); t.value = ""; }
+  if(t.id === "ci-file" && t.files && t.files[0]){ UI.ciFile = t.files[0]; var l = $("#ci-ph"); if(l){ l.textContent = "Photo ready"; l.classList.add("tl"); } } });
 document.addEventListener("toggle", function(ev){ var d = ev.target; if(d.dataset && d.dataset.rid){ if(d.open) S.openRoutine = d.dataset.rid; else if(S.openRoutine === d.dataset.rid) S.openRoutine = null; } }, true);
 document.addEventListener("keydown", function(ev){
   if(ev.key === "Escape" && !$("#sheet").hidden) closeSheet();
@@ -1749,6 +1838,7 @@ try{ if("serviceWorker" in navigator && location.protocol === "https:") navigato
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 /* ---------- boot: always the list first, nothing picked for you ---------- */
+if(ensureGoal()) migrated = true;
 if(migrated){ migrated = false; saveCfg(); }
 if(dropStale() || trimActive()) saveActive();
 S.pick = true; if(S.active) S.active.openEx = null;
