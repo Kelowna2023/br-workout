@@ -931,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "118";
+var BUILD = "119";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1220,35 +1220,50 @@ document.addEventListener("click", function(e){ var t = e.target.closest && e.ta
 function clearVT(){ [].forEach.call(document.querySelectorAll("[data-vt]"), function(e){ e.style.viewTransitionName = ""; e.removeAttribute("data-vt"); }); }
 /* One timeline, no browser snapshots: the old page fades, the page swaps, the new one arrives. The tapped name never leaves the screen. */
 /* Moving between pages: a slow dissolve with a little depth. Going in, the page you leave sinks back and the next one settles forward; going back, the reverse. Nothing flies. */
-function mkGhost(el, cs){ var g = document.createElement("div"), fs = parseFloat(cs.fontSize) || 16; g.textContent = el.textContent; g.setAttribute("aria-hidden", "true");
-  g.style.cssText = "position:fixed;left:0;top:0;z-index:60;margin:0;pointer-events:none;white-space:nowrap;color:#F5F2EC;will-change:transform;font-family:" + cs.fontFamily;
-  document.body.appendChild(g); return g; }
-function typeOf(el){ var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize) || 16, r = el.getBoundingClientRect();
-  return { cs:cs, r:r, kf:{ transform:"translate3d(" + r.left.toFixed(2) + "px," + r.top.toFixed(2) + "px,0)", fontSize:fs + "px", fontWeight:cs.fontWeight, lineHeight:((parseFloat(cs.lineHeight) || fs * 1.1) / fs).toFixed(3), letterSpacing:((parseFloat(cs.letterSpacing) || 0) / fs).toFixed(4) + "em" }, oneLine:r.height < fs * 1.6 }; }
+/* Carrying a name between pages. The name is measured letter by letter on both pages, and cut wherever either page breaks it onto a new line, so a one-line name can settle into a two-line title: each piece glides to its own line. */
+function glyphs(el){ var n = null; for(var c = el.firstChild; c; c = c.nextSibling) if(c.nodeType === 3 && c.nodeValue.trim()){ n = c; break; } if(!n) return null;
+  var s = n.nodeValue, rg = document.createRange(), g = [], cs = getComputedStyle(el), fs = parseFloat(cs.fontSize) || 16, br = [], last = null;
+  for(var i = 0; i < s.length; i++){ rg.setStart(n, i); rg.setEnd(n, i + 1); var r = rg.getBoundingClientRect(), ok = r.width > 0 && /\S/.test(s.charAt(i)); g.push(ok ? { l:r.left, t:r.top } : null);
+    if(ok){ if(last !== null && Math.abs(r.top - last) > fs * 0.5) br.push(i); last = r.top; } }
+  var box = el.getBoundingClientRect();
+  return { s:s, g:g, br:br, fs:fs, fw:cs.fontWeight, ls:(parseFloat(cs.letterSpacing) || 0) / fs, ff:cs.fontFamily, seen:box.bottom > 0 && box.top < window.innerHeight }; }
+function pieces(A, cuts){ var out = [], c = [0].concat(cuts).concat([A.s.length]);
+  for(var k = 0; k < c.length - 1; k++){ var a = c[k], b = c[k + 1]; while(a < b && !A.g[a]) a++; if(a >= b) continue;
+    var el = document.createElement("div"); el.textContent = A.s.slice(a, b).replace(/\s+$/, ""); el.setAttribute("aria-hidden", "true");
+    el.style.cssText = "position:fixed;left:0;top:0;z-index:60;margin:0;pointer-events:none;white-space:pre;line-height:1;color:#F5F2EC;will-change:transform;font-family:" + A.ff + ";font-size:" + A.fs + "px;font-weight:" + A.fw + ";letter-spacing:" + A.ls.toFixed(4) + "em";
+    document.body.appendChild(el);
+    var rg = document.createRange(); rg.setStart(el.firstChild, 0); rg.setEnd(el.firstChild, 1); var r0 = rg.getBoundingClientRect();
+    var p = { el:el, i:a, ox:r0.left / A.fs, oy:r0.top / A.fs }; el.style.transform = pieceAt(p, A); out.push(p); }
+  return out; }
+function pieceAt(p, G){ var g = G.g[p.i]; return "translate3d(" + (g.l - p.ox * G.fs).toFixed(2) + "px," + (g.t - p.oy * G.fs).toFixed(2) + "px,0)"; }
 function nav(fn, dir, src, destSel){
   UI.navDir = dir || "fwd";
   if(calm || UI.instant || UI.navBusy){ fn(); return; }
-  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:200, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], ghost = null, from = null;
-  var kill = function(){ if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost); ghost = null; }, melt = function(){ if(!ghost) return; var g = ghost; ghost = null; var m = g.animate([{ opacity:1 }, { opacity:0 }], { duration:260, easing:"ease-out", fill:"forwards" }), rm = function(){ if(g.parentNode) g.parentNode.removeChild(g); }; m.onfinish = m.oncancel = rm; setTimeout(rm, 500); };
-  /* the name you tapped (or the title, going back) stays on screen the whole time and glides to where it lives on the next page */
+  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:200, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], A = null, ps = [];
+  var drop = function(list){ list.forEach(function(p){ if(p.el.parentNode) p.el.parentNode.removeChild(p.el); }); };
+  var melt = function(list){ list.forEach(function(p){ var m = p.el.animate([{ opacity:1 }, { opacity:0 }], { duration:260, easing:"ease-out", fill:"forwards" }); m.onfinish = m.oncancel = function(){ drop([p]); }; }); setTimeout(function(){ drop(list); }, 500); };
   var el0 = back ? (destSel ? view.querySelector(".big") : null) : src;
-  if(el0){ from = typeOf(el0); if(from.oneLine && from.r.bottom > 0 && from.r.top < window.innerHeight){ ghost = mkGhost(el0, from.cs); for(var k in from.kf) ghost.style[k] = from.kf[k]; } else from = null; }
+  if(el0){ A = glyphs(el0); if(A && A.seen) ps = pieces(A, A.br); else A = null; }
   UI.scr = UI.scr || {}; if(!back) UI.scr[UI.key] = view.scrollTop;
   UI.navBusy = true; view.style.transformOrigin = "50% " + (view.scrollTop + view.clientHeight * 0.38).toFixed(0) + "px";
   outs.push(view.animate([{ opacity:1, transform:"scale(1)" }, { opacity:0, transform:"scale(" + (tab ? 1 : back ? 1.014 : 0.986) + ")" }], fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
   var done = false, swap = function(){ if(done) return; done = true;
-    UI.gliding = !!ghost;
+    UI.gliding = !!A;
     try{ fn(); } finally {
       outs.forEach(function(q){ try{ q.cancel(); }catch(e){} }); UI.navBusy = false; UI.gliding = false;
       var IN = "cubic-bezier(.22,1,.36,1)"; view.style.transformOrigin = "50% " + (view.clientHeight * 0.38).toFixed(0) + "px";
       if(back){ var y0 = UI.scr[UI.key] || 0, dd = destSel ? view.querySelector(destSel) : null; if(y0) view.scrollTop = y0;
         if(dd){ var rr = dd.getBoundingClientRect(), vr = view.getBoundingClientRect(); if(rr.bottom > vr.bottom - 24 || rr.top < vr.top + 8) view.scrollTop += rr.top - vr.top - view.clientHeight * 0.45; } paint(); }
-      var d = ghost ? view.querySelector(back ? destSel : ".big") : null, to = d ? typeOf(d) : null;
-      if(to && to.oneLine && to.r.bottom > 0 && to.r.top < window.innerHeight){
-        d.style.visibility = "hidden"; var land = function(){ d.style.visibility = ""; kill(); };
-        var ga = ghost.animate([from.kf, to.kf], { duration:720, easing:"cubic-bezier(.62,0,.18,1)", fill:"forwards" }); ga.onfinish = ga.oncancel = land; setTimeout(land, 1000);
-      } else melt();
-      view.animate([{ opacity:0 }, { opacity:1 }], { duration:back && ghost ? 900 : 760, delay:back && ghost ? 160 : 0, easing:IN, fill:"backwards" });
+      var d = A ? view.querySelector(back ? destSel : ".big") : null, B = d ? glyphs(d) : null, glide = false;
+      if(B && B.seen && B.s === A.s){
+        var cuts = A.br.concat(B.br).filter(function(x, i, arr){ return arr.indexOf(x) === i; }).sort(function(x, y){ return x - y; });
+        drop(ps); ps = pieces(A, cuts);
+        if(ps.every(function(p){ return A.g[p.i] && B.g[p.i]; })){ glide = true; d.style.visibility = "hidden";
+          var list = ps, land = function(){ d.style.visibility = ""; drop(list); }, n = 0;
+          ps.forEach(function(p){ var ga = p.el.animate([{ transform:pieceAt(p, A), fontSize:A.fs + "px", fontWeight:A.fw, letterSpacing:A.ls.toFixed(4) + "em" }, { transform:pieceAt(p, B), fontSize:B.fs + "px", fontWeight:B.fw, letterSpacing:B.ls.toFixed(4) + "em" }], { duration:720, easing:"cubic-bezier(.62,0,.18,1)", fill:"forwards" });
+            if(!n++) ga.onfinish = ga.oncancel = land; }); setTimeout(land, 1000); } }
+      if(!glide) melt(ps);
+      view.animate([{ opacity:0 }, { opacity:1 }], { duration:back && glide ? 900 : 760, delay:back && glide ? 160 : 0, easing:IN, fill:"backwards" });
       bar.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN });
       if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN }); } };
   outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
