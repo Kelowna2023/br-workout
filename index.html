@@ -56,9 +56,9 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 #bar-date{position:absolute;left:var(--g);top:var(--st);height:52px;display:flex;align-items:center;font-size:14px;color:#A8A49C;font-weight:500;pointer-events:none;will-change:opacity,transform}
 
 /* ---- the wordmark: big on arrival, rides your scroll up into the bar ---- */
-#wm{position:absolute;z-index:21;left:var(--g);top:calc(var(--st) + 10px);font:600 76px/1 var(--font);letter-spacing:-.045em;display:flex;align-items:flex-end;transform-origin:0 0;will-change:transform;pointer-events:none;white-space:nowrap;view-transition-name:wm}
+#wm{position:absolute;z-index:21;left:var(--g);top:calc(var(--st) + 10px);font:600 76px/1 var(--font);letter-spacing:-.05em;display:flex;align-items:flex-end;transform-origin:0 0;will-change:transform;pointer-events:none;white-space:nowrap;view-transition-name:wm}
 #wm span{display:inline-block}
-#wm i{width:.2em;height:.2em;border-radius:50%;background:var(--t);margin:0 0 .12em .09em;flex:none}
+#wm i{width:.19em;height:.19em;border-radius:50%;background:var(--t);margin:0 0 .136em .07em;flex:none}
 #app:not([data-s="home"]) #wm,#app:not([data-s="home"]) #bar-date{opacity:0!important;visibility:hidden}
 @keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.32);opacity:.55}}
 .breathe{animation:breathe 2.8s cubic-bezier(.45,0,.55,1) infinite}
@@ -150,7 +150,15 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hw.v{overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;height:136px;width:240px;margin:0 auto;touch-action:pan-y;overscroll-behavior:contain;-webkit-mask-image:linear-gradient(180deg,transparent,#000 32%,#000 68%,transparent);mask-image:linear-gradient(180deg,transparent,#000 32%,#000 68%,transparent)}
 .hw.v .hw-t{display:block;width:auto;padding:36px 0}
 .hw.v span{display:block;width:auto;height:64px;line-height:64px}
-.hw.v+.hw-u{margin-top:-14px;position:relative}
+.hwx+.hw-u{margin-top:-14px;position:relative}
+.hwx{position:relative}
+.hw-ar{position:absolute;left:calc(50% + 86px);top:50%;margin-top:-34px;width:20px;height:68px;display:flex;flex-direction:column;justify-content:space-between;color:var(--mu2);pointer-events:none;transition:opacity .8s}
+.hw-ar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hw-ar svg:first-child{animation:ar-up 2.6s var(--out) infinite}
+.hw-ar svg:last-child{animation:ar-dn 2.6s var(--out) infinite}
+@keyframes ar-up{0%{opacity:0;transform:translate3d(0,7px,0)}35%{opacity:1}100%{opacity:0;transform:translate3d(0,-7px,0)}}
+@keyframes ar-dn{0%{opacity:0;transform:translate3d(0,-7px,0)}35%{opacity:1}100%{opacity:0;transform:translate3d(0,7px,0)}}
+.hwx.used .hw-ar{opacity:0}
 .hw.sm{flex:1;margin:0 6px;min-width:0}
 .hw.sm .hw-t{padding:0 calc(50% - 39px)}
 .hw.sm span{width:78px;font:500 26px/44px var(--font);letter-spacing:-.03em}
@@ -470,7 +478,7 @@ html[data-dir="tab"]::view-transition-new(root){animation:fade .28s ease-out bot
 <body>
 <div id="app" data-s="home">
   <div id="bar"><span id="bar-l"></span><span id="bar-t"></span><span id="bar-r"></span><span id="bar-date"></span></div>
-  <div id="wm" aria-label="Wake"><span>W</span><span>a</span><span>k</span><span>e</span><i class="breathe"></i><div id="wm-hz" aria-hidden="true"></div><div id="wm-ref" aria-hidden="true"></div></div>
+  <div id="wm" aria-label="Wake">Wake<i class="breathe"></i><div id="wm-hz" aria-hidden="true"></div><div id="wm-ref" aria-hidden="true"></div></div>
   <div id="hero" hidden>
     <div class="h-bg"></div>
     <div class="h-top"><span id="h-date"></span><span id="h-week"></span></div>
@@ -897,7 +905,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "90";
+var BUILD = "91";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1034,7 +1042,7 @@ function wheelSet(el, v){ var sp = el.firstChild.children, idx = 0, best = 1e9; 
 function initWheels(){
   [].forEach.call(view.querySelectorAll(".hw"), function(el){
     var sp = el.firstChild.children, tm = 0, last = +el.dataset.i; el._v = el.classList.contains("v"); el._w = el._v ? sp[0].offsetHeight : sp[0].offsetWidth; el._live = false; wPos(el, last * el._w); wheelPaint(el);
-    var live = function(){ el._live = true; }; el.addEventListener("touchstart", live, { passive:true }); el.addEventListener("pointerdown", live); el.addEventListener("wheel", live, { passive:true });
+    var live = function(){ el._live = true; if(el.parentNode.classList.contains("hwx")){ el.parentNode.classList.add("used"); UI.dialUsed = true; } }; if(UI.dialUsed && el.parentNode.classList.contains("hwx")) el.parentNode.classList.add("used"); el.addEventListener("touchstart", live, { passive:true }); el.addEventListener("pointerdown", live); el.addEventListener("wheel", live, { passive:true });
     el.addEventListener("scroll", function(){
       if(!el._r) el._r = requestAnimationFrame(function(){ el._r = 0; wheelPaint(el); var i = Math.round(wPos(el) / el._w); if(i !== last){ last = i; if(el._live) try{ if(navigator.vibrate) navigator.vibrate(3); }catch(e){} } });
       clearTimeout(tm); tm = setTimeout(function(){ if(!el._live || !el.isConnected) return; var i = clamp(Math.round(wPos(el) / el._w), 0, sp.length - 1), v = +sp[i].dataset.v, a = S.active; if(!a || a.openEx == null) return;
@@ -1367,8 +1375,8 @@ function vExercise(){
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
   if(ci >= 0){ var st = x.sets[ci], hn = hint(x, ci);
     o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' of ' + x.sets.length + '</div>' +
-      hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + ' <button type="button" data-act="w-type">Type it</button></div>' +
-      hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
+      '<div class="hwx">' + hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<span class="hw-ar" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 12l5-5 5 5"/></svg><svg viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg></span>' + '</div><div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</div>' +
+      '<div class="hwx">' + hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<span class="hw-ar" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M5 12l5-5 5 5"/></svg><svg viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></svg></span>' + '</div><div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
       '<button type="button" class="btn go x-go" data-act="check" data-e="' + ei + '" data-s="' + ci + '">Complete set</button></div>';
   } else {
     var nx = -1, j; for(j = 1; j <= a.exercises.length; j++){ var k2 = (ei + j) % a.exercises.length; if(curIdx(a.exercises[k2]) >= 0){ nx = k2; break; } }
@@ -1656,7 +1664,7 @@ function hero(){
   var el = $("#hero"), d = new Date();
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "Week " + isoWeek(d);
   $("#h-cd").innerHTML = '<div class="h-cd-n"><b>' + daysTo() + ' days</b> to ' + goalAge() + '.</div>' + goalGrid(new Date(goalDate()).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }));
-  UI.intro = true; el.hidden = false; HR.busy = false;
+  UI.intro = true; el.hidden = false; HR.busy = false; wm.querySelector("i").classList.remove("breathe");
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   if(calm) return;
   var SLOW = "cubic-bezier(.19,1,.22,1)", SOFT = "cubic-bezier(.33,0,.1,1)", w = $("#h-w");
@@ -1679,12 +1687,12 @@ function water(ts){
   requestAnimationFrame(water); if(document.hidden) return;
   var t = ts / 1000; HR.energy *= 0.955;
   if(HR.on) sway(HR.strips, t, 2.2 + HR.energy, HR.px);
-  if(app.dataset.s === "home" && UI.refOn && WMS.length) sway(WMS, t, 0.9, 0);
+  if(app.dataset.s === "home" && UI.refOn && WMS.length) sway(WMS, t, 1.3, HR.px);
 }
 /* entering: no wipe. The name leaves the horizon and travels to its place at the top of your workouts, reflection and all */
 function enter(){
   var el = $("#hero"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
-  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; view.scrollTop = 0; paint(); };
+  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; wm.querySelector("i").classList.add("breathe"); view.scrollTop = 0; paint(); };
   if(calm){ done(); return; }
   el.getAnimations({ subtree:true }).forEach(function(q){ try{ q.finish(); }catch(e){} });
   var sea = $("#h-sea"), fs = parseFloat(getComputedStyle(sea).fontSize), rise = sea.querySelector(".h-rise").getBoundingClientRect(), sr = sea.getBoundingClientRect(), sl = $("#h-w").getBoundingClientRect().left;
@@ -1867,7 +1875,7 @@ if(migrated){ migrated = false; saveCfg(); }
 if(dropStale() || trimActive()) saveActive();
 S.pick = true; if(S.active) S.active.openEx = null;
 if(!/^#(today|history|progress|body)$/.test(location.hash)) history.replaceState(null, "", "#today");
-WMS = buildRef($("#wm-ref"), 76, 22, 0.3);
+WMS = buildRef($("#wm-ref"), 76, 36, 0.3);
 render();
 if(viewName() === "today") hero();
 if(!calm) requestAnimationFrame(water);
