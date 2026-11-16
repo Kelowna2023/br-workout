@@ -1024,6 +1024,11 @@ main{gap:26px!important;padding-top:34px!important}
 .px .pglog.sc{margin-top:18px!important}
 .px-gap{height:48px}
 .px .pglog.sc small{font:400 14px/1.2 var(--font)!important;text-transform:none!important;letter-spacing:0!important;color:var(--dim)}
+.px .pgbars{height:220px;gap:10px}
+.pgb.gh i{background:none!important;border:1px dashed rgba(243,239,232,.2);opacity:1!important;animation:none}
+.pgb.gh .d{color:var(--dim)}
+.px .pgc{margin-bottom:40px}
+.px .pgb:not(.sel):not(.gh) i{opacity:.32}
 </style>
 </head>
 <body>
@@ -2235,7 +2240,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "70";
+var BUILD = "71";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2837,15 +2842,15 @@ function pgExercise(){
     return '<span class="dl">Same</span>'; };
   var best = data.slice().sort(function(a, b){ return b.top - a.top || b.topR - a.topR || a.t - b.t; })[0];
   h += '<div class="px-hero"><span class="px-l">Best set</span><b>' + big(best) + '</b><span class="px-s">' + new Date(best.t).toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" }) + '</span></div>';
-  if(data.length > 1){ var vals = data.map(function(d){ return bw ? d.topR : d.top; }), mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals), lo = Math.max(0, mn - (mx - mn)), bt = -1, br = -1;
-    h += '<div class="pgc"><div class="pgs" id="pg-scroll"><div class="pgbars">' +
-      data.map(function(d, i){ var v = vals[i], rec = i > 0 && (d.top > bt || (d.top === bt && d.topR > br)), pct = mx === lo ? 70 : 22 + 78 * (v - lo) / (mx - lo); if(d.top > bt || (d.top === bt && d.topR > br)){ bt = d.top; br = d.topR; }
-        return '<span class="pgb' + (i === data.length - 1 ? " sel" : "") + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (data.length - 8)) * 0.05).toFixed(2) + 's">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + (bw ? d.topR : fmtW(d.top) + '×' + d.topR) + '</span><i></i><span class="d">' + fmtShort(d.t) + '</span></span>'; }).join("") + '</div></div></div>';
-    setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = e.scrollWidth; }, 0); }
-  h += '<span class="px-l">Sessions</span>';
-  for(var i = data.length - 1; i >= 0; i--){ var d = data[i];
-    h += '<div class="px-d"><div class="px-dh"><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</b>' + cmp(d, data[i - 1]) + '</div><ol>' +
-      d.sets.map(function(st, n){ return '<li><i>' + (n + 1) + '</i><span>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</span></li>' + (st.note ? '<li class="n">' + esc(st.note) + '</li>' : ''); }).join("") + '</ol></div>'; }
+  var vals = data.map(function(d){ return bw ? d.topR : d.top; }), mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals), lo = Math.max(0, mn - (mx - mn)), bt = -1, br = -1, sel = S.pgBar == null || S.pgBar >= data.length ? data.length - 1 : S.pgBar, gh = "";
+  for(var q = 0; q < Math.max(1, 5 - data.length); q++) gh += '<span class="pgb gh" style="--h:' + (mx === lo ? 70 : 100) + '"><span class="v">&nbsp;</span><i></i><span class="d">' + (q ? "&nbsp;" : "Next") + '</span></span>';
+  h += '<div class="pgc' + (S.pgNoAnim ? " noanim" : "") + '"><div class="pgs" id="pg-scroll"><div class="pgbars">' +
+    data.map(function(d, i){ var v = vals[i], rec = i > 0 && (d.top > bt || (d.top === bt && d.topR > br)), pct = mx === lo ? 70 : 22 + 78 * (v - lo) / (mx - lo); if(d.top > bt || (d.top === bt && d.topR > br)){ bt = d.top; br = d.topR; }
+      return '<button type="button" class="pgb' + (i === sel ? " sel" : "") + '" data-act="pg-bar" data-i="' + i + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (data.length - 8)) * 0.05).toFixed(2) + 's" aria-label="' + fmtShort(d.t) + ', best set ' + (bw ? d.topR + ' reps' : fmtW(d.top) + ' ' + u + ' for ' + d.topR) + '">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + (bw ? d.topR : fmtW(d.top) + '×' + d.topR) + '</span><i></i><span class="d">' + fmtShort(d.t) + '</span></button>'; }).join("") + gh + '</div></div></div>';
+  var keep = S.pgScroll; S.pgScroll = null; S.pgNoAnim = false; setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = keep != null ? keep : Math.max(0, e.scrollWidth - e.clientWidth - (data.length < 5 ? 9999 : 0)); }, 0);
+  var d = data[sel];
+  h += '<span class="px-l">' + (data.length > 1 ? "Tap a bar to see that day" : "Your next session adds a bar") + '</span><div class="px-d"><div class="px-dh"><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</b>' + cmp(d, data[sel - 1]) + '</div><ol>' +
+    d.sets.map(function(st, n){ return '<li><i>' + (n + 1) + '</i><span>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</span></li>' + (st.note ? '<li class="n">' + esc(st.note) + '</li>' : ''); }).join("") + '</ol></div>';
   return h;
 }
 
