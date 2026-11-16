@@ -438,6 +438,9 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-line .gl,.h-line .gr{animation-delay:1.55s}.h-line .gr{height:40px}
 @keyframes hz-glint{0%{opacity:0;transform:translate3d(-180px,0,0);animation-timing-function:cubic-bezier(.62,0,.38,1)}4%{opacity:.75}14%{opacity:.75}18%{opacity:0;transform:translate3d(min(100vw,560px),0,0)}100%{opacity:0;transform:translate3d(min(100vw,560px),0,0)}}
 @media (prefers-reduced-motion:reduce){.gl,.gr{animation:none}}
+.oh{position:absolute;left:0;right:0;height:1px;pointer-events:none;transform-origin:0 50%;z-index:3}
+.oh::before{content:"";position:absolute;inset:0;transform:scaleY(.5);transform-origin:0 0;background:linear-gradient(90deg,rgba(20,211,194,.7),rgba(20,211,194,.7) 55%,transparent 92%)}
+.gl.one,.gr.one{animation:none}
 .h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(20,211,194,.2),rgba(20,211,194,.05) 50%,transparent 72%);opacity:.28;pointer-events:none;will-change:transform,opacity}
 .h-top{position:absolute;left:var(--g);right:var(--g);top:calc(var(--st) + 18px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
 .h-sea{will-change:transform;position:absolute;left:0;right:0;top:49%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
@@ -918,7 +921,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "103";
+var BUILD = "104";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1163,8 +1166,20 @@ function render(){
 }
 /* every page arrives the same way: its blocks rise in reading order, list rows one by one */
 function revealList(){ var out = []; [].forEach.call(view.children, function(c){ if(c.classList.contains("hero") || !c.offsetHeight) return; if(c.classList.contains("list") && c.children.length > 1) [].forEach.call(c.children, function(k){ out.push(k); }); else out.push(c); }); return out.slice(0, 18); }
+function opening(big){
+  var SLOW = "cubic-bezier(.19,1,.22,1)", INOUT = "cubic-bezier(.65,0,.35,1)", W = view.clientWidth;
+  var line = document.createElement("div"); line.className = "oh"; line.setAttribute("aria-hidden", "true"); line.innerHTML = '<em class="gl one"></em><em class="gr one"></em>';
+  line.style.top = (big.offsetTop + big.offsetHeight - 2) + "px"; view.appendChild(line);
+  line.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:760, easing:INOUT });
+  line.animate([{ opacity:1 }, { opacity:0 }], { duration:900, delay:1500, easing:"ease-in-out", fill:"forwards" }).onfinish = function(){ if(line.parentNode) line.parentNode.removeChild(line); };
+  [].forEach.call(line.children, function(g){ g.animate([{ opacity:0, transform:"translate3d(-180px,0,0)" }, { opacity:0.75, offset:0.2 }, { opacity:0.75, offset:0.8 }, { opacity:0, transform:"translate3d(" + W + "px,0,0)" }], { duration:1250, delay:560, easing:INOUT, fill:"both" }); });
+  big.animate([{ transform:"translate3d(0,106%,0)", clipPath:"inset(-10% -6% 106% -6%)", filter:"blur(8px)", opacity:0.35 }, { filter:"blur(0px)", opacity:1, offset:0.55 }, { transform:"none", clipPath:"inset(-10% -6% -16% -6%)", filter:"blur(0px)", opacity:1 }], { duration:1350, delay:220, easing:SLOW, fill:"backwards" });
+  revealList().filter(function(el){ return el !== big && el !== line; }).forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,24px,0)" }, { opacity:1, transform:"none" }], { duration:950, delay:560 + i * 55, easing:SLOW, fill:"backwards" }); });
+}
 function reveal(){
   if(calm) return;
+  var back = UI.navDir === "back", big0 = view.querySelector(".big"); UI.navDir = null;
+  if(!back && big0){ opening(big0); return; }
   revealList().forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,18px,0)" }, { opacity:1, transform:"none" }], { duration:640, delay:60 + i * 42, easing:OUT, fill:"backwards" }); });
 }
 
@@ -1190,12 +1205,16 @@ view.addEventListener("scroll", onScroll, { passive:true });
 /* ---------- moving between screens ---------- */
 function clearVT(){ [].forEach.call(document.querySelectorAll("[data-vt]"), function(e){ e.style.viewTransitionName = ""; e.removeAttribute("data-vt"); }); }
 function nav(fn, dir, src, destSel){
+  UI.navDir = dir || "fwd";
   if(calm || !document.startViewTransition){ fn(); return; }
-  document.documentElement.dataset.dir = dir || "fwd";
+  var fwd = dir !== "back"; if(fwd){ src = null; destSel = null; }
+  document.documentElement.dataset.dir = fwd ? "tab" : "back";
   var big = view.querySelector(".big");
+  if(fwd && big){ big.style.viewTransitionName = "none"; big.setAttribute("data-vt", ""); }
   if(src){ if(big){ big.style.viewTransitionName = "none"; big.setAttribute("data-vt", ""); } src.style.viewTransitionName = "title"; src.setAttribute("data-vt", ""); }
   try{
     var t = document.startViewTransition(function(){ fn();
+      if(fwd){ var nb = view.querySelector(".big"); if(nb){ nb.style.viewTransitionName = "none"; nb.setAttribute("data-vt", ""); } }
       if(destSel){ var d = view.querySelector(destSel), b = view.querySelector(".big"); if(d){ if(b){ b.style.viewTransitionName = "none"; b.setAttribute("data-vt", ""); } d.style.viewTransitionName = "title"; d.setAttribute("data-vt", ""); } } });
     t.finished.then(clearVT, clearVT);
   }catch(e){ clearVT(); fn(); }
