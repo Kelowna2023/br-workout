@@ -133,6 +133,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .th{position:relative;margin:84px 0 6px;padding-right:10%}
 .th.top{margin:52px 0 6px}
 .th.top p{font-size:17px}
+.th.ry{margin:44px 0 10px;padding-right:6%}.th.ry::before{content:none}.th.ry p{font:400 23px/1.24 var(--font);letter-spacing:-.03em;color:#8F8B84;text-wrap:balance}.th.ry p b{font-weight:600;color:var(--tx)}
 .th::before{content:attr(data-g);position:absolute;left:-10px;top:-62px;font:400 180px/1 Georgia,"Times New Roman",serif;color:var(--tx);opacity:.06;pointer-events:none}
 .th[data-g="?"]::before{top:-108px;left:auto;right:4%;font-size:170px}
 .th[data-g="~"]::before{top:-118px;left:auto;right:2%;font-size:230px;font-style:italic}
@@ -917,7 +918,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "101";
+var BUILD = "102";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1005,6 +1006,17 @@ function drawThought(){
     var lastSeen = ls.get("bagLast"); if(bag[bag.length - 1] === lastSeen && bag.length > 1){ bag.unshift(bag.pop()); }
   }
   var k = bag.pop(); ls.set("bag", bag); ls.set("bagLast", k); return pool[k];
+}
+var RALLY = {
+  mon:["Nobody builds a V from the front. ", "It gets made back here, one pull at a time."],
+  tue:["You said forty would be your best shape. ", "Press like you meant it."],
+  thu:["This is the session you'll want to cut short. ", "That's exactly why it counts."],
+  fri:["Second pass at the upper body this week. ", "This is where the size gets added."],
+  sat:["Wide shoulders make everything below them look sharper. ", "Go earn the width."],
+  any:["You showed up. ", "Now make it worth the drive."] };
+function rally(a){
+  var n = String(a.name || "").toLowerCase(), k = RALLY[a.routineId] ? a.routineId : /back|pull|posterior/.test(n) ? "mon" : /push|chest/.test(n) ? "tue" : /leg|lower|glute/.test(n) ? "thu" : /shoulder|delt|carr/.test(n) ? "sat" : /upper|arm/.test(n) ? "fri" : "any", q = RALLY[k], d = daysTo();
+  return '<div class="th top ry"><p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p><span><i></i>' + d + (d === 1 ? " day" : " days") + ' to ' + goalAge() + '</span></div>';
 }
 function thought(slot, top){
   var key = UI.key + ":" + slot; UI.th = UI.th || {};
@@ -1403,7 +1415,7 @@ function vWorkout(){
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
     rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (i === next ? '<small class="t">Up next' + (x.link && nx ? ' · superset with ' + esc(nx.name) : '') + '</small>' : x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
       (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
-  return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' + thought(2, true) +
+  return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' + rally(a) +
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
     '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
