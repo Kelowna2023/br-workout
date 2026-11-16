@@ -905,7 +905,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "91";
+var BUILD = "92";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -952,13 +952,52 @@ function facts(){
     ["You'll take about 20,000 breaths today. ", "You might notice ten."]
   ];
 }
-/* a thought at the foot of a page: a line from someone wiser, a question, or a fact worth sitting with */
-function thought(off, top){
-  var day = Math.round(dayStart(Date.now()) / 864e5), kind = (day + off) % 3, q, g, lab;
-  if(kind === 0){ q = lineAt(off * 5); g = "\u201C"; lab = q[2]; }
-  else if(kind === 1){ q = ASKS[(day + off * 3) % ASKS.length]; g = "?"; lab = "A question"; }
-  else { var f = facts(); q = f[(day + off * 3) % f.length]; g = "~"; lab = "Worth knowing"; }
-  return '<div class="th' + (top ? " top" : "") + '" data-g="' + g + '"><p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p>' + (lab ? '<span><i></i>' + esc(lab) + '</span>' : '') + '</div>';
+/* older knowledge: scripture, proverb, motto. Each is a real, sourced line */
+var LORE = [
+  ["Nothing in the world is softer than water, ", "yet nothing is better at overcoming the hard.", "Tao Te Ching"],
+  ["The highest good ", "is like water.", "Tao Te Ching"],
+  ["The Tao that can be told ", "is not the eternal Tao.", "Tao Te Ching"],
+  ["As above, ", "so below.", "The Emerald Tablet"],
+  ["The lips of wisdom are closed, ", "except to the ears of understanding.", "The Kybalion"],
+  ["You have a right to your actions, ", "but never to their fruits.", "Bhagavad Gita"],
+  ["Drop by drop ", "is the water pot filled.", "The Dhammapada"],
+  ["Better than a thousand hollow words ", "is one word that brings peace.", "The Dhammapada"],
+  ["The way up and the way down ", "are one and the same.", "Heraclitus"],
+  ["Know ", "thyself.", "Inscribed at Delphi"],
+  ["Nothing ", "in excess.", "Inscribed at Delphi"],
+  ["Before enlightenment, chop wood, carry water. ", "After enlightenment, chop wood, carry water.", "Zen proverb"],
+  ["Fall seven times, ", "stand up eight.", "Japanese proverb"],
+  ["One time, ", "one meeting.", "Ichi-go ichi-e"],
+  ["Make haste ", "slowly.", "Festina lente"],
+  ["It is solved ", "by walking.", "Solvitur ambulando"],
+  ["Dissolve, ", "and rebuild.", "Solve et coagula"],
+  ["Remember ", "that you will die.", "Memento mori"],
+  ["Love ", "your fate.", "Amor fati"],
+  ["A sound mind ", "in a sound body.", "Juvenal"],
+  ["Think lightly of yourself ", "and deeply of the world.", "Miyamoto Musashi"],
+  ["The universe is change; ", "our life is what our thoughts make it.", "Marcus Aurelius"],
+  ["This too ", "shall pass.", "Persian adage"]
+];
+/* every screen draws a fresh thought. Nothing repeats until the whole pool has been seen */
+function thoughtPool(){
+  return LINES.map(function(q){ return { a:q[0], b:q[1], by:q[2], g:"“" }; })
+    .concat(LORE.map(function(q){ return { a:q[0], b:q[1], by:q[2], g:"“" }; }))
+    .concat(ASKS.map(function(q){ return { a:q[0], b:q[1], by:"A question", g:"?" }; }))
+    .concat(facts().map(function(q){ return { a:q[0], b:q[1], by:"Worth knowing", g:"~" }; }));
+}
+function drawThought(){
+  var pool = thoughtPool(), bag = ls.get("bag");
+  if(!Array.isArray(bag) || !bag.length || bag.some(function(i){ return !(i < pool.length); })){
+    bag = pool.map(function(_, i){ return i; });
+    for(var i = bag.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = bag[i]; bag[i] = bag[j]; bag[j] = t; }
+    var lastSeen = ls.get("bagLast"); if(bag[bag.length - 1] === lastSeen && bag.length > 1){ bag.unshift(bag.pop()); }
+  }
+  var k = bag.pop(); ls.set("bag", bag); ls.set("bagLast", k); return pool[k];
+}
+function thought(slot, top){
+  var key = UI.key + ":" + slot; UI.th = UI.th || {};
+  var q = UI.th[key] || (UI.th[key] = drawThought());
+  return '<div class="th' + (top ? " top" : "") + '" data-g="' + q.g + '"><p>' + esc(q.a) + '<b>' + esc(q.b) + '</b></p>' + (q.by ? '<span><i></i>' + esc(q.by) + '</span>' : '') + '</div>';
 }
 function moon(){
   var p = ((Date.now() / 864e5 - 10962.76) % 29.530588853) / 29.530588853; if(p < 0) p += 1;
@@ -1076,7 +1115,7 @@ function ensureGoal(){ var c = S.cfg, ch = false; c.bw = c.bw || []; c.checkins 
 function render(){
   if(ensureGoal()) saveCfg();
   var k = screenKey(), fresh = k !== UI.key, keep = view.scrollTop, type = k.split(":")[0], a = S.active, l = "", t = "", r = "";
-  UI.key = k;
+  UI.key = k; if(fresh) UI.th = {};
   var html = type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
   view.innerHTML = html; view.dataset.v = type; app.dataset.s = type;
   if(type !== "ex" && UI.clock){ UI.clock = false; $("#clock").hidden = true; }
@@ -1270,7 +1309,7 @@ function flipFrom(){ var n0 = $("#rest-n"), n1 = $("#ck-t"); if(!n0) return null
   if(!r0.height){ var hr = $("#restrow .hw").getBoundingClientRect(); r0 = { left:hr.left + hr.width / 2 - 34, top:hr.top + 8, height:28 }; }
   return "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")"; }
 function openClock(){
-  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(clockBase()); UI.rq = (UI.rq || 0) + 1; (function(q){ $("#ck-q").innerHTML = esc(q[0]) + "<b>" + esc(q[1]) + "</b>" + (q[2] ? " · " + esc(q[2]) : ""); })(UI.rq % 3 === 0 ? lineAt(11 + UI.rq) : UI.rq % 3 === 1 ? facts()[UI.rq % 8] : ASKS[UI.rq % ASKS.length]); ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); tick();
+  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(clockBase()); UI.rq = (UI.rq || 0) + 1; (function(q){ $("#ck-q").innerHTML = esc(q.a) + "<b>" + esc(q.b) + "</b>" + (q.by && q.g === "\u201C" ? " · " + esc(q.by) : ""); })(drawThought()); tick();
   if(calm) return;
   var SM = "cubic-bezier(.2,.9,.2,1)", f = flipFrom();
   ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:900, easing:SM });
@@ -1860,7 +1899,7 @@ try{ if("serviceWorker" in navigator && location.protocol === "https:") navigato
 (function(){ var away = 0;
   document.addEventListener("visibilitychange", function(){
     if(document.hidden){ away = Date.now(); return; }
-    render();
+    UI.th = {}; render();
     if(!away || Date.now() - away < 20000 || location.protocol !== "https:") return;
     fetch("index.html?b=" + Date.now(), { cache:"no-store" }).then(function(r){ return r.ok ? r.text() : ""; }).then(function(t){
       var m = t.match(/var BUILD = "(\d+)"/); if(!m || m[1] === BUILD) return;
