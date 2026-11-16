@@ -152,10 +152,10 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hw.v span{display:block;width:auto;height:64px;line-height:64px}
 .hwx+.hw-u{margin-top:-14px;position:relative}
 .hwx{position:relative}
-.hw-ar{position:absolute;left:50%;top:50%;margin:-44px 0 0 -15px;width:44px;height:88px;display:flex;flex-direction:column;color:var(--t);transform:translate3d(var(--ax,30px),0,0);transition:transform .32s var(--out);z-index:2}
-.hw-ar button{flex:1;display:flex;justify-content:center;color:inherit;opacity:.85;transition:opacity .15s,transform .2s var(--spring)}.hw-ar button:first-child{align-items:flex-end;padding-bottom:14px}.hw-ar button:last-child{align-items:flex-start;padding-top:14px}
-.hw-ar button.tap{opacity:1;transform:scale(1.35)}
-.hw-ar svg{display:block;width:14px;height:8px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hw-b{position:absolute;top:50%;margin-top:-30px;width:60px;height:60px;display:grid;place-items:center;color:var(--t);z-index:2;transition:transform .25s var(--spring)}
+.hw-b.m{left:calc(50% - 158px)}.hw-b.p{left:calc(50% + 98px)}
+.hw-b.tap{transform:scale(1.3)}
+.hw-b svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
 .hw.v span{color:var(--t)}
 .hw.v.ghost span{color:var(--mu)}
 .hw.sm{flex:1;margin:0 6px;min-width:0}
@@ -931,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "111";
+var BUILD = "112";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1191,11 +1191,20 @@ function reveal(){
   if(carry && big){ var br = big.getBoundingClientRect(), bcs = getComputedStyle(big), bfs = parseFloat(bcs.fontSize) || 46;
     if(br.height < bfs * 1.6){ /* the name you tapped: it swells where it sits, then travels into the title */
       var s0 = carry.fs / bfs, dx = carry.l - br.left, dy = carry.b - br.bottom, lsEnd = ((parseFloat(bcs.letterSpacing) || 0) / bfs).toFixed(4) + "em";
-      big.animate([
+      var wk = type === "wk", vw = view.clientWidth, g = br.left, tw = (function(){ try{ var rg = document.createRange(); rg.selectNodeContents(big); return rg.getBoundingClientRect().width || br.width; }catch(e){ return br.width; } })(), sBig = clamp((vw - g * 1.6) / tw, 1.2, 3.2), dyBig = view.clientHeight * 0.5 - br.bottom + (bfs * sBig) * 0.35;
+      if(wk){ /* sized with real type, not a stretched picture of it, so it stays razor sharp when it is huge */
+        var lh = (parseFloat(bcs.lineHeight) || bfs * 1.02) / bfs, f0 = carry.fs, fB = bfs * sBig, ty0 = carry.b - br.top - lh * f0, tyB = window.innerHeight * 0.5 + fB * 0.3 - br.top - lh * fB;
+        big.style.height = br.height + "px"; big.style.whiteSpace = "nowrap"; big.style.overflow = "visible";
+        var za = big.animate([
+          { transform:"translate3d(" + dx.toFixed(1) + "px," + ty0.toFixed(1) + "px,0)", fontSize:f0 + "px", fontWeight:carry.fw, letterSpacing:carry.ls.toFixed(4) + "em", easing:"cubic-bezier(.16,1,.3,1)" },
+          { transform:"translate3d(0," + tyB.toFixed(1) + "px,0)", fontSize:fB.toFixed(1) + "px", fontWeight:bcs.fontWeight, letterSpacing:lsEnd, offset:0.5, easing:"cubic-bezier(.76,0,.12,1)" },
+          { transform:"translate3d(0,0,0)", fontSize:bfs + "px", fontWeight:bcs.fontWeight, letterSpacing:lsEnd }], { duration:1050 });
+        za.onfinish = za.oncancel = function(){ big.style.height = ""; big.style.whiteSpace = ""; big.style.overflow = ""; }; }
+      else big.animate([
         { transform:"translate3d(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px,0) scale(" + s0.toFixed(4) + ")", fontWeight:carry.fw, letterSpacing:carry.ls.toFixed(4) + "em", easing:"cubic-bezier(.3,0,.4,1)" },
         { transform:"translate3d(" + (dx * 0.94).toFixed(1) + "px," + (dy * 0.9).toFixed(1) + "px,0) scale(" + (s0 * 1.14).toFixed(4) + ")", offset:0.3, easing:"cubic-bezier(.68,0,.14,1)" },
         { transform:"translate3d(0,0,0) scale(1)", fontWeight:bcs.fontWeight, letterSpacing:lsEnd }], { duration:700 });
-      list = list.filter(function(el){ return el !== big; }); d0 = 300; } }
+      list = list.filter(function(el){ return el !== big; }); d0 = wk ? 760 : 300; big.style.zIndex = 5; big.style.position = "relative"; } }
   var own = type === "history" ? ".cal" : null;
   list = list.filter(function(el){ return !el.classList.contains("hz") && !(own && el.matches(own)); });
   list.forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,16px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:760, delay:d0 + i * 45, easing:SLOW, fill:"backwards" }); });
@@ -1490,8 +1499,8 @@ function vExercise(){
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
   if(ci >= 0){ var st = x.sets[ci], hn = hint(x, ci);
     o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' of ' + x.sets.length + '</div>' +
-      '<div class="hwx">' + hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<span class="hw-ar"><button type="button" data-act="hw-step" data-d="1" aria-label="Up one step"><svg viewBox="0 0 14 8"><path d="M2 6.5l5-5 5 5"/></svg></button><button type="button" data-act="hw-step" data-d="-1" aria-label="Down one step"><svg viewBox="0 0 14 8"><path d="M2 1.5l5 5 5-5"/></svg></button></span>' + '</div><div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</div>' +
-      '<div class="hwx">' + hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<span class="hw-ar"><button type="button" data-act="hw-step" data-d="1" aria-label="Up one step"><svg viewBox="0 0 14 8"><path d="M2 6.5l5-5 5 5"/></svg></button><button type="button" data-act="hw-step" data-d="-1" aria-label="Down one step"><svg viewBox="0 0 14 8"><path d="M2 1.5l5 5 5-5"/></svg></button></span>' + '</div><div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
+      '<div class="hwx">' + hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<button type="button" class="hw-b m" data-act="hw-step" data-d="-1" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><button type="button" class="hw-b p" data-act="hw-step" data-d="1" aria-label="More"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>' + '</div><div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</div>' +
+      '<div class="hwx">' + hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<button type="button" class="hw-b m" data-act="hw-step" data-d="-1" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><button type="button" class="hw-b p" data-act="hw-step" data-d="1" aria-label="More"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>' + '</div><div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
       '<button type="button" class="btn go x-go" data-act="check" data-e="' + ei + '" data-s="' + ci + '">Complete set</button></div>';
   } else {
     var nx = -1, j; for(j = 1; j <= a.exercises.length; j++){ var k2 = (ei + j) % a.exercises.length; if(curIdx(a.exercises[k2]) >= 0){ nx = k2; break; } }
