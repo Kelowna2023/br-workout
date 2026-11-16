@@ -931,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "116";
+var BUILD = "117";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1188,7 +1188,7 @@ function reveal(){
   if(calm) return;
   var dir = UI.navDir, type = view.dataset.v, INOUT = "cubic-bezier(.65,0,.35,1)", each = function(sel, fn){ [].forEach.call(view.querySelectorAll(sel), fn); }; UI.navDir = null;
   /* going forward, the page's contents settle in order: a few pixels, a long ease. Going back or across, the dissolve is enough. */
-  if(dir === "fwd") revealList().forEach(function(el, i){ if(el.classList.contains("hz")) return; el.animate([{ opacity:0, transform:"translate3d(0,10px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:900, delay:90 + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
+  if(dir === "fwd") revealList().forEach(function(el, i){ if(el.classList.contains("hz")) return; el.animate([{ opacity:0, transform:"translate3d(0,10px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:900, delay:(UI.gliding ? 400 : 90) + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
   if(dir === "back") return;
   each(".hz", function(el){ el.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1200, delay:120, easing:INOUT, fill:"backwards" }); });
   if(type === "body") each(".to40 b.num", function(el){ var n = parseInt(el.textContent, 10) || 0, t0 = performance.now(), D = 1200; if(n < 2) return; el.style.fontVariantNumeric = "tabular-nums";
@@ -1220,17 +1220,32 @@ document.addEventListener("click", function(e){ var t = e.target.closest && e.ta
 function clearVT(){ [].forEach.call(document.querySelectorAll("[data-vt]"), function(e){ e.style.viewTransitionName = ""; e.removeAttribute("data-vt"); }); }
 /* One timeline, no browser snapshots: the old page fades, the page swaps, the new one arrives. The tapped name never leaves the screen. */
 /* Moving between pages: a slow dissolve with a little depth. Going in, the page you leave sinks back and the next one settles forward; going back, the reverse. Nothing flies. */
-function nav(fn, dir){
+function mkGhost(el, cs){ var g = document.createElement("div"), fs = parseFloat(cs.fontSize) || 16; g.textContent = el.textContent; g.setAttribute("aria-hidden", "true");
+  g.style.cssText = "position:fixed;left:0;top:0;z-index:60;margin:0;pointer-events:none;white-space:nowrap;color:#F5F2EC;will-change:transform;font-family:" + cs.fontFamily;
+  document.body.appendChild(g); return g; }
+function typeOf(el){ var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize) || 16, r = el.getBoundingClientRect();
+  return { cs:cs, r:r, kf:{ transform:"translate3d(" + r.left.toFixed(2) + "px," + r.top.toFixed(2) + "px,0)", fontSize:fs + "px", fontWeight:cs.fontWeight, lineHeight:((parseFloat(cs.lineHeight) || fs * 1.1) / fs).toFixed(3), letterSpacing:((parseFloat(cs.letterSpacing) || 0) / fs).toFixed(4) + "em" }, oneLine:r.height < fs * 1.6 }; }
+function nav(fn, dir, src, destSel){
   UI.navDir = dir || "fwd";
   if(calm || UI.instant || UI.navBusy){ fn(); return; }
-  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:230, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }];
+  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:200, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], ghost = null, from = null;
+  var kill = function(){ if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost); ghost = null; };
+  /* the name you tapped (or the title, going back) stays on screen the whole time and glides to where it lives on the next page */
+  var el0 = back ? (destSel ? view.querySelector(".big") : null) : src;
+  if(el0){ from = typeOf(el0); if(from.oneLine && from.r.bottom > 0 && from.r.top < window.innerHeight){ ghost = mkGhost(el0, from.cs); for(var k in from.kf) ghost.style[k] = from.kf[k]; } else from = null; }
   UI.navBusy = true; view.style.transformOrigin = "50% " + (view.scrollTop + view.clientHeight * 0.38).toFixed(0) + "px";
   outs.push(view.animate([{ opacity:1, transform:"scale(1)" }, { opacity:0, transform:"scale(" + (tab ? 1 : back ? 1.014 : 0.986) + ")" }], fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
   var done = false, swap = function(){ if(done) return; done = true;
+    UI.gliding = !!ghost;
     try{ fn(); } finally {
-      outs.forEach(function(q){ try{ q.cancel(); }catch(e){} }); UI.navBusy = false;
+      outs.forEach(function(q){ try{ q.cancel(); }catch(e){} }); UI.navBusy = false; UI.gliding = false;
       var IN = "cubic-bezier(.22,1,.36,1)"; view.style.transformOrigin = "50% " + (view.clientHeight * 0.38).toFixed(0) + "px";
-      view.animate([{ opacity:0, transform:"scale(" + (tab ? 1 : back ? 0.986 : 1.014) + ")" }, { opacity:1, transform:"scale(1)" }], { duration:760, easing:IN });
+      var d = ghost ? view.querySelector(back ? destSel : ".big") : null, to = d ? typeOf(d) : null;
+      if(to && to.oneLine && to.r.bottom > 0 && to.r.top < window.innerHeight){
+        d.style.visibility = "hidden"; var land = function(){ d.style.visibility = ""; kill(); };
+        var ga = ghost.animate([from.kf, to.kf], { duration:720, easing:"cubic-bezier(.62,0,.18,1)", fill:"forwards" }); ga.onfinish = ga.oncancel = land; setTimeout(land, 1000);
+      } else kill();
+      view.animate([{ opacity:0 }, { opacity:1 }], { duration:back && ghost ? 900 : 760, delay:back && ghost ? 160 : 0, easing:IN, fill:"backwards" });
       bar.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN });
       if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN }); } };
   outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
