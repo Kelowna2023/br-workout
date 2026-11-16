@@ -986,6 +986,7 @@ main{gap:26px!important;padding-top:34px!important}
 .done-t{font:700 10.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc)!important}
 .hrow .chev.ok{color:var(--acc)!important;font-size:20px}
 .hrow:active .done-t,.hrow:active .chev.ok{color:var(--acc)!important}
+.pgb .v{font-size:11px!important;white-space:nowrap}.pgb{flex-basis:58px}
 </style>
 </head>
 <body>
@@ -2197,7 +2198,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "66";
+var BUILD = "67";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2790,24 +2791,23 @@ function pgExercise(){
   var h = '<button type="button" class="pgpick" data-act="pg-open" aria-expanded="' + !!S.pgOpen + '"><span><small>Exercise</small><b>' + esc(names[k]) + '</b></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
   if(S.pgOpen){ h += '<div class="pgl">' + groups.map(function(g){ return '<div class="cap">' + esc(g.name) + '</div>' + g.items.map(function(q){ var c = counts[q] || 0;
       return '<button type="button" data-act="pg-pick" data-k="' + esc(q) + '" aria-current="' + (q === k) + '"><span>' + esc(names[q]) + '</span><span>' + (c ? c + (c === 1 ? " session" : " sessions") : "No sessions") + '</span></button>'; }).join(""); }).join("") + '</div>'; return h; }
-  h += '<div class="pgseg" role="group" aria-label="What the bars show">' + [["w","Top weight"],["r","Total reps"],["v","Volume"]].map(function(m){ return '<button type="button" data-act="pg-met" data-v="' + m[0] + '" aria-pressed="' + (met === m[0]) + '">' + m[1] + '</button>'; }).join("") + '</div>';
-  if(!data.length){
-    return h + '<div class="pgc ghost"><div class="pgs"><div class="pgbars">' + [30,42,40,55,62,60,78].map(function(p){ return '<span class="pgb" style="--h:' + p + ';--d:0s"><i></i></span>'; }).join("") + '</div></div><div class="pge">No sessions for ' + esc(names[k]) + ' yet. Finish a workout with it and its first bar lands here.</div></div>';
-  }
-  var vals = data.map(val), mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals), lo = Math.max(0, mn - (mx - mn)), run = -1, sel = S.pgBar == null || S.pgBar >= data.length ? data.length - 1 : S.pgBar;
-  var best = data.slice().sort(function(a, b){ return b.top - a.top || b.topR - a.topR; })[0], last = data[data.length - 1], firstV = vals[0], lastV = vals[vals.length - 1], tot = lastV - firstV;
-  h += '<div class="pgst"><div><b>' + fmtW(last.top) + ' × ' + last.topR + '</b><span>Latest top set · ' + fmtShort(last.t) + '</span></div><div><b>' + fmtW(best.top) + ' × ' + best.topR + '</b><span>Best set · ' + fmtShort(best.t) + '</span></div>' +
-    '<div><b class="' + (tot > 0 ? "up" : tot < 0 ? "dn" : "") + '">' + (tot > 0 ? "+" : tot < 0 ? "−" : "") + fmtVol(Math.abs(tot)) + ' ' + unit + '</b><span>Since first session</span></div><div><b>' + data.length + '</b><span>' + (data.length === 1 ? "Session logged" : "Sessions logged") + '</span></div></div>';
-  h += '<div class="pgc' + (S.pgNoAnim ? " noanim" : "") + '"><div class="pgc-h"><span>' + (met === "w" ? "Heaviest set each session, " + esc(u) : met === "r" ? "Total reps each session" : "Weight × reps each session, " + esc(u)) + '</span><span>' + (data.length > 6 ? "Swipe for older" : "") + '</span></div><div class="pgs" id="pg-scroll"><div class="pgbars">' +
-    data.map(function(d, i){ var v = vals[i], rec = i > 0 && v > run, prev = i ? vals[i - 1] : null, pct = mx === lo ? 70 : 22 + 78 * (v - lo) / (mx - lo); if(v > run) run = v;
-      return '<button type="button" class="pgb' + (i === sel ? " sel" : "") + (prev != null && Math.abs(v - prev) < 0.05 ? " eq" : "") + '" data-act="pg-bar" data-i="' + i + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (data.length - 8)) * 0.05).toFixed(2) + 's" aria-label="' + fmtShort(d.t) + ', ' + fmtVol(v) + ' ' + unit + (rec ? ", new best" : "") + '">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + (met === "v" && v >= 10000 ? (v / 1000).toFixed(1) + "k" : fmtVol(v)) + '</span><i></i><span class="d">' + fmtShort(d.t) + '</span></button>'; }).join("") + '</div></div></div>';
-  var d = data[sel], dv = sel ? vals[sel] - vals[sel - 1] : null;
-  h += '<div class="card pgd"><div class="pgd-h"><span><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" }) + '</b><small>' + esc(d.wk) + '</small></span>' + pgDelta(dv, unit) + '</div>' +
-    d.sets.map(function(st, n){ return '<div class="pgd-r"><span>Set ' + (n + 1) + '</span><b>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</b></div>' + (st.note ? '<p class="pgd-n">' + esc(st.note) + '</p>' : ''); }).join("") +
-    '<div class="pgd-f">' + d.sets.length + (d.sets.length === 1 ? ' set' : ' sets') + ' · ' + d.reps + ' reps' + (d.vol > 0 ? ' · ' + fmtVol(d.vol) + ' ' + esc(u) + ' moved' : '') + '</div></div>';
-  h += '<h2>Every session</h2><div class="pglog">' + data.map(function(q, i){ return [q, i]; }).reverse().map(function(p){ var q = p[0], i = p[1];
-      return '<button type="button" data-act="pg-bar" data-i="' + i + '" aria-current="' + (i === sel) + '"><span>' + fmtShort(q.t) + '</span><span>' + (q.top > 0 ? fmtW(q.top) + ' ' + esc(u) + ' · ' : '') + q.sets.map(function(st){ return num(st.r); }).join(", ") + ' reps</span>' + pgDelta(i ? vals[i] - vals[i - 1] : null, unit) + '</button>'; }).join("") + '</div>';
-  var keep = S.pgScroll; S.pgScroll = null; setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = keep != null ? keep : e.scrollWidth; }, 0);
+  if(!data.length) return h + '<div class="empty">No sessions for ' + esc(names[k]) + ' yet. Finish a workout with it and it shows up here.</div>';
+  var bw = !data.some(function(d){ return d.top > 0; }), f = function(d){ return bw ? d.topR + ' reps' : fmtW(d.top) + ' ' + esc(u) + ' × ' + d.topR; };
+  var cmp = function(a, b){ if(!b) return '<span class="dl">First</span>';
+    if(a.top !== b.top){ var dw = a.top - b.top; return '<span class="dl ' + (dw > 0 ? "up" : "dn") + '">' + (dw > 0 ? "+" : "−") + fmtW(Math.abs(dw)) + ' ' + esc(u) + '</span>'; }
+    if(a.topR !== b.topR){ var dr = a.topR - b.topR; return '<span class="dl ' + (dr > 0 ? "up" : "dn") + '">' + (dr > 0 ? "+" : "−") + Math.abs(dr) + (Math.abs(dr) === 1 ? " rep" : " reps") + '</span>'; }
+    return '<span class="dl">Same</span>'; };
+  var best = data.slice().sort(function(a, b){ return b.top - a.top || b.topR - a.topR || a.t - b.t; })[0];
+  h += '<div class="pgst"><div style="grid-column:1/-1"><b>' + f(best) + '</b><span>Best set · ' + fmtShort(best.t) + '</span></div></div>';
+  if(data.length > 1){ var vals = data.map(function(d){ return bw ? d.topR : d.top; }), mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals), lo = Math.max(0, mn - (mx - mn)), bt = -1, br = -1;
+    h += '<div class="pgc"><div class="pgc-h"><span>' + (bw ? "Best set each day, reps" : "Best set each day, " + esc(u)) + '</span><span>' + (data.length > 6 ? "Swipe for older" : "") + '</span></div><div class="pgs" id="pg-scroll"><div class="pgbars">' +
+      data.map(function(d, i){ var v = vals[i], rec = i > 0 && (d.top > bt || (d.top === bt && d.topR > br)), pct = mx === lo ? 70 : 22 + 78 * (v - lo) / (mx - lo); if(d.top > bt || (d.top === bt && d.topR > br)){ bt = d.top; br = d.topR; }
+        return '<span class="pgb' + (i === data.length - 1 ? " sel" : "") + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (data.length - 8)) * 0.05).toFixed(2) + 's">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + (bw ? d.topR : fmtW(d.top) + '×' + d.topR) + '</span><i></i><span class="d">' + fmtShort(d.t) + '</span></span>'; }).join("") + '</div></div></div>';
+    setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = e.scrollWidth; }, 0); }
+  h += '<h2>Your sessions</h2>';
+  for(var i = data.length - 1; i >= 0; i--){ var d = data[i];
+    h += '<div class="card pgd"><div class="pgd-h"><span><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</b><small>' + esc(d.wk) + '</small></span>' + cmp(d, data[i - 1]) + '</div>' +
+      d.sets.map(function(st, n){ return '<div class="pgd-r"><span>Set ' + (n + 1) + '</span><b>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</b></div>' + (st.note ? '<p class="pgd-n">' + esc(st.note) + '</p>' : ''); }).join("") + '</div>'; }
   return h;
 }
 
