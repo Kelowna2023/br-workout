@@ -133,7 +133,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .th{position:relative;margin:84px 0 6px;padding-right:10%}
 .th.top{margin:52px 0 6px}
 .th.top p{font-size:17px}
-.th.ry{margin:44px 0 10px;padding-right:6%}.th.ry::before{content:none}.th.ry p{font:400 23px/1.24 var(--font);letter-spacing:-.03em;color:#8F8B84;text-wrap:balance}.th.ry p b{font-weight:600;color:var(--tx)}
+.th.ry{margin:40px 0 8px;padding-right:14%}.th.ry::before{content:none}.th.ry p{font:400 17px/1.4 var(--font);letter-spacing:-.012em;color:#7C7972;text-wrap:balance}.th.ry p b{font-weight:500;color:#D9D5CD}.th.ry span{color:var(--mu2);margin-top:12px;font-size:12px}
 .th::before{content:attr(data-g);position:absolute;left:-10px;top:-62px;font:400 180px/1 Georgia,"Times New Roman",serif;color:var(--tx);opacity:.06;pointer-events:none}
 .th[data-g="?"]::before{top:-108px;left:auto;right:4%;font-size:170px}
 .th[data-g="~"]::before{top:-118px;left:auto;right:2%;font-size:230px;font-style:italic}
@@ -918,7 +918,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "102";
+var BUILD = "103";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
