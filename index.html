@@ -105,10 +105,13 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .wk-s b{color:var(--t);font-weight:600}
 .wk+.segs{margin-top:12px}
 .h-cd{margin-bottom:26px}
-.h-cd-n{display:flex;align-items:baseline;gap:10px}
-.h-cd-n b{font:600 46px/1 var(--font);letter-spacing:-.045em}
-.h-cd-n span{font-size:13px;color:var(--mu)}
+.h-cd-n{font:400 17px/1.4 var(--font);letter-spacing:-.008em;color:#7C7972}
+.h-cd-n b{font-weight:500;color:#D9D5CD}
 .h-cd .yg{margin-top:16px}
+.h-cd .yg-g i{border-color:#1D1D1D}
+.h-cd .yg-g i.p{background:#1D1D1D}
+.h-cd .yg-g i.n{border-color:#8F8B84}
+.h-cd .yg-c{color:#5E5B56}
 .segs{display:flex;gap:6px;margin-top:20px}
 .segs span{flex:1;height:4px;border-radius:2px;background:#1E1E1E;overflow:hidden}
 .segs i{display:block;height:100%;background:var(--t);transform-origin:0 50%;transform:scaleX(0);transition:transform .9s var(--out)}
@@ -894,7 +897,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "89";
+var BUILD = "90";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1652,7 +1655,7 @@ var LINES = [
 function hero(){
   var el = $("#hero"), d = new Date();
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "Week " + isoWeek(d);
-  $("#h-cd").innerHTML = '<div class="h-cd-n"><b class="num">' + daysTo() + '</b><span>days to ' + goalAge() + '</span></div>' + goalGrid(new Date(goalDate()).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }));
+  $("#h-cd").innerHTML = '<div class="h-cd-n"><b>' + daysTo() + ' days</b> to ' + goalAge() + '.</div>' + goalGrid(new Date(goalDate()).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }));
   UI.intro = true; el.hidden = false; HR.busy = false;
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   if(calm) return;
