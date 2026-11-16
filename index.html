@@ -994,6 +994,36 @@ main{gap:26px!important;padding-top:34px!important}
 .pglog.sc button span:first-child{font:700 17px/1.2 var(--font)!important;text-transform:none!important;letter-spacing:-.02em!important;color:var(--text)!important}
 .pglog.sc button{min-height:72px;padding-top:12px!important;padding-bottom:12px!important}
 .pg-x{margin:-14px 0 0;font:400 15px/1.45 var(--font);color:var(--dim)}
+
+/* ---- progress: quiet layout with one clear order: exercise, best set, days ---- */
+.px{display:flex;flex-direction:column}
+.px-tabs{display:flex;gap:30px;border-bottom:1px solid var(--line);margin:4px 0 34px}
+.px-tabs button{padding:0 0 15px;border:0;background:none;font:600 16px/1 var(--font);letter-spacing:-.01em;color:var(--dim)}
+.px-tabs button[aria-pressed="true"]{color:var(--text);box-shadow:inset 0 -2px 0 var(--acc)}
+.px-l{display:block;font:600 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.px .pgpick{padding:0!important;min-height:0!important;border:0!important;align-items:flex-end}
+.px .pgpick span{gap:12px}.px .pgpick small{font:600 10.5px/1 var(--mono)!important;letter-spacing:.14em!important;color:var(--dim)!important}
+.px .pgpick b{font:700 26px/1.1 var(--font)!important;letter-spacing:-.035em!important;text-transform:none!important;white-space:normal}
+.px .pgpick svg{margin-bottom:6px}
+.px .pgl{margin-top:22px!important;border-top:1px solid var(--line)!important}
+.px-hero{display:flex;flex-direction:column;gap:14px;padding:44px 0 48px}
+.px-hero b{font:800 60px/.95 var(--font);letter-spacing:-.05em;font-variant-numeric:tabular-nums;color:var(--text)}
+.px-hero b small{font:600 .36em/1 var(--font);letter-spacing:0;color:var(--dim);margin:0 .2em 0 .12em}
+.px-hero b em{font-style:normal;font-weight:400;color:var(--dim);margin:0 .12em}
+.px-s{font:400 15px/1.3 var(--font);color:var(--dim)}
+.px .pgc{margin:0 0 44px;padding:0!important;border:0!important}.px .pgc-h{display:none}.px .pgbars{height:190px}
+.px-d{padding:24px 0 22px;border-top:1px solid var(--line)}
+.px-l+.px-d{margin-top:18px}
+.px-dh{display:flex;justify-content:space-between;align-items:center;gap:12px}.px-dh b{font:700 18px/1.2 var(--font);letter-spacing:-.025em}
+.px-d ol{list-style:none;margin:16px 0 0;padding:0}
+.px-d li{display:grid;grid-template-columns:30px 1fr;align-items:baseline;padding:7px 0}
+.px-d li i{font:600 11px/1 var(--mono);font-style:normal;color:var(--dim)}
+.px-d li span{font:600 17px/1.2 var(--font);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.px-d li.n{display:block;padding:0 0 10px 30px;font:400 15px/1.45 var(--font);color:var(--dim)}
+.px-e{margin:40px 0 0;font:400 16px/1.5 var(--font);color:var(--dim)}
+.px .pglog.sc{margin-top:18px!important}
+.px-gap{height:48px}
+.px .pglog.sc small{font:400 14px/1.2 var(--font)!important;text-transform:none!important;letter-spacing:0!important;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -2205,7 +2235,7 @@ document.addEventListener("focusout", function(ev){
 window.addEventListener("hashchange", function(){ if($("#view").dataset.v === viewName() && Date.now() - (window.__lr || 0) < 400) return; render(); });
 
 /* ---------- installed app: offline copy and storage ---------- */
-var BUILD = "69";
+var BUILD = "70";
 try{ if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(function(reg){
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) try{ reg.update(); }catch(e){} }); }); }catch(e){}
 /* Coming back to the app after a while: if there's a newer version online, switch to it (never mid-typing or with a panel open). */
@@ -2799,23 +2829,23 @@ function pgExercise(){
   var h = '<button type="button" class="pgpick" data-act="pg-open" aria-expanded="' + !!S.pgOpen + '"><span><small>Exercise</small><b>' + esc(names[k]) + '</b></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
   if(S.pgOpen){ h += '<div class="pgl">' + groups.map(function(g){ return '<div class="cap">' + esc(g.name) + '</div>' + g.items.map(function(q){ var c = counts[q] || 0;
       return '<button type="button" data-act="pg-pick" data-k="' + esc(q) + '" aria-current="' + (q === k) + '"><span>' + esc(names[q]) + '</span><span>' + (c ? c + (c === 1 ? " session" : " sessions") : "No sessions") + '</span></button>'; }).join(""); }).join("") + '</div>'; return h; }
-  if(!data.length) return h + '<div class="empty">No sessions for ' + esc(names[k]) + ' yet. Finish a workout with it and it shows up here.</div>';
-  var bw = !data.some(function(d){ return d.top > 0; }), f = function(d){ return bw ? d.topR + ' reps' : fmtW(d.top) + ' ' + esc(u) + ' × ' + d.topR; };
-  var cmp = function(a, b){ if(!b) return '<span class="dl">First</span>';
+  if(!data.length) return h + '<p class="px-e">No sessions for ' + esc(names[k]) + ' yet. Finish a workout with it and it shows up here.</p>';
+  var bw = !data.some(function(d){ return d.top > 0; }), big = function(d){ return bw ? d.topR + '<small>reps</small>' : fmtW(d.top) + '<small>' + esc(u) + '</small><em>×</em>' + d.topR; };
+  var cmp = function(a, b){ if(!b) return '';
     if(a.top !== b.top){ var dw = a.top - b.top; return '<span class="dl ' + (dw > 0 ? "up" : "dn") + '">' + (dw > 0 ? "+" : "−") + fmtW(Math.abs(dw)) + ' ' + esc(u) + '</span>'; }
     if(a.topR !== b.topR){ var dr = a.topR - b.topR; return '<span class="dl ' + (dr > 0 ? "up" : "dn") + '">' + (dr > 0 ? "+" : "−") + Math.abs(dr) + (Math.abs(dr) === 1 ? " rep" : " reps") + '</span>'; }
     return '<span class="dl">Same</span>'; };
   var best = data.slice().sort(function(a, b){ return b.top - a.top || b.topR - a.topR || a.t - b.t; })[0];
-  h += '<div class="pgst"><div style="grid-column:1/-1"><b>' + f(best) + '</b><span>Best set · ' + fmtShort(best.t) + '</span></div></div>';
+  h += '<div class="px-hero"><span class="px-l">Best set</span><b>' + big(best) + '</b><span class="px-s">' + new Date(best.t).toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" }) + '</span></div>';
   if(data.length > 1){ var vals = data.map(function(d){ return bw ? d.topR : d.top; }), mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals), lo = Math.max(0, mn - (mx - mn)), bt = -1, br = -1;
-    h += '<div class="pgc"><div class="pgc-h"><span>' + (bw ? "Best set each day, reps" : "Best set each day, " + esc(u)) + '</span><span>' + (data.length > 6 ? "Swipe for older" : "") + '</span></div><div class="pgs" id="pg-scroll"><div class="pgbars">' +
+    h += '<div class="pgc"><div class="pgs" id="pg-scroll"><div class="pgbars">' +
       data.map(function(d, i){ var v = vals[i], rec = i > 0 && (d.top > bt || (d.top === bt && d.topR > br)), pct = mx === lo ? 70 : 22 + 78 * (v - lo) / (mx - lo); if(d.top > bt || (d.top === bt && d.topR > br)){ bt = d.top; br = d.topR; }
         return '<span class="pgb' + (i === data.length - 1 ? " sel" : "") + '" style="--h:' + pct.toFixed(1) + ';--d:' + (Math.max(0, i - (data.length - 8)) * 0.05).toFixed(2) + 's">' + (rec ? '<span class="pr">BEST</span>' : '') + '<span class="v">' + (bw ? d.topR : fmtW(d.top) + '×' + d.topR) + '</span><i></i><span class="d">' + fmtShort(d.t) + '</span></span>'; }).join("") + '</div></div></div>';
     setTimeout(function(){ var e = $("#pg-scroll"); if(e) e.scrollLeft = e.scrollWidth; }, 0); }
-  h += '<h2>Your sessions</h2>';
+  h += '<span class="px-l">Sessions</span>';
   for(var i = data.length - 1; i >= 0; i--){ var d = data[i];
-    h += '<div class="card pgd"><div class="pgd-h"><span><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</b><small>' + esc(d.wk) + '</small></span>' + cmp(d, data[i - 1]) + '</div>' +
-      d.sets.map(function(st, n){ return '<div class="pgd-r"><span>Set ' + (n + 1) + '</span><b>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</b></div>' + (st.note ? '<p class="pgd-n">' + esc(st.note) + '</p>' : ''); }).join("") + '</div>'; }
+    h += '<div class="px-d"><div class="px-dh"><b>' + new Date(d.t).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" }) + '</b>' + cmp(d, data[i - 1]) + '</div><ol>' +
+      d.sets.map(function(st, n){ return '<li><i>' + (n + 1) + '</i><span>' + (num(st.w) > 0 ? fmtW(num(st.w)) + ' ' + esc(u) + ' × ' : '') + num(st.r) + (num(st.w) > 0 ? '' : ' reps') + '</span></li>' + (st.note ? '<li class="n">' + esc(st.note) + '</li>' : ''); }).join("") + '</ol></div>'; }
   return h;
 }
 
@@ -2823,28 +2853,28 @@ function pgExercise(){
 function pgOverall(){
   var u = S.cfg.units, goal = Math.max(1, +S.cfg.weeklyGoal || 5), st = weekStats();
   if(!S.sessions.length) return '<div class="empty">Finish your first workout and it shows up here.</div>';
-  var h = '<div class="pgst"><div style="grid-column:1/-1"><b>' + st.thisWeek + ' of ' + goal + ' workouts</b><span>Done this week</span></div></div>';
+  var h = '<div class="px-hero" style="padding-top:8px"><span class="px-l">This week</span><b>' + st.thisWeek + '<em>of</em>' + goal + '</b><span class="px-s">workouts done</span></div>';
   var names = {}, order = [];
   S.sessions.forEach(function(s){ (s.exercises || []).forEach(function(x){ var k = key(x.name); if(!names[k] && x.sets && x.sets.length){ names[k] = x.name; order.push(k); } }); });
-  var rows = order.map(function(k){ var dd = pgData(k), a = dd[dd.length - 1], b = dd.length > 1 ? dd[dd.length - 2] : null, tag = '<span class="dl">First</span>', rank = 3;
+  var rows = order.map(function(k){ var dd = pgData(k), a = dd[dd.length - 1], b = dd.length > 1 ? dd[dd.length - 2] : null, tag = '', rank = 3;
     if(b){ if(a.top !== b.top){ var dw = a.top - b.top; rank = dw > 0 ? 0 : 2; tag = '<span class="dl ' + (dw > 0 ? "up" : "dn") + '">' + (dw > 0 ? "+" : "−") + fmtW(Math.abs(dw)) + ' ' + esc(u) + '</span>'; }
       else if(a.topR !== b.topR){ var dr = a.topR - b.topR; rank = dr > 0 ? 0 : 2; tag = '<span class="dl ' + (dr > 0 ? "up" : "dn") + '">' + (dr > 0 ? "+" : "−") + Math.abs(dr) + (Math.abs(dr) === 1 ? " rep" : " reps") + '</span>'; }
       else { rank = 1; tag = '<span class="dl">Same</span>'; } }
     return { k:k, name:names[k], a:a, tag:tag, rank:rank }; });
   rows.sort(function(x, y){ return x.rank - y.rank || x.name.localeCompare(y.name); });
-  h += '<h2>Your exercises</h2><p class="pg-x">Best set from the last time you did each one, and how it compared with the time before.</p><div class="pglog sc">' + rows.map(function(x){
+  h += '<span class="px-l">Exercises · last best set</span><div class="pglog sc">' + rows.map(function(x){
       return '<button type="button" data-act="pg-go" data-k="' + esc(x.k) + '"><span>' + esc(x.name) + '<small>' + (x.a.top > 0 ? fmtW(x.a.top) + ' ' + esc(u) + ' × ' + x.a.topR : x.a.topR + ' reps') + ' · ' + fmtShort(x.a.t) + '</small></span>' + x.tag + '</button>'; }).join("") + '</div>';
   var wk = {}, wo = [];
   S.sessions.forEach(function(s){ var w0 = weekStart(s.startedAt); if(!wk[w0]){ wk[w0] = []; wo.push(w0); } wk[w0].push(s); });
   wo.sort(function(a, b){ return b - a; });
-  h += '<h2>Week by week</h2>' + wo.map(function(w0){ var l = wk[w0].slice().sort(function(a, b){ return a.startedAt - b.startedAt; });
-      return '<div class="card pgd"><div class="pgd-h"><span><b>Week of ' + fmtShort(w0) + '</b></span><span class="dl' + (l.length >= goal ? " up" : "") + '">' + l.length + ' of ' + goal + '</span></div>' +
-        l.map(function(q){ return '<div class="pgd-r" style="grid-template-columns:54px 1fr"><span>' + new Date(q.startedAt).toLocaleDateString("en-US", { weekday:"short" }) + '</span><b>' + esc(q.name || "Workout") + '</b></div>'; }).join("") + '</div>'; }).join("");
+  h += '<div class="px-gap"></div><span class="px-l">Weeks</span>' + wo.map(function(w0){ var l = wk[w0].slice().sort(function(a, b){ return a.startedAt - b.startedAt; });
+      return '<div class="px-d"><div class="px-dh"><b>Week of ' + fmtShort(w0) + '</b><span class="dl' + (l.length >= goal ? " up" : "") + '">' + l.length + ' of ' + goal + '</span></div><ol>' +
+        l.map(function(q){ return '<li style="grid-template-columns:48px 1fr"><i>' + new Date(q.startedAt).toLocaleDateString("en-US", { weekday:"short" }) + '</i><span>' + esc(q.name || "Workout") + '</span></li>'; }).join("") + '</ol></div>'; }).join("");
   return h;
 }
 function renderProgress(){
   var tab = S.pgTab === "all" ? "all" : "ex";
-  return '<div class="pgseg two" role="group" aria-label="Progress view">' + [["ex","By exercise"],["all","Overall"]].map(function(m){ return '<button type="button" data-act="pg-tab" data-v="' + m[0] + '" aria-pressed="' + (tab === m[0]) + '">' + m[1] + '</button>'; }).join("") + '</div>' + (tab === "all" ? pgOverall() : pgExercise());
+  return '<div class="px"><div class="px-tabs" role="group" aria-label="Progress view">' + [["ex","By exercise"],["all","Overall"]].map(function(m){ return '<button type="button" data-act="pg-tab" data-v="' + m[0] + '" aria-pressed="' + (tab === m[0]) + '">' + m[1] + '</button>'; }).join("") + '</div>' + (tab === "all" ? pgOverall() : pgExercise()) + '</div>';
 }
 
 /* ---- what to beat ---- */
