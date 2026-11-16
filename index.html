@@ -931,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "114";
+var BUILD = "115";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1192,19 +1192,21 @@ function reveal(){
     if(br.height < bfs * 1.6){ /* the name you tapped: it swells where it sits, then travels into the title */
       var s0 = carry.fs / bfs, dx = carry.l - br.left, dy = carry.b - br.bottom, lsEnd = ((parseFloat(bcs.letterSpacing) || 0) / bfs).toFixed(4) + "em";
       var wk = !!carry.zoom;
-      if(wk){ /* one move, one object: it rushes at you until it almost hits, turns without stopping, and lands in the title */
-        var lh = (parseFloat(bcs.lineHeight) || bfs * 1.02) / bfs, f0 = carry.fs, fB = Math.min(bfs * 6, window.innerHeight * 0.34), ty0 = carry.b - br.top - lh * f0, tyB = window.innerHeight * 0.56 + fB * 0.3 - br.top - lh * fB, txB = -br.left + window.innerWidth * 0.04;
+      if(wk){ /* one move, one object, one unbroken curve: it comes at you the way things do when you approach them (slow, then all at once), floats for an instant at its closest, and eases away into the title. No bounce: the speed passes through zero at the turn. */
+        var lh = (parseFloat(bcs.lineHeight) || bfs * 1.02) / bfs, f0 = carry.fs, fB = Math.min(bfs * 6, window.innerHeight * 0.34), wEnd = parseFloat(bcs.fontWeight) || 700, w0 = parseFloat(carry.fw) || 500, ls1 = (parseFloat(bcs.letterSpacing) || 0) / bfs;
+        var bot0 = carry.b, botB = window.innerHeight * 0.56 + fB * 0.3, bot1 = br.top + lh * bfs, xB = -br.left + window.innerWidth * 0.04, sm = function(x){ return x * x * x * (x * (x * 6 - 15) + 10); }, N = 54, TP = 0.54, kfs = [];
+        for(var i = 0; i <= N; i++){ var t = i / N, f, k, x, bot, wgt, ls;
+          if(t <= TP){ var p = sm(Math.pow(t / TP, 1.3)); f = f0 * Math.pow(fB / f0, p); k = (f - f0) / (fB - f0); x = dx + (xB - dx) * k; bot = bot0 + (botB - bot0) * k; wgt = w0 + (wEnd - w0) * p; ls = carry.ls + (ls1 - carry.ls) * p; }
+          else { var q = 1 - sm(Math.pow((t - TP) / (1 - TP), 0.9)); f = bfs * Math.pow(fB / bfs, q); k = (f - bfs) / (fB - bfs); x = xB * k; bot = bot1 + (botB - bot1) * k; wgt = wEnd; ls = ls1; }
+          kfs.push({ offset:t, transform:"translate3d(" + x.toFixed(2) + "px," + (bot - br.top - lh * f).toFixed(2) + "px,0)", fontSize:f.toFixed(2) + "px", fontWeight:Math.round(wgt), letterSpacing:ls.toFixed(4) + "em" }); }
         big.style.height = br.height + "px"; big.style.whiteSpace = "nowrap"; big.style.overflow = "visible";
-        var za = big.animate([
-          { transform:"translate3d(" + dx.toFixed(1) + "px," + ty0.toFixed(1) + "px,0)", fontSize:f0 + "px", fontWeight:carry.fw, letterSpacing:carry.ls.toFixed(4) + "em", easing:"cubic-bezier(.72,0,.8,.92)" },
-          { transform:"translate3d(" + txB.toFixed(1) + "px," + tyB.toFixed(1) + "px,0)", fontSize:fB.toFixed(1) + "px", fontWeight:bcs.fontWeight, letterSpacing:lsEnd, offset:0.5, easing:"cubic-bezier(.3,.12,.08,1)" },
-          { transform:"translate3d(0,0,0)", fontSize:bfs + "px", fontWeight:bcs.fontWeight, letterSpacing:lsEnd }], { duration:1150 });
+        var za = big.animate(kfs, { duration:1300, easing:"linear" });
         za.onfinish = za.oncancel = function(){ big.style.height = ""; big.style.whiteSpace = ""; big.style.overflow = ""; }; }
       else big.animate([
         { transform:"translate3d(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px,0) scale(" + s0.toFixed(4) + ")", fontWeight:carry.fw, letterSpacing:carry.ls.toFixed(4) + "em", easing:"cubic-bezier(.3,0,.4,1)" },
         { transform:"translate3d(" + (dx * 0.94).toFixed(1) + "px," + (dy * 0.9).toFixed(1) + "px,0) scale(" + (s0 * 1.14).toFixed(4) + ")", offset:0.3, easing:"cubic-bezier(.68,0,.14,1)" },
         { transform:"translate3d(0,0,0) scale(1)", fontWeight:bcs.fontWeight, letterSpacing:lsEnd }], { duration:700 });
-      list = list.filter(function(el){ return el !== big; }); d0 = wk ? 820 : 300; big.style.zIndex = 5; big.style.position = "relative"; } }
+      list = list.filter(function(el){ return el !== big; }); d0 = wk ? 900 : 300; big.style.zIndex = 5; big.style.position = "relative"; } }
   var own = type === "history" ? ".cal" : null;
   list = list.filter(function(el){ return !el.classList.contains("hz") && !(own && el.matches(own)); });
   list.forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,16px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:760, delay:d0 + i * 45, easing:SLOW, fill:"backwards" }); });
