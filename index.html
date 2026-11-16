@@ -393,12 +393,17 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-ref .st{overflow:hidden;display:flex;justify-content:center;will-change:transform}
 .h-ref .h-w{transform:scaleY(-1)}
 .h-bot{position:absolute;left:var(--g);right:var(--g);bottom:calc(var(--sb) + 26px)}
+.h-ms{position:absolute;left:var(--g);right:20%;top:calc(var(--st) + 74px);font:400 22px/1.26 var(--font);letter-spacing:-.018em;color:#8F8B84}
+.h-ms b{font-weight:500;color:var(--tx)}
+.wk-ac{display:grid;grid-template-columns:26px 1fr;row-gap:8px;font-size:17px;color:#8F8B84;letter-spacing:-.012em;margin:64px 0 10px}
+.wk-ac>b{color:var(--t);font-weight:600}
+.wk-ac span b{color:var(--tx);font-weight:500}
 .h-q{position:relative;padding-right:8%}
 .h-q::before{content:"\201C";position:absolute;left:-10px;top:-66px;font:400 190px/1 Georgia,"Times New Roman",serif;color:var(--tx);opacity:.07;pointer-events:none}
 .h-q p{position:relative;font:400 19px/1.32 var(--font);letter-spacing:-.012em;color:#A29E96}
 .h-q p b{font-weight:500;color:var(--tx)}
 .h-q span{position:relative;display:block;font-size:12px;color:var(--mu2);margin-top:10px}
-#h-go{margin-top:30px;min-height:64px;justify-content:space-between;padding:0 22px;font-size:17px;border-radius:16px}
+#h-go{margin-top:0;min-height:64px;justify-content:space-between;padding:0 22px;font-size:17px;border-radius:16px}
 #h-go svg{width:22px;height:22px;stroke-width:2}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
 #tide i{position:absolute;left:0;right:0;background:var(--t);will-change:transform;transform:scaleY(0)}
@@ -434,7 +439,8 @@ html[data-dir="tab"]::view-transition-new(root){animation:vt-fade-in .45s var(--
     <div class="h-bg"></div>
     <div class="h-top"><span id="h-date"></span><span id="h-week"></span></div>
     <div class="h-sea" id="h-sea"><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
-    <div class="h-bot"><div class="h-q"><p id="h-qt"></p><span id="h-qa"></span></div>
+    <p class="h-ms">Your wake is the trail you leave behind. <b>Make it worth following.</b></p>
+    <div class="h-bot">
       <button type="button" class="btn go" id="h-go" data-act="enter"><span>Enter</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button></div>
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
@@ -855,7 +861,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "85";
+var BUILD = "86";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1316,7 +1322,8 @@ function endCard(s){
   el.innerHTML = '<div class="eyebrow">Workout complete · ' + fmtMin(s.dur) + '</div><div class="e-t">' + esc(s.name) + '</div>' +
     '<div class="e-st"><div><b>' + s.setCount + '</b><span>' + (s.setCount === 1 ? "set" : "sets") + '</span></div><div><b' + (s.prs.length ? ' class="t"' : '') + '>' + s.prs.length + '</b><span>new ' + (s.prs.length === 1 ? "best" : "bests") + '</span></div><div><b class="t">' + n + '</b><span>of ' + goal + ' this week</span></div></div>' +
     '<h2>' + (prev ? "Top sets" + (ups ? " · " + ups + " up on last time" : "") : "Top sets") + '</h2><div style="margin-top:8px">' + lines + '</div>' +
-    '<div class="stack"><button type="button" class="btn go" data-act="end-done">Done</button></div>' + thought(9);
+    '<div class="stack"><button type="button" class="btn go" data-act="end-done">Done</button></div>' +
+    '<div class="wk-ac"><b>W</b><span><b>Work</b> in silence.</span><b>A</b><span><b>Arrive</b> every day.</span><b>K</b><span><b>Keep</b> the promise.</span><b>E</b><span><b>Earn</b> the calm.</span></div>';
   var show = function(){ el.hidden = false; el.scrollTop = 0; render(); };
   if(calm){ show(); return; }
   veil.animate([{ clipPath:"inset(100% 0 0 0)" }, { clipPath:"inset(0 0 0 0)" }], { duration:620, easing:IO, fill:"forwards" }).onfinish = function(){
@@ -1546,9 +1553,8 @@ var LINES = [
   ["Dwell on the beauty of life. Watch the stars, ", "and see yourself running with them.", "Marcus Aurelius"]
 ];
 function hero(){
-  var el = $("#hero"), d = new Date(), i, q = LINES[Math.round(dayStart(Date.now()) / 864e5) % LINES.length];
+  var el = $("#hero"), d = new Date();
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "Week " + isoWeek(d);
-  $("#h-qt").innerHTML = esc(q[0]) + "<b>" + esc(q[1]) + "</b>"; $("#h-qa").textContent = q[2];
   UI.intro = true; el.hidden = false; HR.busy = false;
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   if(calm) return;
@@ -1557,7 +1563,7 @@ function hero(){
   w.animate([{ transform:"translate3d(0,102%,0)" }, { transform:"none" }], { duration:2900, delay:650, easing:SLOW, fill:"backwards" });
   ref.animate([{ transform:"translate3d(0,-102%,0)", opacity:0 }, { transform:"none", opacity:1 }], { duration:2900, delay:650, easing:SLOW, fill:"backwards" });
   ref.style.clipPath = "inset(0 0 -20px 0)";
-  [[".h-top", 1500, 0], [".h-q", 1900, 16], ["#h-go", 2300, 22]].forEach(function(q){
+  [[".h-top", 1500, 0], [".h-ms", 1900, 14], ["#h-go", 2400, 22]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
 }
 /* the reflection: the name, flipped, cut into thin strips that slide like the surface of water */
@@ -1584,7 +1590,7 @@ function enter(){
   wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; wm.style.opacity = 0;
   var tr = wm.getBoundingClientRect(), sc = tr.height / fs, EASE = "cubic-bezier(.66,0,.18,1)";
   sea.style.transformOrigin = (sl - sr.left).toFixed(1) + "px " + (rise.top - sr.top).toFixed(1) + "px";
-  [".h-top", ".h-q", "#h-go"].forEach(function(q){ el.querySelector(q).animate([{ opacity:1 }, { opacity:0, transform:"translate3d(0,10px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
+  [".h-top", ".h-ms", "#h-go"].forEach(function(q){ el.querySelector(q).animate([{ opacity:1 }, { opacity:0, transform:"translate3d(0,10px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
   el.querySelector(".h-line").animate([{ opacity:1 }, { opacity:0 }], { duration:700, delay:150, fill:"forwards" });
   $("#h-ref").animate([{ opacity:1 }, { opacity:0.6 }], { duration:1200, delay:150, fill:"forwards" });
   el.querySelector(".h-bg").animate([{ opacity:1 }, { opacity:0 }], { duration:900, delay:520, easing:"ease-in-out", fill:"forwards" });
