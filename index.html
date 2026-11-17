@@ -1825,11 +1825,14 @@ function buildRef(ref, fs, N, base){
   for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
-/* five pins, no more: one tall pin at the crest, two shorter either side, two shorter again, each dimmer than the last. It gathers at the first week, glides with a slow ease, and lets go at the last. */
-function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, D = 9.5, P = D + 2.6, u = Math.min(1, (t % P) / D),
-    e = u * 0.55 + (0.5 - 0.5 * Math.cos(Math.PI * u)) * 0.45, p = -2 + e * (N + 3), f = Math.min(1, u / 0.14, (1 - u) / 0.14), A = f * f * (3 - 2 * f);
+/* a ping passing down the row, pin by pin, like a stadium wave: each pin pops up as its turn comes and sits back as the next one goes.
+   The crest rests on one pin at a time (never shared between two), with one shorter pin either side and one shorter again beyond those. */
+var PING = [1, 0.58, 0.26, 0];
+function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, RATE = 5.2, P = (N + 6) / RATE + 2.4, s = (t % P) * RATE,
+    j = Math.floor(s), f = s - j, f3 = Math.pow(f, 4), g3 = Math.pow(1 - f, 4), p = -3 + j + f3 / (f3 + g3);
   for(var i = 0; i < N; i++){ var el = k[i]; if(el.className === "n") continue;
-    var d = Math.abs(i - p), v = d < 3 ? Math.pow(0.5 + 0.5 * Math.cos(Math.PI * d / 3), 1.2) * A : 0;
+    var d = Math.abs(i - p), v = 0;
+    if(d < 3){ var q = Math.floor(d), r = d - q, m = r * r * (3 - 2 * r); v = PING[q] + (PING[q + 1] - PING[q]) * m; }
     el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * (1.05 + HR.energy * 0.06)).toFixed(4) + ")";
     el.style.setProperty("--w", (v * 0.95).toFixed(4)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
