@@ -1825,16 +1825,14 @@ function buildRef(ref, fs, N, base){
   for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
-/* a ping passing down the row, pin by pin, like a stadium wave: each pin pops up as its turn comes and sits back as the next one goes.
-   The crest rests on one pin at a time (never shared between two), with one shorter pin either side and one shorter again beyond those. */
-var PING = [1, 0.58, 0.26, 0];
-function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, RATE = 5.2, P = (N + 6) / RATE + 2.4, s = (t % P) * RATE,
-    j = Math.floor(s), f = s - j, f3 = Math.pow(f, 4), g3 = Math.pow(1 - f, 4), p = -3 + j + f3 / (f3 + g3);
-  for(var i = 0; i < N; i++){ var el = k[i]; if(el.className === "n") continue;
-    var d = Math.abs(i - p), v = 0;
-    if(d < 3){ var q = Math.floor(d), r = d - q, m = r * r * (3 - 2 * r); v = PING[q] + (PING[q + 1] - PING[q]) * m; }
-    el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * (1.05 + HR.energy * 0.06)).toFixed(4) + ")";
-    el.style.setProperty("--w", (v * 0.95).toFixed(4)); } }
+/* a stadium wave: every pin gets its own moment. It snaps up to full height with a touch of overshoot as its turn comes, then sits back down
+   while the next one is already rising. Only about three pins are ever out of their seats. This week's pin joins in with a small lift when the wave reaches it. */
+function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, GAP = 0.15, D = 0.56, UP = 0.34, P = N * GAP + D + 2.4, T = t % P;
+  for(var i = 0; i < N; i++){ var el = k[i], u = (T - i * GAP) / D, v = 0;
+    if(u > 0 && u < 1){ if(u < UP){ var r = u / UP - 1; v = 1 + 2.4 * r * r * r + 1.4 * r * r; } else { var x = (u - UP) / (1 - UP); v = 1 - x * x * (3 - 2 * x); } }
+    if(el.className === "n"){ el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * 0.14).toFixed(4) + ")"; continue; }
+    el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * (1.0 + HR.energy * 0.06)).toFixed(4) + ")";
+    el.style.setProperty("--w", Math.max(0, Math.min(1, v)).toFixed(4)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
