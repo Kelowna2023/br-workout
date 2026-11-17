@@ -1716,7 +1716,7 @@ function vSetup(){
     '<div class="sec"><h2>Preferences</h2></div><div class="list">' +
     '<div class="opt"><span>Units</span><div class="seg">' + ["lb","kg"].map(function(u){ return '<button type="button" data-act="units" data-v="' + u + '" aria-pressed="' + (S.cfg.units === u) + '">' + u + '</button>'; }).join("") + '</div></div>' +
     '<div class="opt"><span>Workouts per week</span><input class="field num" id="wk-goal" inputmode="numeric" style="width:76px;text-align:center" value="' + esc(S.cfg.weeklyGoal) + '" aria-label="Workouts per week"></div>' +
-    '<div class="opt"><span>The week resets</span><span class="muted">Monday, midnight</span></div></div>' +
+    '<div class="opt"><span>The week resets</span><span class="muted">Sunday, midnight</span></div></div>' +
     '<div class="sec"><h2>The goal</h2></div><div class="list">' +
     '<div class="opt"><span>Goal bodyweight (' + esc(S.cfg.units) + ')</span><input class="field num" id="goal-w" inputmode="decimal" style="width:92px;text-align:center" value="' + esc(S.cfg.goal.w) + '" aria-label="Goal bodyweight"></div>' +
     '<div class="opt"><span>The date</span><input class="field" id="goal-d" type="date" style="width:170px" value="' + esc(S.cfg.goal.date) + '" aria-label="Goal date"></div></div>' +
