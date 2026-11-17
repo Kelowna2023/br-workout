@@ -18,6 +18,10 @@
    Black, warm white, one teal. Inter Tight. Thin rules, no cards, no glows.
    Solid teal = something you tap. Outlined teal = a status. */
 @font-face{font-family:"Inter Tight";src:url("fonts/inter-tight.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Inter Tight";src:url("fonts/inter-tight-macron.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0100-017F}
+@font-face{font-family:"Wake Greek";src:url("fonts/wake-greek.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Wake Kanji";src:url("fonts/wake-kanji.woff2") format("woff2");font-display:block}
+@font-face{font-family:"Wake Sanskrit";src:url("fonts/wake-sanskrit.woff2") format("woff2");font-display:block}
 :root{
   --bg:#000; --tx:#F5F2EC; --mu:#8A867F; --mu2:#6B6862; --dim:#3A3834; --ln:#222; --ln2:#333; --sf:#111;
   --t:#14D3C2; --red:#E5604D;
@@ -481,6 +485,18 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 #h-go{display:flex;width:88px;height:48px;margin:0 auto -8px;align-items:center;justify-content:center;color:var(--t)}
 #h-go svg{width:24px;height:12px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;animation:h-up 2.3s cubic-bezier(.45,0,.3,1) infinite}
 @keyframes h-up{0%{opacity:0;transform:translate3d(0,9px,0)}35%{opacity:.9}70%{opacity:.9}100%{opacity:0;transform:translate3d(0,-9px,0)}}
+/* the day's word: an old word for the work, in its own script, floating in the water under the name */
+.h-sea{top:43%}
+#h-sc{position:absolute;left:0;top:0;pointer-events:none;will-change:opacity}
+#h-cd.h-wd{position:absolute;left:8%;right:8%;top:77%;margin:0;text-align:center}
+.h-wd>*{display:block;opacity:0;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1)}
+.h-wd.in>*{opacity:1}
+.wd-w{font:120 30px/1.1 var(--font);color:var(--tx);letter-spacing:.16em;margin-right:-.16em;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1),font-weight 4.2s cubic-bezier(.4,0,.1,1) .4s,letter-spacing 4.2s cubic-bezier(.4,0,.1,1) .4s}
+.h-wd.in .wd-w{font-weight:540;letter-spacing:.02em}
+.wd-o{margin-top:14px;font-size:15px;font-weight:500;color:#A3A29C;transition-delay:1.5s}
+.wd-d{margin:5px auto 0;max-width:17.5em;font-size:15px;line-height:1.45;color:var(--mu);text-wrap:balance;transition-delay:2.2s}
+.h-wd.now>*,.h-wd.now .wd-w{transition:none}
+@media (prefers-reduced-motion:reduce){.h-wd>*,.wd-w{transition:none}}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
 #tide i{position:absolute;left:0;right:0;background:var(--t);will-change:transform;transform:scaleY(0)}
 #tide .a{top:0;transform-origin:50% 100%}#tide .b{bottom:0;transform-origin:50% 0}
@@ -618,8 +634,8 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
     <div class="h-bg"></div>
     <div class="h-top"><span id="h-date"></span><span id="h-week"></span></div>
     <div class="h-sea" id="h-sea"><div class="h-glow"></div><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"><em class="gl"></em><em class="gr"></em></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
-    <div class="h-bot"><div class="h-cd" id="h-cd"></div>
-      <button type="button" id="h-go" data-act="enter" aria-label="Enter. Swipe up"><svg viewBox="0 0 24 12" aria-hidden="true"><path d="M3 10l9-8 9 8"/></svg></button></div>
+    <canvas id="h-sc" aria-hidden="true"></canvas>
+    <div class="h-cd h-wd" id="h-cd"></div>
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
   <main id="view"></main>
@@ -1885,7 +1901,50 @@ var LINES = [
   ["Nothing great was ever achieved ", "without enthusiasm.", "Ralph Waldo Emerson"],
   ["Dwell on the beauty of life. Watch the stars, ", "and see yourself running with them.", "Marcus Aurelius"]
 ];
-/* the opening tide: this year's weeks, the ones you trained lit, today standing tall. No words. */
+var WORDS = [["Askēsis","ἄσκησις","g","Greek for training","To the Stoics, training the body and training the character were one practice."],["Gaman","我慢","j","Japanese for endurance","Bearing what is hard with patience and dignity."],["Tapas","तपस्","s","Sanskrit for heat","The inner fire that discipline builds."],["Aretē","ἀρετή","g","Greek for excellence","Becoming the fullest version of what you are."],["Shoshin","初心","j","Japanese for beginner’s mind","Meeting the familiar as if for the first time."],["Hexis","ἕξις","g","Greek for a settled state","Aristotle’s word for what repetition makes of you."],["Abhyāsa","अभ्यास","s","Sanskrit for practice","Steady effort, kept up for a long time without a break."],["Zanshin","残心","j","Japanese for remaining mind","The awareness that stays after the movement is finished."],["Ponos","πόνος","g","Greek for toil","Honest labour, which the Greeks counted the price of anything good."],["Kaizen","改善","j","Japanese for improvement","Change for the better, a little at a time."],["Enkrateia","ἐγκράτεια","g","Greek for self-mastery","Power over yourself, before power over anything else."],["Dhyāna","ध्यान","s","Sanskrit for meditation","It travelled east as chan, and arrived in Japan as zen."],["Mushin","無心","j","Japanese for no mind","Acting cleanly, without the chatter of thought."],["Karteria","καρτερία","g","Greek for perseverance","Staying with the work after it stops being easy."],["Kintsugi","金継ぎ","j","Japanese for golden joinery","Broken pottery mended with gold, so the repair becomes the beauty."],["Sthira","स्थिर","s","Sanskrit for steady","Firm and unhurried. In yoga it is always paired with ease."],["Agōn","ἀγών","g","Greek for contest","The struggle itself, and the root of the word agony."],["Fudōshin","不動心","j","Japanese for immovable mind","Composure that pressure cannot shift."],["Sōphrosynē","σωφροσύνη","g","Greek for soundness of mind","Knowing your measure and keeping to it."],["Vīrya","वीर्य","s","Sanskrit for vigour","The energy to keep going, gladly."],["Shugyō","修行","j","Japanese for deep training","Practice that polishes the person, not only the skill."],["Praxis","πρᾶξις","g","Greek for doing","Knowledge counts once it is acted on."],["Kokoro","心","j","Japanese for heart","Heart, mind and spirit as one thing, not three."],["Andreia","ἀνδρεία","g","Greek for courage","To Aristotle, the mean between fear and recklessness."],["Sādhanā","साधना","s","Sanskrit for daily practice","A discipline kept for its own sake."],["Keiko","稽古","j","Japanese for practice","Literally, to reflect on what came before."],["Prosochē","προσοχή","g","Greek for attention","The Stoic habit of watching what you do while you do it."],["Seijaku","静寂","j","Japanese for stillness","Quiet found in the middle of activity."],["Eudaimonia","εὐδαιμονία","g","Greek for flourishing","A life lived well, built from what you do each day."],["Wabi-sabi","侘寂","j","Japanese for weathered beauty","Finding grace in the imperfect and the unfinished."],["Ataraxia","ἀταραξία","g","Greek for untroubled","A calm that outside events cannot disturb."],["Kairos","καιρός","g","Greek for the right moment","Not clock time. The moment that asks to be used."]];
+var WF = { g:'"Wake Greek",serif', j:'"Wake Kanji",serif', s:'"Wake Sanskrit",serif' }, WD = { off:null, t0:-1, tm:0, key:"" };
+function wordToday(){ var n = Math.round((dayStart(Date.now()) - new Date(2026, 10, 17).getTime()) / 864e5), L = WORDS.length; return WORDS[((n % L) + L) % L]; }
+/* paint the script once into its own small canvas; water() then floats it row by row */
+function wordBuild(x){
+  var el = $("#hero"), cv = $("#h-sc"), W = el.clientWidth, H = el.clientHeight, d = Math.min(window.devicePixelRatio || 1, 3), ff = WF[x[2]];
+  var c = document.createElement("canvas"), o = c.getContext("2d");
+  o.font = "100px " + ff; var m = o.measureText(x[1]);
+  var size = Math.min(100 * (W * 0.8) / m.width, H * 0.15, 150);
+  o.font = size + "px " + ff; m = o.measureText(x[1]);
+  var asc = m.actualBoundingBoxAscent, desc = m.actualBoundingBoxDescent, pad = 10, w = Math.ceil(m.width + pad * 2), h = Math.ceil(asc + desc + pad * 2);
+  c.width = Math.ceil(w * d); c.height = Math.ceil(h * d); o.scale(d, d); o.font = size + "px " + ff; o.fillStyle = "#14D3C2"; o.fillText(x[1], pad, pad + asc);
+  var M = 26; cv.width = Math.ceil((w + M * 2) * d); cv.height = c.height;
+  cv.style.width = (w + M * 2) + "px"; cv.style.height = h + "px";
+  cv.style.transform = "translate3d(" + Math.round((W - w) / 2 - M) + "px," + Math.round(H * 0.665 - h / 2) + "px,0)";
+  WD.off = { c:c, w:w, h:h, d:d, M:M, ctx:cv.getContext("2d") };
+}
+function wordSet(delay){
+  var x = wordToday(), cd = $("#h-cd");
+  clearTimeout(WD.tm); WD.t0 = -1; WD.off = null;
+  cd.classList.add("now"); cd.classList.remove("in");
+  cd.innerHTML = '<b class="wd-w">' + esc(x[0]) + '</b><span class="wd-o">' + esc(x[3]) + '</span><span class="wd-d">' + esc(x[4]) + '</span>';
+  void cd.offsetWidth; cd.classList.remove("now");
+  var cv = $("#h-sc"); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
+  var ready = function(){ if(wordToday() === x && !$("#hero").hidden) try{ wordBuild(x); }catch(e){} };
+  try{ document.fonts.load("100px " + WF[x[2]], x[1]).then(ready, ready); }catch(e){ ready(); }
+  var show = function(){ cd.classList.add("in"); WD.t0 = performance.now(); };
+  if(calm){ cd.classList.add("now", "in"); WD.t0 = 0; } else WD.tm = setTimeout(show, delay);
+}
+function wordOff(){ clearTimeout(WD.tm); WD.t0 = -1; $("#h-cd").classList.remove("in"); }
+function wordDraw(ts){
+  var s = WD.off; if(!s || WD.t0 < 0) return;
+  var f = calm ? 1 : Math.min(1, (ts - WD.t0) / 4200); f = 1 - Math.pow(1 - f, 3);
+  var g = s.ctx, d = s.d, still = 1 - f, time = calm ? 0 : ts;
+  g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, s.w + s.M * 2, s.h);
+  for(var j = 0; j < s.h; j++){
+    var k = j / s.h, amp = 0.7 + k * 1.3 + still * (5 + k * 9);
+    var x = Math.sin(j * 0.21 - time * 0.0009) * amp + Math.sin(j * 0.063 + time * 0.0005) * amp * 0.6;
+    g.globalAlpha = f * (0.27 * Math.pow(1 - k, 1.35) + 0.035);
+    g.drawImage(s.c, 0, j * d, s.c.width, d, s.M + x, j, s.w, 1);
+  }
+  g.globalAlpha = 1;
+}
+/* the old opening tide (week pins), no longer shown */
 function tideGauge(){
   var d = new Date(), y = d.getFullYear(), cur = isoWeek(d), tr = {}, h = "", i;
   S.sessions.forEach(function(s){ var sd = new Date(s.startedAt); if(sd.getFullYear() === y) tr[isoWeek(sd)] = 1; });
@@ -1893,10 +1952,10 @@ function tideGauge(){
     h += '<i class="' + k + '" style="--a:' + al.toFixed(3) + '"></i>'; }
   return '<div class="tg" id="tg">' + h + '</div><div class="tg-cap">Week ' + Math.min(cur, 52) + ' of 52</div>';
 }
-function hero(){
+function hero(quick){
   var el = $("#hero"), d = new Date();
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "";
-  $("#h-cd").innerHTML = tideGauge();
+  wordSet(quick ? 1300 : 2300);
   UI.intro = true; el.hidden = false; HR.busy = false; wm.querySelector("i").classList.remove("breathe");
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   TG.t0 = performance.now(); TG.up.length = 0; TG.s = null; TG.last = 0;
@@ -1911,9 +1970,8 @@ function hero(){
   ref.style.clipPath = "inset(0 0 -20px 0)";
   w.querySelector("i").animate([{ transform:"scale(0)" }, { transform:"scale(1)" }], { duration:800, delay:T + 1650, easing:"cubic-bezier(.34,1.3,.5,1)", fill:"backwards" });
   [].forEach.call(ref.querySelectorAll("i"), function(d){ d.animate([{ opacity:0 }, { opacity:1 }], { duration:600, delay:T + 1750, fill:"backwards" }); });
-  [[".h-top", 1900, 0], [".h-cd", 2800, 18], ["#h-go", 3100, 22]].forEach(function(q){
+  [[".h-top", 1900, 0]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
-  [].forEach.call(document.querySelectorAll("#tg i"), function(k, i){ k.animate([{ transform:"scaleY(0)", opacity:0 }, { transform:"scaleY(1)", opacity:1 }], { duration:1300, delay:3000 + i * 22, easing:SLOW, fill:"backwards" }); });
 }
 function buildRef(ref, fs, N, base){
   var H = Math.round(fs * 0.868), sh = Math.ceil(H / N), html = "";
@@ -1928,13 +1986,13 @@ var WMS = [];
 function water(ts){
   requestAnimationFrame(water); if(document.hidden) return;
   var t = ts / 1000; HR.energy *= 0.955;
-  if(HR.on){ sway(HR.strips, t, 2.2 + HR.energy, HR.px); swell(t); }
+  if(HR.on){ sway(HR.strips, t, 2.2 + HR.energy, HR.px); wordDraw(ts); }
   if(app.dataset.s === "home" && UI.refOn && WMS.length) sway(WMS, t, 1.3, HR.px);
 }
 /* entering: no wipe. The name leaves the horizon and travels to its place at the top of your workouts, reflection and all */
 function leave(){
   var el = $("#hero"); if(!el.hidden || HR.busy || app.dataset.s !== "home") return; haptic();
-  view.scrollTop = 0; hero(); HR.busy = true;
+  view.scrollTop = 0; hero(1); HR.busy = true;
   if(calm){ HR.busy = false; return; }
   el.getAnimations({ subtree:true }).forEach(function(q){ if(!q.animationName) try{ q.cancel(); }catch(e){} });
   var sea = $("#h-sea"), fs = parseFloat(getComputedStyle(sea).fontSize), rise = sea.querySelector(".h-rise").getBoundingClientRect(), sr = sea.getBoundingClientRect(), sl = $("#h-w").getBoundingClientRect().left;
@@ -1945,7 +2003,7 @@ function leave(){
   el.querySelector(".h-line").animate([{ opacity:0 }, { opacity:1 }], { duration:800, delay:500, fill:"backwards" });
   el.querySelector(".h-glow").animate([{ opacity:0 }, { opacity:0.28 }], { duration:1400, delay:700, fill:"backwards" });
   $("#h-ref").animate([{ opacity:0.6 }, { opacity:1 }], { duration:1100 });
-  [[".h-top", 700, 0], [".h-cd", 1000, 14], ["#h-go", 1150, 16]].forEach(function(q){
+  [[".h-top", 700, 0]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:q[1], easing:SLOW, fill:"backwards" }); });
   sea.animate([{ transform:"translate3d(" + (tr.left - sl).toFixed(1) + "px," + (tr.top - rise.top).toFixed(1) + "px,0) scale(" + sc.toFixed(4) + ")" }, { transform:"none" }], { duration:1250, easing:EASE }).onfinish = function(){ sea.style.transformOrigin = ""; HR.busy = false; };
 }
@@ -1962,14 +2020,14 @@ function leave(){
 })();
 function enter(){
   var el = $("#hero"); if(el.hidden || HR.busy) return; HR.busy = true; haptic();
-  var done = function(){ el.hidden = true; HR.on = false; HR.busy = false; UI.intro = false; wm.style.opacity = ""; wm.querySelector("i").classList.add("breathe"); [].forEach.call(wm.querySelectorAll(".gl,.gr"), function(g){ g.style.animation = "none"; void g.offsetWidth; g.style.animation = ""; }); view.scrollTop = 0; paint(); };
+  var done = function(){ el.hidden = true; HR.on = false; wordOff(); HR.busy = false; UI.intro = false; wm.style.opacity = ""; wm.querySelector("i").classList.add("breathe"); [].forEach.call(wm.querySelectorAll(".gl,.gr"), function(g){ g.style.animation = "none"; void g.offsetWidth; g.style.animation = ""; }); view.scrollTop = 0; paint(); };
   if(calm){ done(); return; }
   el.getAnimations({ subtree:true }).forEach(function(q){ try{ q.finish(); }catch(e){} });
   var sea = $("#h-sea"), fs = parseFloat(getComputedStyle(sea).fontSize), rise = sea.querySelector(".h-rise").getBoundingClientRect(), sr = sea.getBoundingClientRect(), sl = $("#h-w").getBoundingClientRect().left;
   wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; wm.style.opacity = 0;
   var tr = wm.getBoundingClientRect(), sc = tr.height / fs, EASE = "cubic-bezier(.66,0,.18,1)";
   sea.style.transformOrigin = (sl - sr.left).toFixed(1) + "px " + (rise.top - sr.top).toFixed(1) + "px";
-  [".h-top", ".h-cd", "#h-go"].forEach(function(q){ el.querySelector(q).animate([{ opacity:1 }, { opacity:0, transform:"translate3d(0,10px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
+  [".h-top", ".h-cd", "#h-sc"].forEach(function(q){ el.querySelector(q).animate([{ opacity:1 }, { opacity:0, transform:"translate3d(0,10px,0)" }], { duration:380, easing:"ease-in", fill:"forwards" }); });
   el.querySelector(".h-line").animate([{ opacity:1 }, { opacity:0 }], { duration:700, delay:150, fill:"forwards" });
   el.querySelector(".h-glow").animate([{ opacity:0.28 }, { opacity:0 }], { duration:500, fill:"forwards" });
   $("#h-ref").animate([{ opacity:1 }, { opacity:0.6 }], { duration:1200, delay:150, fill:"forwards" });
