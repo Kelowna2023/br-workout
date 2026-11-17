@@ -109,16 +109,12 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .wk-s b{color:var(--t);font-weight:600}
 .wk+.segs{margin-top:12px}
 .h-cd{margin-bottom:22px}
-.h-cd-n{font:400 21px/1.3 var(--font);letter-spacing:-.022em;color:#77746D;max-width:15em}
-.h-cd-n b{font-weight:500;color:#E4E0D8;font-variant-numeric:tabular-nums}
 .tg{display:flex;justify-content:space-between;align-items:flex-end;height:34px;margin-top:30px}
 .tg i{position:relative;width:1px;height:12px;background:#262626;transform-origin:50% 100%;will-change:transform}
 .tg i.p{background:#3A3A3A}
 .tg i.t{background:var(--t);opacity:.6}
-.tg i.e{height:20px;background:#8F8B84}
 .tg i.n{height:26px;background:var(--t)}
 .tg i.n::before{content:"";position:absolute;left:-2.5px;top:-9px;width:6px;height:6px;border-radius:50%;background:var(--t);box-shadow:0 0 12px rgba(20,211,194,.55)}
-.tg-c{display:flex;justify-content:space-between;font-size:12px;color:#5E5B56;margin-top:12px;font-variant-numeric:tabular-nums}
 .h-cd .yg{margin-top:16px}
 .h-cd .yg-g i{border-color:#1D1D1D}
 .h-cd .yg-g i.p{background:#1D1D1D}
@@ -175,15 +171,10 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hw.sm span{width:78px;font:500 26px/44px var(--font);letter-spacing:-.03em}
 .rest[data-st="idle"] #rest-n{display:none}
 .rest:not([data-st="idle"]) .hw{visibility:hidden}
-/* the road to 40 */
+/* check-ins */
 .ck{margin-top:26px;display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14px;color:var(--mu)}
 .ck b{color:var(--tx);font-weight:500}
 .ck .lnk{padding:10px 0;flex:none}.ck .btn{width:auto;min-height:44px;padding:0 20px;flex:none}
-.to40{margin-top:28px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
-.to40 b{display:block;font:600 68px/.86 var(--font);letter-spacing:-.055em}
-.to40 small{display:block;font-size:13px;color:var(--mu);margin-top:10px}
-.to40 .ci{text-align:right;font-size:13px;color:var(--mu);line-height:1.5}
-.to40 .ci .btn{width:auto;min-height:46px;padding:0 20px;margin-left:auto}
 .gbar{height:4px;border-radius:2px;background:#1A1A1A;overflow:hidden;margin-top:12px}
 .gbar i{display:block;height:100%;background:var(--t);border-radius:2px}
 .tn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
@@ -1039,17 +1030,6 @@ function drawThought(){
   }
   var k = bag.pop(); ls.set("bag", bag); ls.set("bagLast", k); return pool[k];
 }
-var RALLY = {
-  mon:["Nobody builds a V from the front. ", "It gets made back here, one pull at a time."],
-  tue:["You said forty would be your best shape. ", "Press like you meant it."],
-  thu:["This is the session you'll want to cut short. ", "That's exactly why it counts."],
-  fri:["Second pass at the upper body this week. ", "This is where the size gets added."],
-  sat:["Wide shoulders make everything below them look sharper. ", "Go earn the width."],
-  any:["You showed up. ", "Now make it worth the drive."] };
-function rally(a){
-  var n = String(a.name || "").toLowerCase(), k = RALLY[a.routineId] ? a.routineId : /back|pull|posterior/.test(n) ? "mon" : /push|chest/.test(n) ? "tue" : /leg|lower|glute/.test(n) ? "thu" : /shoulder|delt|carr/.test(n) ? "sat" : /upper|arm/.test(n) ? "fri" : "any", q = RALLY[k], d = daysTo();
-  return '<div class="th top ry"><p>' + esc(q[0]) + '<b>' + esc(q[1]) + '</b></p><span><i></i>' + d + (d === 1 ? " day" : " days") + ' to ' + goalAge() + '</span></div>';
-}
 function thought(slot, top){
   var key = UI.key + ":" + slot; UI.th = UI.th || {};
   var q = UI.th[key] || (UI.th[key] = drawThought());
@@ -1066,16 +1046,7 @@ function yearGrid(){
   for(i = 1; i <= 52; i++) h += '<i class="' + (tr[i] ? "t" : i < wk ? "p" : "") + (i === wk ? " n" : "") + '"></i>';
   return '<div class="yg" data-rv><div class="yg-g">' + h + '</div><div class="yg-c"><span>' + y + ' in weeks</span><span>Week ' + wk + ' of 52 · ' + Math.max(0, 52 - wk) + ' left</span></div></div>';
 }
-/* ---------- the road to 40: a date, a weight, a check-in on the 22nd ---------- */
-function goalDate(){ var p = String(S.cfg.goal.date).split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).getTime(); }
-function daysTo(){ return Math.max(0, Math.round((goalDate() - dayStart(Date.now())) / 864e5)); }
-function goalAge(){ return 40; }
-function goalGrid(left){
-  var W = 7 * 864e5, st = weekStart(S.cfg.goal.start), en = weekStart(goalDate()), n = Math.max(1, Math.round((en - st) / W) + 1), cur = Math.round((weekStart(Date.now()) - st) / W), tr = {}, h = "", i;
-  S.sessions.forEach(function(s){ tr[Math.round((weekStart(s.startedAt) - st) / W)] = 1; });
-  for(i = 0; i < n; i++) h += '<i class="' + (tr[i] ? "t" : i < cur ? "p" : "") + (i === cur ? " n" : "") + '"></i>';
-  return '<div class="yg" data-rv><div class="yg-g" style="grid-template-columns:repeat(' + Math.ceil(n / 2) + ',1fr)">' + h + '</div><div class="yg-c"><span>' + (left || daysTo() + ' days to ' + goalAge()) + '</span><span>Week ' + clamp(cur + 1, 1, n) + ' of ' + n + '</span></div></div>';
-}
+/* ---------- goal: a weight, a check-in on the 22nd ---------- */
 function checkin(){
   var d = new Date(), y = d.getFullYear(), m = d.getMonth(), done = (S.cfg.checkins || []).some(function(t){ var q = new Date(t); return q.getFullYear() === y && q.getMonth() === m; });
   if(!done && d.getDate() >= 22) return { due:true };
@@ -1084,11 +1055,6 @@ function checkin(){
 }
 function firstLast(arr, pick){ var f = null, l = null; arr.forEach(function(e){ var v = pick(e); if(v == null) return; if(f == null) f = { v:v, at:e.at }; l = { v:v, at:e.at }; }); return f ? { f:f, l:l } : null; }
 function deltaTxt(a, b, unit, dp){ var d = Math.round((b - a) * (dp || 10)) / (dp || 10); return d ? (d > 0 ? "+" : "−") + Math.abs(d) + (unit ? " " + unit : "") : "no change"; }
-function vTo40(){
-  var c = checkin(), gd = new Date(goalDate());
-  return '<div class="to40" data-rv><div><b class="num">' + daysTo() + '</b><small>days to ' + goalAge() + ' · ' + gd.toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }) + '</small></div>' +
-    '<div class="ci">' + (c.due ? 'Check-in day<br><button type="button" class="btn go" data-act="ci-open">Check in</button>' : 'Next check-in<br><span style="color:var(--tx)">' + fmtShort(c.next) + ' · in ' + c.inDays + (c.inDays === 1 ? " day" : " days") + '</span><br><button type="button" class="lnk" style="padding:6px 0" data-act="ci-open">Check in early</button>') + '</div></div>';
-}
 function vCheck(){
   var c = checkin();
   return '<div class="ck" data-rv>' + (c.due ? '<span>Check-in day</span><button type="button" class="btn go" data-act="ci-open">Check in</button>' : '<span>Next check-in <b>' + fmtShort(c.next) + '</b> · ' + (c.inDays === 1 ? "tomorrow" : "in " + c.inDays + " days") + '</span><button type="button" class="lnk" data-act="ci-open">Check in early</button>') + '</div>';
@@ -1214,8 +1180,6 @@ function reveal(){
   if(dir === "fwd") revealList().forEach(function(el, i){ if(el.classList.contains("hz") || (UI.gliding && el.classList.contains("big"))) return; el.animate([{ opacity:0, transform:"translate3d(0,10px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:900, delay:(UI.gliding ? 400 : 90) + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
   if(dir === "back") return;
   each(".hz", function(el){ el.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1200, delay:120, easing:INOUT, fill:"backwards" }); });
-  if(type === "body") each(".to40 b.num", function(el){ var n = parseInt(el.textContent, 10) || 0, t0 = performance.now(), D = 1200; if(n < 2) return; el.style.fontVariantNumeric = "tabular-nums";
-      (function step(now){ var p = clamp((now - t0 - 200) / D, 0, 1), e = 1 - Math.pow(1 - p, 4); if(!el.isConnected) return; el.textContent = Math.round(n * e); if(p < 1) requestAnimationFrame(step); else el.textContent = n; })(t0); });
 }
 
 /* ---------- scroll drives the header: you move it, it moves ---------- */
@@ -1819,13 +1783,12 @@ var LINES = [
   ["Nothing great was ever achieved ", "without enthusiasm.", "Ralph Waldo Emerson"],
   ["Dwell on the beauty of life. Watch the stars, ", "and see yourself running with them.", "Marcus Aurelius"]
 ];
-/* the only countdown in the app: mornings left in his thirties, and a tide gauge of the weeks between here and forty */
+/* the opening tide: this year's weeks, the ones you trained lit, today standing tall. No words. */
 function tideGauge(){
-  var W = 7 * 864e5, st = weekStart(S.cfg.goal.start), en = weekStart(goalDate()), n = Math.max(1, Math.round((en - st) / W) + 1), cur = clamp(Math.round((weekStart(Date.now()) - st) / W), 0, n - 1), tr = {}, h = "", i, d = daysTo();
-  S.sessions.forEach(function(s){ tr[Math.round((weekStart(s.startedAt) - st) / W)] = 1; });
-  for(i = 0; i < n; i++) h += '<i class="' + (i === cur ? "n" : i === n - 1 ? "e" : tr[i] ? "t" : i < cur ? "p" : "") + '"></i>';
-  var line = d > 0 ? '<b>' + d + (d === 1 ? ' morning</b> left' : ' mornings</b> left') + ' in your thirties.' : '<b>Forty.</b> Look what you built.';
-  return '<p class="h-cd-n">' + line + '</p><div class="tg" id="tg">' + h + '</div><div class="tg-c"><span>Week ' + (cur + 1) + ' of ' + n + '</span><span>' + new Date(goalDate()).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" }) + '</span></div>';
+  var d = new Date(), y = d.getFullYear(), cur = isoWeek(d), tr = {}, h = "", i;
+  S.sessions.forEach(function(s){ var sd = new Date(s.startedAt); if(sd.getFullYear() === y) tr[isoWeek(sd)] = 1; });
+  for(i = 1; i <= 52; i++) h += '<i class="' + (i === cur ? "n" : tr[i] ? "t" : i < cur ? "p" : "") + '"></i>';
+  return '<div class="tg" id="tg">' + h + '</div>';
 }
 function hero(){
   var el = $("#hero"), d = new Date();
