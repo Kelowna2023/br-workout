@@ -528,6 +528,37 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i{width:1px;border-radius:0}
 .tg i.n::before{left:-2.5px}
 @media (prefers-reduced-motion:reduce){.tg i,.tg i:not(.n)::after,.tg b{animation:none}}
+
+/* ---------- type system ----------
+   One scale, one job per size. Everything on a page sits on one of these steps:
+   46  page title (700)                     24  the workouts on home (600)
+   20  rows you tap to go somewhere (500)   17  rows of content and their values (500)
+   15  section headings (600, white), body copy and buttons, right-hand values
+   13  captions and sub-lines under a name  11  tab bar and weekday letters only
+   Colour carries the rest: white = read this, grey (--mu) = supporting, teal = tappable or yours. No text sits on the dimmest grey any more. */
+:root{--mu2:#7F7B74}
+h2{font-weight:600}
+.sec h2{font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-.01em}
+.wn{font-size:24px;font-weight:600}
+.xrow .nm{font-size:20px}
+.pday-h b{font-size:20px}
+.prow,.mrow,.opt{font-size:17px}
+.cal-h b{font-size:17px}
+.dset .v{font-size:17px}
+.b-info b{font-size:17px}
+.muted,.empty,.b-info,.ck,.rest-t,.pday-s,.bk-st{font-size:15px}
+.x-beat,.x-beat button{font-size:15px}
+.x-beat button{color:var(--mu)}
+.xrow .ct,.hrow .r,.prow span:last-child,.mrow span:last-child,.sc em{font-size:15px}
+.xrow .ct{color:var(--mu)}
+.lnk{font-size:15px}
+.dset .k{font-size:13px;color:var(--mu)}
+.dset .nb{color:var(--mu)}
+.xrow small,.hw-u,.hw-u button,.mn,.yg-c,.nw small,.dset .v small,.pday-h b small,.sup,.pday-h span{font-size:13px}
+.xrow small,.hw-u,.mn,.yg-c,.nw small,.sup{color:var(--mu)}
+.xrow.on small,.xrow small.t{color:var(--t)}
+.cal .dw{color:var(--mu)}
+.tg-cap,.h-top{color:var(--mu)}
 </style>
 </head>
 <body>
