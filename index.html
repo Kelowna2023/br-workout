@@ -114,6 +114,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .h-cd .yg-g i.n{border-color:#8F8B84}
 .h-cd .yg-c{color:#5E5B56}
 .segs{display:flex;gap:6px;margin-top:20px}
+.segs+.list{margin-top:36px}
 .segs span{flex:1;height:4px;border-radius:2px;background:#1E1E1E;overflow:hidden}
 .segs i{display:block;height:100%;background:var(--t);transform-origin:0 50%;transform:scaleX(0);transition:transform .9s var(--out)}
 .segs i.on{transform:scaleX(1)}
@@ -1483,7 +1484,7 @@ function vWorkout(){
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
     rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (i === next ? '<small class="t">Up next' + (x.link && nx ? ' · superset with ' + esc(nx.name) : '') + '</small>' : x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
       (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
-  return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' + rally(a) +
+  return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' +
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
     '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
