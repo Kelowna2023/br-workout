@@ -532,13 +532,20 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 /* ---------- type system ----------
    One scale, one job per size. Everything on a page sits on one of these steps:
    46  page title (700)                     24  the workouts on home (600)
-   20  rows you tap to go somewhere (500)   17  rows of content and their values (500)
-   15  section headings (600, white), body copy and buttons, right-hand values
+   22  section headings (600, white)        20  the lifts inside a workout (500)
+   17  every row under a section heading, and its values (500)
+   15  body copy, buttons, right-hand values
    13  captions and sub-lines under a name  11  tab bar and weekday letters only
    Colour carries the rest: white = read this, grey (--mu) = supporting, teal = tappable or yours. No text sits on the dimmest grey any more. */
 :root{--mu2:#7F7B74}
 h2{font-weight:600}
-.sec h2{font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-.01em}
+h2,.sec h2{font-size:22px;font-weight:600;line-height:1.15;color:var(--tx);letter-spacing:-.03em}
+.sec{margin-top:52px;padding-bottom:14px}
+/* rows under a section heading are all one size, on every page: scoreboard, workouts, body parts, settings */
+.acc>button,details.rt summary,.sc b,.hrow b,.grow-r div{font-size:17px;letter-spacing:-.02em}
+.acc>button{min-height:60px}
+details.rt summary{min-height:60px}
+details.rt summary small,.sc small,.hrow small{font-size:13px;color:var(--mu)}
 .wn{font-size:24px;font-weight:600}
 .xrow .nm{font-size:20px}
 .pday-h b{font-size:20px}
