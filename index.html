@@ -46,6 +46,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 #app[data-s="home"] #bar{height:calc(var(--st) + 72px)}
 #bar::before{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--bp,0);border-bottom:.5px solid var(--ln)}
 #bar>*{position:relative;pointer-events:auto}
+#app[data-s="home"] #bar::before{bottom:auto;height:calc(var(--st) + 14px);border:0;background:linear-gradient(var(--bg) 62%,rgba(0,0,0,0))}
 .bk{display:flex;align-items:center;gap:2px;height:44px;padding:0 10px 0 4px;color:var(--t);font-size:15px;font-weight:500;max-width:min(240px,56vw);transition:transform .3s var(--spring),color .2s}
 .bk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .bk.tap{transform:scale(.94);opacity:.6}
@@ -53,7 +54,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 #bar-t{position:absolute;left:50%;top:var(--st);height:52px;display:flex;align-items:center;transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:-.02em;opacity:var(--tp,0);max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .ib{width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:50%;transition:transform .3s var(--spring),color .2s}
 .ib.tap{transform:scale(.88);color:var(--tx)}
-#bar-date{position:absolute;left:var(--g);top:var(--st);height:52px;display:flex;align-items:center;font-size:14px;color:#A8A49C;font-weight:500;pointer-events:none;will-change:opacity,transform}
+#bar-date{position:absolute;left:var(--g);top:var(--st);height:52px;display:flex;align-items:center;font-size:14px;color:#A8A49C;font-weight:500;pointer-events:none}
 
 /* ---- the wordmark: big on arrival, rides your scroll up into the bar ---- */
 #wm{position:absolute;z-index:21;left:var(--g);top:calc(var(--st) + 10px);font:600 76px/1 var(--font);letter-spacing:-.05em;display:flex;align-items:flex-end;transform-origin:0 0;will-change:transform;pointer-events:none;white-space:nowrap;view-transition-name:wm}
@@ -1202,12 +1203,13 @@ function onScroll(){ if(!raf) raf = requestAnimationFrame(function(){ raf = 0; p
 function paint(){
   var y = view.scrollTop, type = view.dataset.v, bar = $("#bar"), vh = view.clientHeight;
   if(type === "home"){
-    var p = clamp(y / 100, 0, 1), e = p * p * (3 - 2 * p), pull = y < 0 ? Math.min(-y, 140) / 520 : 0;
-    if(!UI.intro) wm.style.transform = "translate3d(0," + ((1 - e) * HERO_Y - Math.min(0, y) * 0.5) + "px,0) scale(" + (1 - e * 0.42 + pull) + ")";
-    var rfo = clamp(1 - p * 2.2, 0, 1).toFixed(3); $("#wm-ref").style.opacity = rfo; $("#wm-hz").style.opacity = rfo; UI.refOn = p < 0.5;
-    var bd = $("#bar-date"); bd.style.opacity = (1 - clamp(y / 40, 0, 1)).toFixed(3); bd.style.transform = "translate3d(0," + (-clamp(y, 0, 60) * 0.35) + "px,0)";
-    bar.style.setProperty("--bp", clamp((y - 74) / 18, 0, 1).toFixed(3)); bar.style.setProperty("--tp", 0);
+    /* the wordmark stays full size and simply scrolls away with the page — no shrinking into a bar, no scaling (scaling text blurs it) */
+    if(!UI.intro) wm.style.transform = "translate3d(0," + Math.round(HERO_Y - y) + "px,0)";
+    $("#wm-ref").style.opacity = 1; $("#wm-hz").style.opacity = 1; UI.refOn = y < 200;
+    var bd = $("#bar-date"); bd.style.opacity = 1; bd.style.transform = "translate3d(0," + Math.round(-y) + "px,0)"; var br = $("#bar-r"); br.style.transform = "translate3d(0," + Math.round(-Math.max(0, y)) + "px,0)"; br.style.opacity = (1 - clamp(y / 60, 0, 1)).toFixed(3); br.style.pointerEvents = y > 40 ? "none" : "";
+    bar.style.setProperty("--bp", clamp((y - 150) / 40, 0, 1).toFixed(3)); bar.style.setProperty("--tp", 0);
   } else {
+    var br2 = $("#bar-r"); br2.style.transform = ""; br2.style.opacity = ""; br2.style.pointerEvents = "";
     var b = UI.big, p2 = clamp(y / 76, 0, 1);
     if(b && b.isConnected){ b.style.opacity = (1 - p2).toFixed(3); b.style.transform = "translate3d(0," + (clamp(y, -200, 80) * 0.3) + "px,0) scale(" + (1 - p2 * 0.08 + (y < 0 ? Math.min(-y, 140) / 900 : 0)) + ")"; }
     var tp = clamp((y - 52) / 24, 0, 1).toFixed(3); bar.style.setProperty("--bp", tp); bar.style.setProperty("--tp", tp);
