@@ -426,7 +426,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 /* ---- finish card ---- */
 #end{position:absolute;inset:0;z-index:55;background:var(--bg);overflow-y:auto;padding:calc(var(--st) + 56px) var(--g) calc(var(--sb) + 28px)}
 #end .e-t{font:700 46px/1.02 var(--font);letter-spacing:-.05em;margin-top:8px}
-.e-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:30px 0 26px}
+.e-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:34px 0 0;padding-bottom:34px;border-bottom:.5px solid var(--ln)}
 .e-st b{display:block;font:600 40px/1 var(--font);letter-spacing:-.04em}
 .e-st b.t{color:var(--t)}
 .e-st span{font-size:13px;color:var(--mu);display:block;margin-top:6px}
@@ -566,6 +566,34 @@ details.rt summary small,.sc small,.hrow small{font-size:13px;color:var(--mu)}
 .xrow.on small,.xrow small.t{color:var(--t)}
 .cal .dw{color:var(--mu)}
 .tg-cap,.h-top{color:var(--mu)}
+
+/* ---------- hierarchy pass 2 ---------- */
+.sec{align-items:baseline}
+.sec-v{font-size:15px;color:var(--mu);font-variant-numeric:tabular-nums}
+.sec-p{font-size:15px;line-height:1.55;color:var(--mu);margin-top:14px;max-width:34ch}
+/* setup: lift counts read as values */
+details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-spacing:0}
+/* body: rows waiting for a first entry */
+.trk{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:76px;padding:14px 0;border-bottom:.5px solid var(--ln)}
+.trk b{display:block;font:500 17px/1.2 var(--font);letter-spacing:-.02em}
+.trk small{display:block;font-size:13px;line-height:1.45;color:var(--mu);margin-top:4px;max-width:30ch}
+.trk .lnk{flex:none;padding:10px 0 10px 12px}
+.grow-r:first-child{border-top:.5px solid var(--ln)}
+/* finish card */
+.e-ls .fs-r{font-size:17px;min-height:56px;letter-spacing:-.01em}
+.e-ls .fs-r span:last-child{font-size:15px}
+/* one lift: date small above-left, top set at row size, units quiet */
+.pday{padding:18px 0}
+.pday-h{align-items:baseline}
+.pday-h span{font-size:13px}
+.pday-h b{font:500 20px/1 var(--font);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.pday-h b i{font-style:normal;color:var(--mu);font-weight:400;letter-spacing:-.01em}
+.pday-s{font-size:15px;margin-top:10px}
+/* progress: a workout's lifts sit inside it */
+.acc-b .prow{font-size:15px;min-height:48px;padding-left:16px;border-top:0;position:relative}
+.acc-b .prow::before{content:"";position:absolute;left:0;top:50%;width:6px;height:1px;background:var(--ln2)}
+.acc-b .prow span:last-child{font-size:15px}
+.acc-b>div>:first-child{margin-top:-4px}
 </style>
 </head>
 <body>
@@ -1119,13 +1147,15 @@ function vThenNow(){
   var wa = firstLast(ms, function(e){ return e.v.waist; }), sh = firstLast(ms, function(e){ return e.v.shoulders; }), vr = firstLast(ms, function(e){ return e.v.shoulders != null && e.v.waist ? e.v.shoulders / e.v.waist : null; });
   var row = function(lab, x, unit, dp, fmt){ if(!x) return ""; var same = x.f.at === x.l.at; return '<div class="fs-r"><span>' + lab + '</span><span>' + (same ? fmt(x.l.v) + (unit ? " " + unit : "") : fmt(x.f.v) + ' → <b style="color:var(--tx)">' + fmt(x.l.v) + '</b>' + (unit ? " " + unit : "") + ' · <span class="up">' + deltaTxt(x.f.v, x.l.v, "", dp) + '</span>') + '</span></div>'; };
   rows = row("Bodyweight", bw, u, 10, fmtW) + row("Shoulders", sh, mu, 10, fmtW) + row("Waist", wa, mu, 10, fmtW) + row("V ratio", vr, "", 100, function(v){ return v.toFixed(2); });
-  h += '<div class="sec"><h2>Then and now</h2></div>';
+  var any = rows || ph.length > 1; if(any) h += '<div class="sec"><h2>Then and now</h2></div>';
   if(ph.length > 1) h += '<div class="tn"><button type="button" data-act="ph-view" data-id="' + ph[ph.length - 1].id + '"><img src="' + ph[ph.length - 1].url + '" alt="First photo"><span>First · ' + esc(fmtShort(ph[ph.length - 1].at)) + '</span></button><button type="button" data-act="ph-view" data-id="' + ph[0].id + '"><img src="' + ph[0].url + '" alt="Latest photo"><span>Latest · ' + esc(fmtShort(ph[0].at)) + '</span></button></div>';
-  h += rows ? '<div class="list" style="margin-top:14px">' + rows + '</div>' : '<div class="empty">Your first check-in sets the starting line. Photo, bodyweight, shoulders and waist. Everything after is measured against it.</div>';
-  h += '<div class="sec"><h2>Bodyweight</h2><button type="button" class="lnk" data-act="bw-log">+ Log</button></div>';
+  if(rows) h += '<div class="list" style="margin-top:14px">' + rows + '</div>';
+  UI.trk = [];
+  if(!any) UI.trk.lead = "Your first check-in sets the starting line. Everything after is measured against it.";
+  if(!bw) UI.trk.push(["Bodyweight", "Once a week, same morning, before you eat. Goal " + fmtW(gw) + " " + esc(u) + ".", '<button type="button" class="lnk" data-act="bw-log">+ Log</button>']);
+  else h += '<div class="sec"><h2>Bodyweight</h2><button type="button" class="lnk" data-act="bw-log">+ Log</button></div>';
   if(bw){ var cur = bw.l.v, st = bw.f.v, span = gw - st, pr = span ? clamp((cur - st) / span, 0, 1) : (cur === gw ? 1 : 0), left = Math.round(Math.abs(gw - cur) * 10) / 10;
     h += '<div class="fs-r" style="border:0"><span><b style="font:600 30px/1 var(--font);letter-spacing:-.03em;color:var(--tx)">' + fmtW(cur) + '</b> ' + esc(u) + '</span><span>' + (left ? left + " " + esc(u) + " to " + fmtW(gw) : "At " + fmtW(gw) + ". Hold it.") + '</span></div><div class="gbar"><i style="width:' + (pr * 100).toFixed(1) + '%"></i></div><div class="muted" style="margin-top:10px;font-size:12px">Last logged ' + esc(rel(bw.l.at)) + ' · goal ' + fmtW(gw) + ' ' + esc(u) + '</div>'; }
-  else h += '<div class="empty">Log it once a week, same morning, before you eat. The goal is ' + fmtW(gw) + ' ' + esc(u) + '.</div>';
   return h;
 }
 function ciSheet(){
@@ -1602,7 +1632,7 @@ function endCard(s){
   var el = $("#end"), veil = $("#veil");
   el.innerHTML = '<div class="eyebrow">' + (s.dur ? 'Workout complete · ' + fmtMin(s.dur) : 'Logged for ' + esc(fmtDate(s.startedAt))) + '</div><div class="e-t">' + esc(s.name) + '</div>' +
     '<div class="e-st"><div><b>' + s.setCount + '</b><span>' + (s.setCount === 1 ? "set" : "sets") + '</span></div><div><b' + (s.prs.length ? ' class="t"' : '') + '>' + s.prs.length + '</b><span>new ' + (s.prs.length === 1 ? "best" : "bests") + '</span></div><div><b class="t">' + n + '</b><span>of ' + goal + ' this week</span></div></div>' +
-    '<h2>' + (prev ? "Top sets" + (ups ? " · " + ups + " up on last time" : "") : "Top sets") + '</h2><div style="margin-top:8px">' + lines + '</div>' +
+    '<div class="sec" style="margin-top:34px"><h2>Top sets</h2>' + (prev && ups ? '<span class="sec-v t">' + ups + ' up on last time</span>' : '') + '</div><div class="e-ls">' + lines + '</div>' +
     '<div class="stack"><button type="button" class="btn go" data-act="end-done">Done</button></div>' +
     '';
   var show = function(){ el.hidden = false; el.scrollTop = 0; render(); };
@@ -1629,7 +1659,7 @@ function vHistory(){
   return '<h1 class="big">History</h1><div class="sub" data-rv>' + S.sessions.length + (S.sessions.length === 1 ? " workout" : " workouts") + ' logged</div><div class="hz" data-rv></div>' +
     '<div class="cal-h" data-rv><button type="button" class="ib" data-act="cal" data-v="-1" aria-label="Previous month">' + IC.back + '</button><b>' + m.toLocaleDateString("en-US", { month:"long", year:"numeric" }) + '</b><button type="button" class="ib" data-act="cal" data-v="1" aria-label="Next month">' + IC.chev + '</button></div>' +
     '<div class="cal" data-rv>' + cells + '</div>' +
-    '<div class="sec" data-rv><h2>' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") + " this month" : "Nothing logged this month") + '</h2></div><div class="list" style="margin-top:8px">' + list + '</div>';
+    '<div class="sec" data-rv><h2>This month</h2><span class="sec-v">' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") : "Nothing yet") + '</span></div><div class="list" style="margin-top:8px">' + list + '</div>';
 }
 function daySheet(t){
   var u = S.cfg.units, ss = S.sessions.filter(function(s){ return dayStart(s.startedAt) === t; }), ps = S.photos.filter(function(p){ return dayStart(p.at) === t; }), h = '<div><div class="eyebrow">' + esc(fmtDate(t)) + '</div></div>';
@@ -1667,11 +1697,11 @@ function vProgress(){
 function vProgEx(){
   var d = pgData(UI.pgEx), u = S.cfg.units, name = (histIndex()[UI.pgEx] || {}).name || "", g = gearOf(name), rows = "";
   for(var i = d.days.length - 1; i >= 0; i--){ var x = d.days[i], notes = x.sets.filter(function(q){ return q.note; }).map(function(q){ return '<div class="pday-n">' + esc(q.note) + '</div>'; }).join("");
-    rows += '<div class="pday" data-rv><div class="pday-h"><span>' + esc(fmtDate(x.t)) + '</span><b>' + (x.top.w > 0 ? fmtW(x.top.w) + ' <small>' + esc(unitLabel(g, u)) + '</small> × ' : '') + x.top.r + (x.top.w > 0 ? '' : ' <small>reps</small>') + '</b></div>' +
+    rows += '<div class="pday" data-rv><div class="pday-h"><span>' + esc(fmtDate(x.t)) + '</span><b>' + (x.top.w > 0 ? fmtW(x.top.w) + '<i> ' + esc(u) + ' ×</i> ' : '') + x.top.r + (x.top.w > 0 ? '' : '<i> reps</i>') + '</b></div>' +
       '<div class="pday-s"><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + '</span>' + (x.best ? '<span class="tag">Best</span>' : '') + (x.up ? '<span class="up">▲ ' + esc(x.up) + '</span>' : '') + '</div>' + notes + '</div>'; }
   return '<h1 class="big' + (name.length > 16 ? " lg" : "") + '">' + esc(name) + '</h1>' +
-    '<div class="sub t" data-rv>' + (d.best ? "Best: " + esc(setTxt(d.best.w, d.best.r, u)) + " · " + esc(fmtShort(d.best.t)) : "") + '</div><div class="sub" data-rv>' + d.days.length + (d.days.length === 1 ? " day" : " days") + ' logged</div>' +
-    '<div class="list" style="margin-top:18px">' + rows + '</div><div style="height:60px"></div>';
+    '<div class="sub" data-rv>' + (d.best ? 'Best <b>' + esc(setTxt(d.best.w, d.best.r, u)) + '</b> · ' + esc(fmtShort(d.best.t)) : "") + '</div><div class="hz" data-rv></div>' +
+    '<div class="sec"><h2>Sessions</h2><span class="sec-v">' + d.days.length + ' logged</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div><div style="height:60px"></div>';
 }
 
 /* ---------- body: the last 7 days, so it never empties on a Monday ---------- */
@@ -1698,21 +1728,23 @@ function vBody(){
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
     info = '<b>' + esc(UI.bsel) + ' · ' + n2 + (n2 === 1 ? " set" : " sets") + '</b>' + (ex ? Object.keys(ex).map(function(k){ return esc(k) + " · " + ex[k]; }).join("<br>") : "Nothing logged in the last 7 days"); }
   else info = "Tap a body part";
-  var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets in the last 7 days · aim for 10–20 each</div><div class="hz" data-rv></div>' + vCheck() +
+  var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets per muscle over the last 7 days</div><div class="hz" data-rv></div>' + vCheck() +
     '<div class="bmap" data-rv><svg viewBox="14 0 192 202" role="img" aria-label="Body map shaded by sets in the last 7 days">' + bodyFig(MM_FRONT, 0, w.mus, sel) + bodyFig(MM_BACK, 106, w.mus, sel) + '</svg></div><div class="b-info" id="b-info" aria-live="polite">' + info + '</div>' +
-    '<div class="list" style="margin-top:14px">' + rows + '</div>';
+    '<div class="sec"><h2>Muscles</h2><span class="sec-v">Aim for 10–20</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div>';
   var last = ms.length ? ms[ms.length - 1] : null;
   h += vThenNow();
-  h += '<div class="sec"><h2>Measurements</h2><button type="button" class="lnk" data-act="meas-log">+ Log</button></div>';
-  if(!last) h += '<div class="empty">Measure once a month, same time of day.</div>';
-  else h += '<div class="list">' + MEAS.map(function(m){ var v = last.v[m[0]], f = null; for(var i = 0; i < ms.length; i++) if(ms[i].v[m[0]] != null){ f = ms[i].v[m[0]]; break; }
+  if(!last) UI.trk.push(["Measurements", "Once a month, same time of day.", '<button type="button" class="lnk" data-act="meas-log">+ Log</button>']);
+  else h += '<div class="sec"><h2>Measurements</h2><button type="button" class="lnk" data-act="meas-log">+ Log</button></div><div class="list">' + MEAS.map(function(m){ var v = last.v[m[0]], f = null; for(var i = 0; i < ms.length; i++) if(ms[i].v[m[0]] != null){ f = ms[i].v[m[0]]; break; }
       if(v == null) return ""; var d = Math.round((v - f) * 10) / 10;
       return '<button type="button" class="mrow" data-act="meas-hist" data-k="' + m[0] + '"><span>' + m[1] + '</span><span><b>' + fmtW(v) + '</b> ' + mu + (ms.length > 1 && d ? " · " + (d > 0 ? "+" : "−") + fmtW(Math.abs(d)) : "") + '</span></button>'; }).join("") + '</div>';
-  h += '<div class="sec"><h2>Photos</h2>' + (S.photosOff ? "" : '<label class="lnk" for="ph-file">+ Add photo</label><input id="ph-file" type="file" accept="image/*" class="vh">') + '</div>';
-  if(S.photosOff) h += '<div class="empty">Photos save in the Wake app on your phone.</div>';
-  else if(!S.photos.length) h += '<div class="empty">One every few weeks, same spot, same light. They stay on this phone.</div>';
-  else h += '<div class="ph-strip">' + S.photos.map(function(q){ return '<button type="button" data-act="ph-view" data-id="' + q.id + '"><img src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '" loading="lazy"><span>' + esc(fmtShort(q.at)) + '</span></button>'; }).join("") + '</div>';
-  return h;
+  var phAdd = '<label class="lnk" for="ph-file">+ Add</label><input id="ph-file" type="file" accept="image/*" class="vh">';
+  if(S.photosOff) UI.trk.push(["Photos", "Photos save in the Wake app on your phone.", ""]);
+  else if(!S.photos.length) UI.trk.push(["Photos", "Every few weeks, same spot, same light. They stay on this phone.", phAdd]);
+  var trk = "";
+  if(UI.trk.length) trk = '<div class="sec"><h2>' + (UI.trk.lead ? "Start your record" : "Still to start") + '</h2></div>' + (UI.trk.lead ? '<p class="sec-p">' + UI.trk.lead + '</p>' : '') +
+    '<div class="list" style="margin-top:' + (UI.trk.lead ? 18 : 0) + 'px;border-top:' + (UI.trk.lead ? '.5px solid var(--ln)' : '0') + '">' + UI.trk.map(function(t){ return '<div class="trk"><div><b>' + t[0] + '</b><small>' + t[1] + '</small></div>' + t[2] + '</div>'; }).join("") + '</div>';
+  if(S.photos.length && !S.photosOff) h += '<div class="sec"><h2>Photos</h2>' + phAdd + '</div><div class="ph-strip">' + S.photos.map(function(q){ return '<button type="button" data-act="ph-view" data-id="' + q.id + '"><img src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '" loading="lazy"><span>' + esc(fmtShort(q.at)) + '</span></button>'; }).join("") + '</div>';
+  return h + trk;
 }
 function measSheet(){
   var ms = S.cfg.meas || [], last = ms.length ? ms[ms.length - 1].v : {}, mu = measUnit();
@@ -1723,7 +1755,7 @@ function measSheet(){
 
 /* ---------- setup ---------- */
 function vSetup(){
-  var k = bkInfo(), h = '<h1 class="big">Setup</h1><div class="sec" style="margin-top:22px"><h2>Workouts</h2></div><div class="list">';
+  var k = bkInfo(), h = '<h1 class="big">Setup</h1><div class="sub" data-rv>Your split and how Wake counts your week</div><div class="hz" data-rv></div><div class="sec"><h2>Workouts</h2></div><div class="list">';
   S.cfg.routines.forEach(function(r, ri){
     h += '<details class="rt" data-rid="' + esc(r.id) + '"' + (S.openRoutine === r.id ? " open" : "") + '><summary><span>' + esc(r.name || "Workout") + '</span><small>' + r.exercises.length + ' lifts</small></summary><div class="rt-b">' +
       '<input class="field" data-r="' + ri + '" data-k="name" value="' + esc(r.name) + '" placeholder="Workout name" aria-label="Workout name">' +
