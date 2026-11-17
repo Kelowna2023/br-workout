@@ -518,7 +518,7 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
 .tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
 /* the passing wave: each tick lights to this week's brightness at the crest */
-.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0)}
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#14D3C2,#5FE6D8);opacity:var(--w,0)}
 </style>
 </head>
 <body>
@@ -1825,12 +1825,14 @@ function buildRef(ref, fs, N, base){
   for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
-/* one peak travelling the year: each week rises as the crest reaches it and drops back as it passes. Smooth-topped so the crest never flickers between ticks. */
-function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, SP = 7, LEAD = 7, P = (N + LEAD * 2) / SP + 1.4, p = -LEAD + (t % P) * SP;
+/* a soft light drifting through the year, with a small peaked crest riding inside it: tall in the middle, graded shoulders, a faint ripple trailing. Quiet. */
+function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, SP = 5.2, LEAD = 16, P = (N + LEAD * 2) / SP + 2.5, p = -LEAD + (t % P) * SP;
   for(var i = 0; i < N; i++){ var el = k[i]; if(el.className === "n") continue;
-    var v = Math.exp(-Math.pow(Math.abs(i - p) / 2.3, 1.7)); if(v < 0.003) v = 0;
-    el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * (1.7 + HR.energy * 0.1)).toFixed(4) + ")";
-    el.style.setProperty("--w", v.toFixed(4)); } }
+    var d = i - p, x = d / 5.5, glow = Math.exp(-x * x), sh = d / 7, v = 0.28 * Math.exp(-sh * sh) + 0.72 * Math.exp(-Math.pow(Math.abs(d) / 2.1, 1.7));
+    if(d < 0) v += 0.1 * Math.sin(d * 0.85 + t * 1.3) * Math.exp(d / 8) * (1 - Math.exp(d / 2));
+    if(glow < 0.003){ glow = 0; v = 0; }
+    el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * (1.02 + HR.energy * 0.06)).toFixed(4) + ")";
+    el.style.setProperty("--w", Math.min(0.9, glow * 0.6 + Math.max(0, v) * 0.3).toFixed(4)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
