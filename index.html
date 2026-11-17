@@ -518,7 +518,7 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
 .tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
 /* the passing wave: each tick lights to this week's brightness at the crest */
-.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#14D3C2,#5FE6D8);opacity:var(--w,0)}
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0)}
 </style>
 </head>
 <body>
@@ -1825,15 +1825,13 @@ function buildRef(ref, fs, N, base){
   for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
-/* a narrow crest of light crossing the year: it gathers at the first week, glides with a slow ease, and lets go at the last. Quiet. */
+/* five pins, no more: one tall pin at the crest, two shorter either side, two shorter again, each dimmer than the last. It gathers at the first week, glides with a slow ease, and lets go at the last. */
 function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, D = 9.5, P = D + 2.6, u = Math.min(1, (t % P) / D),
     e = u * 0.55 + (0.5 - 0.5 * Math.cos(Math.PI * u)) * 0.45, p = -2 + e * (N + 3), f = Math.min(1, u / 0.14, (1 - u) / 0.14), A = f * f * (3 - 2 * f);
   for(var i = 0; i < N; i++){ var el = k[i]; if(el.className === "n") continue;
-    var d = i - p, x = d / 3.1, glow = Math.exp(-x * x) * A, v = (0.2 * Math.exp(-x * x) + 0.8 * Math.exp(-Math.pow(Math.abs(d) / 1.7, 1.7))) * A;
-    if(d < 0) v += 0.07 * Math.sin(d * 1.1 + t * 1.3) * Math.exp(d / 4) * (1 - Math.exp(d / 2)) * A;
-    if(glow < 0.003 && Math.abs(v) < 0.003){ glow = 0; v = 0; }
+    var d = Math.abs(i - p), v = d < 3 ? Math.pow(0.5 + 0.5 * Math.cos(Math.PI * d / 3), 1.2) * A : 0;
     el.style.transform = "translate3d(0,0,0) scaleY(" + (1 + v * (1.05 + HR.energy * 0.06)).toFixed(4) + ")";
-    el.style.setProperty("--w", Math.min(0.9, glow * 0.6 + Math.max(0, v) * 0.3).toFixed(4)); } }
+    el.style.setProperty("--w", (v * 0.95).toFixed(4)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
