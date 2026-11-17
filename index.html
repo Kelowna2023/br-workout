@@ -1825,11 +1825,15 @@ function buildRef(ref, fs, N, base){
   for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
-function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length;
-  for(var i = 0; i < N; i++){ if(k[i].className === "n") continue; var w = Math.sin(t * 0.62 - i * 0.16); w = w > 0 ? Math.pow(w, 8) : 0; k[i].style.transform = "scaleY(" + (1 + w * (0.9 + HR.energy * 0.08)).toFixed(3) + ")";
-    /* the crest lights up to the brightness of this week's marker as it passes */
-    if(k[i].className !== "t"){ var b = k[i]._a != null ? k[i]._a : (k[i]._a = parseFloat(k[i].style.getPropertyValue("--a")) || 0.2); k[i].style.setProperty("--a", (b + (1 - b) * Math.min(1, w * 1.15)).toFixed(3)); }
-    k[i].style.setProperty("--w", Math.min(1, w * 1.1).toFixed(3)); } }
+/* a Mexican wave: each week stands up in turn, quick and tall, then sits back with a soft settle. One pass, a breath, then again. */
+function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length, GAP = 0.05, D = 1.15, P = N * GAP + D + 1.6, T = t % P;
+  for(var i = 0; i < N; i++){ var el = k[i]; if(el.className === "n") continue;
+    var u = (T - i * GAP) / D, v = 0;
+    if(u > 0 && u < 1){ if(u < 0.32){ var r = 1 - u / 0.32; v = 1 - r * r * r; } else { var x = (u - 0.32) / 0.68; v = Math.cos(x * Math.PI * 1.2) * Math.pow(1 - x, 1.5); } }
+    el.style.transform = "scaleY(" + (1 + v * (1.6 + HR.energy * 0.1)).toFixed(3) + ")";
+    var w = v > 0 ? v : 0;
+    if(el.className !== "t"){ var b = el._a != null ? el._a : (el._a = parseFloat(el.style.getPropertyValue("--a")) || 0.2); el.style.setProperty("--a", (b + (1 - b) * w).toFixed(3)); }
+    el.style.setProperty("--w", w.toFixed(3)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
