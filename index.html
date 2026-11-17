@@ -151,7 +151,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .hw{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:6px calc(var(--g) * -1) 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);touch-action:pan-x}
 .hw::-webkit-scrollbar{display:none}
 .hw-t{display:flex;width:max-content;padding:0 calc(50% - 65px)}
-.hw span{flex:none;width:130px;text-align:center;scroll-snap-align:center;font:600 58px/1.12 var(--font);letter-spacing:-.045em;font-variant-numeric:tabular-nums;transform:scale(.36);opacity:.14;will-change:transform,opacity}
+.hw span{flex:none;width:130px;text-align:center;scroll-snap-align:center;font:600 58px/1.12 var(--font);letter-spacing:-.045em;font-variant-numeric:tabular-nums;transform:scale(.36);opacity:.14;will-change:transform}
 .hw.ghost span{color:var(--mu)}
 .hw-u{text-align:center;font-size:12px;color:var(--mu2);margin-bottom:14px}
 .hw-u button{color:var(--t);font-weight:500;padding:6px 0 6px 8px;font-size:12px}
@@ -451,7 +451,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .oh{position:absolute;left:0;right:0;height:1px;pointer-events:none;transform-origin:0 50%;z-index:3}
 .oh::before{content:"";position:absolute;inset:0;transform:scaleY(.5);transform-origin:0 0;background:linear-gradient(90deg,rgba(20,211,194,.7),rgba(20,211,194,.7) 55%,transparent 92%)}
 .gl.one,.gr.one{animation:none}
-.h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(20,211,194,.2),rgba(20,211,194,.05) 50%,transparent 72%);opacity:.28;pointer-events:none;will-change:transform,opacity}
+.h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(20,211,194,.2),rgba(20,211,194,.05) 50%,transparent 72%);opacity:.28;pointer-events:none;will-change:transform}
 .h-top{position:absolute;left:var(--g);right:var(--g);top:calc(var(--st) + 48px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
 .h-sea{will-change:transform;position:absolute;left:0;right:0;top:49%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
 .h-rise{position:absolute;left:0;right:0;bottom:0;height:.868em;overflow:hidden;display:flex;justify-content:center}
@@ -518,10 +518,10 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
 .tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
 /* the passing wave: each tick lights to this week's brightness at the crest */
-.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:0}
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0)}
 /* the apex: one glowing pin that glides the whole row at a constant speed; the pins it passes lift to a little over half its height */
 .tg{position:relative}
-.tg b{position:absolute;left:0;bottom:0;width:100%;height:28px;pointer-events:none;opacity:0;will-change:transform,opacity}
+.tg b{position:absolute;left:0;bottom:0;width:100%;height:28px;pointer-events:none;opacity:0;will-change:transform}
 .tg b::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:100%;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);box-shadow:0 0 9px rgba(20,211,194,.55)}
 /* hairline pins, as thin and sharp as the horizon line */
 .tg i{width:1px;border-radius:0}
@@ -1813,8 +1813,8 @@ function hero(){
   $("#h-cd").innerHTML = tideGauge();
   UI.intro = true; el.hidden = false; HR.busy = false; wm.querySelector("i").classList.remove("breathe");
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
+  TG.t0 = performance.now(); TG.up.length = 0;
   if(calm) return;
-  peakWave();
   var SLOW = "cubic-bezier(.19,1,.22,1)", SOFT = "cubic-bezier(.33,0,.1,1)", w = $("#h-w");
   var sea0 = $("#h-sea"), INOUT = "cubic-bezier(.7,0,.2,1)", T = 950;
   el.querySelector(".h-line").animate([{ transform:"scaleX(0)", opacity:0 }, { opacity:1, offset:0.25 }, { transform:"scaleX(1)", opacity:1 }], { duration:1500, delay:200, easing:INOUT, fill:"backwards" });
@@ -1827,7 +1827,7 @@ function hero(){
   [].forEach.call(ref.querySelectorAll("i"), function(d){ d.animate([{ opacity:0 }, { opacity:1 }], { duration:600, delay:T + 1750, fill:"backwards" }); });
   [[".h-top", 1900, 0], [".h-cd", 2800, 18], ["#h-go", 3100, 22]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
-  [].forEach.call($("#tg").children, function(k, i){ k.animate([{ transform:"scaleY(0)", opacity:0 }, { transform:"scaleY(1)", opacity:1 }], { duration:1300, delay:3000 + i * 22, easing:SLOW, fill:"backwards" }); });
+  [].forEach.call(document.querySelectorAll("#tg i"), function(k, i){ k.animate([{ transform:"scaleY(0)", opacity:0 }, { transform:"scaleY(1)", opacity:1 }], { duration:1300, delay:3000 + i * 22, easing:SLOW, fill:"backwards" }); });
 }
 function buildRef(ref, fs, N, base){
   var H = Math.round(fs * 0.868), sh = Math.ceil(H / N), html = "";
@@ -1835,27 +1835,19 @@ function buildRef(ref, fs, N, base){
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
 /* the wave along the opening tide runs as CSS animations (see .tg i), so it stays on the compositor and never stutters */
-/* when the gliding apex reaches a given point along the row: inverts the glide's cubic-bezier(.42,0,.3,1) over its 7.14s run, so each pin lifts exactly as the apex arrives */
-function glideAt(y){ var lo = 0, hi = 1, m, k, B = function(a, b, q){ var r = 1 - q; return 3 * r * r * q * a + 3 * r * q * q * b + q * q * q; };
-  for(k = 0; k < 30; k++){ m = (lo + hi) / 2; if(B(0, 1, m) < y) lo = m; else hi = m; }
-  return B(0.42, 0.3, (lo + hi) / 2) * 7.14; }
-/* the peak: the gliding apex plus only the pins right beside it. A pin starts lifting when the apex is two pins away, tops out as it arrives, and is back down two pins later,
-   in straight lines, so there are never more than three or four pins off the resting height and they always form a point, not a mound. */
-function peakWave(){
-  var g = document.getElementById("tg"); if(!g || !g.animate) return; var k = g.querySelectorAll("i"), N = k.length, CY = 10, T0 = 0.6,
-      at = function(j){ return j < 0 ? T0 + j * 0.25 : j > N - 1 ? T0 + 7.14 + (j - N + 1) * 0.25 : T0 + glideAt(j / (N - 1)); };
-  [].forEach.call(k, function(el, i){
-    var a = Math.max(0, at(i - 2)) / CY, b = Math.max(a + 0.001, at(i) / CY), c = at(i + 2) / CY, top = el.className === "n" ? 1.07 : 1.45, o = { duration:CY * 1000, delay:4800, iterations:Infinity };
-    el.animate([{ transform:"scaleY(1)", offset:0 }, { transform:"scaleY(1)", offset:a }, { transform:"scaleY(" + top + ")", offset:b }, { transform:"scaleY(1)", offset:c }, { transform:"scaleY(1)", offset:1 }], o);
-    if(el.className !== "n") try { el.animate([{ opacity:0, offset:0 }, { opacity:0, offset:a }, { opacity:0.6, offset:b }, { opacity:0, offset:c }, { opacity:0, offset:1 }], { duration:o.duration, delay:o.delay, iterations:Infinity, pseudoElement:"::after" }); } catch(e){}
-  });
-  /* the apex rides the same clock and the same arrival times as the pins (one keyframe per pin, straight lines between), so the two can never drift apart */
-  var ap = g.querySelector("b"), fr = [{ transform:"translate3d(" + k[0].offsetLeft + "px,0,0)", opacity:0, offset:0 }], x0 = k[0].offsetLeft, xN = k[N - 1].offsetLeft, tEnd = at(N - 1) / CY;
-  [].forEach.call(k, function(el, i){ fr.push({ transform:"translate3d(" + el.offsetLeft + "px,0,0)", opacity:1, offset:at(i) / CY }); });
-  fr.push({ transform:"translate3d(" + xN + "px,0,0)", opacity:0, offset:tEnd + 0.035 }, { transform:"translate3d(" + xN + "px,0,0)", opacity:0, offset:1 });
-  if(ap) ap.animate(fr, { duration:CY * 1000, delay:4800, iterations:Infinity });
-}
-function swell(){}
+/* the peak crossing the year. One clock, one position: every frame the apex is placed at that position and only the pins within two places of it are lifted,
+   in proportion to how close it is. Nothing else in the row is touched, so the apex and its side pins cannot come apart and there are never more than four pins raised.
+   It waits off screen to the left until the opening has finished arriving, crosses with an ease, leaves off the right, rests, and comes again. */
+var TG = { t0:0, up:[] };
+function swell(){ var g = document.getElementById("tg"); if(!g) return; var ap = g.lastElementChild, k = g.children, N = k.length - 1; if(!ap || ap.tagName !== "B" || N < 2) return;
+  var T = (performance.now() - TG.t0) / 1000 - 5, D = 7.8, P = D + 2.6, i, el;
+  for(i = 0; i < TG.up.length; i++){ el = TG.up[i]; el.style.transform = ""; el.style.removeProperty("--w"); } TG.up.length = 0;
+  if(T < 0){ ap.style.opacity = 0; return; }
+  var u = (T % P) / D; if(u >= 1){ ap.style.opacity = 0; return; }
+  var e = u * 0.5 + u * u * (3 - 2 * u) * 0.5, x0 = k[0].offsetLeft, pitch = (k[N - 1].offsetLeft - x0) / (N - 1), p = -5 + e * (N + 9);
+  ap.style.opacity = 1; ap.style.transform = "translate3d(" + (x0 + p * pitch).toFixed(2) + "px,0,0)";
+  for(i = Math.max(0, Math.ceil(p - 2)); i <= Math.min(N - 1, Math.floor(p + 2)); i++){ el = k[i]; var w = 1 - Math.abs(i - p) / 2; if(w <= 0) continue;
+    el.style.transform = "scaleY(" + (1 + w * (el.className === "n" ? 0.07 : 0.45)).toFixed(4) + ")"; if(el.className !== "n") el.style.setProperty("--w", (w * 0.6).toFixed(3)); TG.up.push(el); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
