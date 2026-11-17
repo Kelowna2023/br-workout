@@ -518,12 +518,12 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
 .tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
 /* the passing wave: each tick lights to this week's brightness at the crest */
-.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:0;animation:tg-lit 10s linear calc(4.8s + var(--i,0) * .13s) infinite}
-.tg i{animation:tg-pop 10s linear calc(4.8s + var(--i,0) * .13s) infinite}
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:0;animation:tg-lit 10s linear calc(4.8s + var(--i,0) * .14s) infinite}
+.tg i{animation:tg-pop 10s linear calc(4.8s + var(--i,0) * .14s) infinite}
 .tg i.n{animation-name:tg-pop-n}
-@keyframes tg-pop{0%{transform:scaleY(1);animation-timing-function:cubic-bezier(.22,.9,.3,1)}2.6%{transform:scaleY(1.8);animation-timing-function:cubic-bezier(.45,0,.4,1)}5.8%{transform:scaleY(.93);animation-timing-function:cubic-bezier(.4,0,.5,1)}7.4%{transform:scaleY(1.03);animation-timing-function:ease-in-out}8.8%,100%{transform:scaleY(1)}}
-@keyframes tg-pop-n{0%{transform:scaleY(1);animation-timing-function:cubic-bezier(.22,.9,.3,1)}2.6%{transform:scaleY(1.13);animation-timing-function:cubic-bezier(.45,0,.4,1)}5.8%{transform:scaleY(.985);animation-timing-function:ease-in-out}8.8%,100%{transform:scaleY(1)}}
-@keyframes tg-lit{0%{opacity:0;animation-timing-function:ease-out}2.6%{opacity:.85;animation-timing-function:ease-in-out}6.4%,100%{opacity:0}}
+@keyframes tg-pop{0%{transform:scaleY(1);animation-timing-function:cubic-bezier(.45,0,.9,.7)}2.8%{transform:scaleY(2);animation-timing-function:cubic-bezier(.1,.45,.4,1)}5.8%{transform:scaleY(.96);animation-timing-function:ease-in-out}7.6%,100%{transform:scaleY(1)}}
+@keyframes tg-pop-n{0%{transform:scaleY(1);animation-timing-function:cubic-bezier(.45,0,.9,.7)}2.8%{transform:scaleY(1.13);animation-timing-function:cubic-bezier(.1,.45,.4,1)}5.8%{transform:scaleY(.99);animation-timing-function:ease-in-out}7.6%,100%{transform:scaleY(1)}}
+@keyframes tg-lit{0%{opacity:0;animation-timing-function:cubic-bezier(.45,0,.9,.7)}2.8%{opacity:.9;animation-timing-function:cubic-bezier(.1,.45,.4,1)}5.8%,100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.tg i,.tg i:not(.n)::after{animation:none}}
 </style>
 </head>
