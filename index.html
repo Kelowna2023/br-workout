@@ -511,6 +511,13 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 @media (prefers-reduced-motion: reduce){*,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}}
 .tap,.tap *{transition-duration:0s!important}
 .bk-st{color:var(--mu);font-size:14px;line-height:1.5}.bk-st b{color:var(--tx)}
+/* the year's weeks: a teal gradient that builds toward this week, and fades out ahead */
+.tg i{width:2px;border-radius:2px 2px 0 0;background:linear-gradient(to top,rgba(255,255,255,var(--a,.2)),rgba(255,255,255,0) 115%)}
+.tg i.p{background:linear-gradient(to top,rgba(20,211,194,var(--a,.3)),rgba(20,211,194,calc(var(--a,.3) * .12)) 110%)}
+.tg i.t{opacity:1;background:linear-gradient(to top,#14D3C2,#9FF5EA)}
+.tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
+.tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
+.tg{-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 100%);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 100%)}
 </style>
 </head>
 <body>
@@ -941,7 +948,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "121";
+var BUILD = "122";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1787,7 +1794,8 @@ var LINES = [
 function tideGauge(){
   var d = new Date(), y = d.getFullYear(), cur = isoWeek(d), tr = {}, h = "", i;
   S.sessions.forEach(function(s){ var sd = new Date(s.startedAt); if(sd.getFullYear() === y) tr[isoWeek(sd)] = 1; });
-  for(i = 1; i <= 52; i++) h += '<i class="' + (i === cur ? "n" : tr[i] ? "t" : i < cur ? "p" : "") + '"></i>';
+  for(i = 1; i <= 52; i++){ var k = i === cur ? "n" : tr[i] ? "t" : i < cur ? "p" : "", t = i < cur ? i / Math.max(1, cur) : (i - cur) / Math.max(1, 52 - cur), al = k === "p" ? 0.2 + 0.7 * t * t : k === "" ? 0.22 * (1 - t * 0.75) : 1;
+    h += '<i class="' + k + '" style="--a:' + al.toFixed(3) + '"></i>'; }
   return '<div class="tg" id="tg">' + h + '</div>';
 }
 function hero(){
