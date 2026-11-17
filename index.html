@@ -521,9 +521,8 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:0}
 /* the apex: one glowing pin that glides the whole row at a constant speed; the pins it passes lift to a little over half its height */
 .tg{position:relative}
-.tg b{position:absolute;left:0;bottom:0;width:100%;height:28px;pointer-events:none;opacity:0;will-change:transform,opacity;animation:tg-glide 10s linear 4.8s infinite}
+.tg b{position:absolute;left:0;bottom:0;width:100%;height:28px;pointer-events:none;opacity:0;will-change:transform,opacity}
 .tg b::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:100%;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);box-shadow:0 0 9px rgba(20,211,194,.55)}
-@keyframes tg-glide{0%{transform:translate3d(0,0,0);opacity:0;animation-timing-function:ease-out}6%{transform:translate3d(0,0,0);opacity:1;animation-timing-function:cubic-bezier(.42,0,.3,1)}77.4%{transform:translate3d(calc(100% - 1px),0,0);opacity:1;animation-timing-function:ease-in}81%,100%{transform:translate3d(calc(100% - 1px),0,0);opacity:0}}
 /* hairline pins, as thin and sharp as the horizon line */
 .tg i{width:1px;border-radius:0}
 .tg i.n::before{left:-2.5px}
@@ -1850,6 +1849,11 @@ function peakWave(){
     el.animate([{ transform:"scaleY(1)", offset:0 }, { transform:"scaleY(1)", offset:a }, { transform:"scaleY(" + top + ")", offset:b }, { transform:"scaleY(1)", offset:c }, { transform:"scaleY(1)", offset:1 }], o);
     if(el.className !== "n") try { el.animate([{ opacity:0, offset:0 }, { opacity:0, offset:a }, { opacity:0.6, offset:b }, { opacity:0, offset:c }, { opacity:0, offset:1 }], { duration:o.duration, delay:o.delay, iterations:Infinity, pseudoElement:"::after" }); } catch(e){}
   });
+  /* the apex rides the same clock and the same arrival times as the pins (one keyframe per pin, straight lines between), so the two can never drift apart */
+  var ap = g.querySelector("b"), fr = [{ transform:"translate3d(" + k[0].offsetLeft + "px,0,0)", opacity:0, offset:0 }], x0 = k[0].offsetLeft, xN = k[N - 1].offsetLeft, tEnd = at(N - 1) / CY;
+  [].forEach.call(k, function(el, i){ fr.push({ transform:"translate3d(" + el.offsetLeft + "px,0,0)", opacity:1, offset:at(i) / CY }); });
+  fr.push({ transform:"translate3d(" + xN + "px,0,0)", opacity:0, offset:tEnd + 0.035 }, { transform:"translate3d(" + xN + "px,0,0)", opacity:0, offset:1 });
+  if(ap) ap.animate(fr, { duration:CY * 1000, delay:4800, iterations:Infinity });
 }
 function swell(){}
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
