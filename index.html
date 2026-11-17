@@ -518,7 +518,7 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
 .tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
 /* the passing wave: each tick lights to this week's brightness at the crest */
-.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0);box-shadow:0 0 9px rgba(20,211,194,.5)}
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;will-change:opacity;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0);box-shadow:0 0 9px rgba(20,211,194,.5)}
 /* the apex: one glowing pin that glides the whole row at a constant speed; the pins it passes lift to a little over half its height */
 .tg{position:relative}
 .tg b{position:absolute;left:0;bottom:0;width:100%;height:28px;pointer-events:none;opacity:0;will-change:transform}
@@ -1813,7 +1813,7 @@ function hero(){
   $("#h-cd").innerHTML = tideGauge();
   UI.intro = true; el.hidden = false; HR.busy = false; wm.querySelector("i").classList.remove("breathe");
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
-  TG.t0 = performance.now(); TG.up.length = 0;
+  TG.t0 = performance.now(); TG.up.length = 0; TG.s = null; TG.last = 0;
   if(calm) return;
   var SLOW = "cubic-bezier(.19,1,.22,1)", SOFT = "cubic-bezier(.33,0,.1,1)", w = $("#h-w");
   var sea0 = $("#h-sea"), INOUT = "cubic-bezier(.7,0,.2,1)", T = 950;
@@ -1838,14 +1838,25 @@ function buildRef(ref, fs, N, base){
 /* the peak crossing the year, made only of the row's own pins, no separate marker gliding over them. One position per frame; the position rests on a pin, then moves quickly to the next,
    so each pin rises in place to the full apex when its turn comes and drops as the next one goes. The pin either side stands at a little over half the apex; everything else is at rest.
    It waits until the opening has finished arriving, comes in from the left edge, crosses with an ease, leaves off the right, rests, and comes again. */
-var TG = { t0:0, up:[] };
+var TG = { t0:0, up:[], s:null, last:0 };
+/* the peak crossing the year, made only of the row's own pins. One clock gives the peak's position; every pin then chases its own height on a soft spring,
+   so each one pops up with a small bop when the peak reaches it and settles back with a tiny give, and because every pin is always moving toward where it should be,
+   the motion hands smoothly from one pin to the next instead of stepping. Apex alone at full height, the pin either side a little over half, everything else at rest. */
 function swell(){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length; if(N < 2) return;
-  var T = (performance.now() - TG.t0) / 1000 - 5, D = 7.8, P = D + 2.6, i, el;
-  for(i = 0; i < TG.up.length; i++){ el = TG.up[i]; el.style.transform = ""; el.style.removeProperty("--w"); } TG.up.length = 0;
-  if(T < 0) return; var u = (T % P) / D; if(u >= 1) return;
-  var e = u * 0.5 + u * u * (3 - 2 * u) * 0.5, q = -3 + e * (N + 5), j = Math.floor(q), f = q - j, f3 = f * f * f, r3 = (1 - f) * (1 - f) * (1 - f), p = j + f3 / (f3 + r3);
-  for(i = Math.max(0, Math.ceil(p - 2)); i <= Math.min(N - 1, Math.floor(p + 2)); i++){ el = k[i]; var d = Math.abs(i - p), v = d < 1 ? 1 - d * 0.7 : (2 - d) * 0.3; if(v <= 0) continue;
-    el.style.transform = "scaleY(" + (1 + v * (el.className === "n" ? 0.08 : 1.33)).toFixed(4) + ")"; if(el.className !== "n") el.style.setProperty("--w", (v * 0.95).toFixed(3)); TG.up.push(el); } }
+  var now = performance.now(), dt = TG.last ? Math.min(0.034, (now - TG.last) / 1000) : 0.016; TG.last = now;
+  if(!TG.s || TG.s.length !== N){ TG.s = []; for(var z = 0; z < N; z++) TG.s.push({ x:0, v:0, on:false }); }
+  var T = (now - TG.t0) / 1000 - 5, D = 8.4, P = D + 2.6, i, st, el, p = -99;
+  if(T >= 0){ var u = (T % P) / D; if(u < 1){ var e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2, lin = u * 0.55 + e * 0.45, q = -3 + lin * (N + 6), j = Math.floor(q), f = q - j; p = j + f * f * (3 - 2 * f); } }
+  var K = 520, C = 2 * Math.sqrt(K) * 0.48, h = dt / 2;
+  for(i = 0; i < N; i++){ st = TG.s[i]; var d = Math.abs(i - p), tg = d < 1 ? 1 - d * 0.45 : d < 2 ? 0.55 * (2 - d) : 0;
+    if(!tg && !st.on) continue;
+    for(var n = 0; n < 2; n++){ st.v += (K * (tg - st.x) - C * st.v) * h; st.x += st.v * h; }
+    if(st.x < -0.12){ st.x = -0.12; st.v = 0; }
+    el = k[i];
+    if(!tg && Math.abs(st.x) < 0.002 && Math.abs(st.v) < 0.02){ st.x = 0; st.v = 0; st.on = false; el.style.transform = ""; el.style.removeProperty("--w"); continue; }
+    st.on = true;
+    el.style.transform = "scaleY(" + (1 + st.x * (el.className === "n" ? 0.08 : 1.33)).toFixed(4) + ")";
+    if(el.className !== "n") el.style.setProperty("--w", Math.max(0, Math.min(1, st.x * 0.95)).toFixed(3)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
