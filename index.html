@@ -517,6 +517,8 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.t{opacity:1;background:linear-gradient(to top,#14D3C2,#9FF5EA)}
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
 .tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
+/* the passing wave: each tick lights to this week's brightness at the crest */
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0);box-shadow:0 0 8px rgba(20,211,194,calc(var(--w,0) * .5))}
 </style>
 </head>
 <body>
@@ -1824,7 +1826,10 @@ function buildRef(ref, fs, N, base){
   ref.innerHTML = html; return [].slice.call(ref.children);
 }
 function swell(t){ var g = document.getElementById("tg"); if(!g) return; var k = g.children, N = k.length;
-  for(var i = 0; i < N; i++){ if(k[i].className === "n") continue; var w = Math.sin(t * 0.62 - i * 0.16); w = w > 0 ? Math.pow(w, 8) : 0; k[i].style.transform = "scaleY(" + (1 + w * (0.9 + HR.energy * 0.08)).toFixed(3) + ")"; } }
+  for(var i = 0; i < N; i++){ if(k[i].className === "n") continue; var w = Math.sin(t * 0.62 - i * 0.16); w = w > 0 ? Math.pow(w, 8) : 0; k[i].style.transform = "scaleY(" + (1 + w * (0.9 + HR.energy * 0.08)).toFixed(3) + ")";
+    /* the crest lights up to the brightness of this week's marker as it passes */
+    if(k[i].className !== "t"){ var b = k[i]._a != null ? k[i]._a : (k[i]._a = parseFloat(k[i].style.getPropertyValue("--a")) || 0.2); k[i].style.setProperty("--a", (b + (1 - b) * Math.min(1, w * 1.15)).toFixed(3)); }
+    k[i].style.setProperty("--w", Math.min(1, w * 1.1).toFixed(3)); } }
 function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
