@@ -109,6 +109,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .wk-s b{color:var(--t);font-weight:600}
 .wk+.segs{margin-top:12px}
 .h-cd{margin-bottom:22px}
+.tg-cap{margin-top:14px;font-size:13px;font-weight:500;color:var(--mu2)}
 .tg{display:flex;justify-content:space-between;align-items:flex-end;height:36px;margin-top:30px}
 .tg i{position:relative;width:1px;height:12px;background:#262626;transform-origin:50% 100%;will-change:transform}
 .tg i.p{background:#3A3A3A}
@@ -1805,7 +1806,7 @@ function tideGauge(){
   S.sessions.forEach(function(s){ var sd = new Date(s.startedAt); if(sd.getFullYear() === y) tr[isoWeek(sd)] = 1; });
   for(i = 1; i <= 52; i++){ var k = i === cur ? "n" : tr[i] ? "t" : i < cur ? "p" : "", t = i < cur ? i / Math.max(1, cur) : (i - cur) / Math.max(1, 52 - cur), al = k === "p" ? 0.2 + 0.7 * t * t : k === "" ? 0.22 * (1 - t * 0.75) : 1;
     h += '<i class="' + k + '" style="--a:' + al.toFixed(3) + '"></i>'; }
-  return '<div class="tg" id="tg">' + h + '</div>';
+  return '<div class="tg" id="tg">' + h + '</div><div class="tg-cap">Week ' + Math.min(cur, 52) + ' of 52</div>';
 }
 function hero(){
   var el = $("#hero"), d = new Date();
