@@ -521,10 +521,15 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i:not(.n)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:0;animation:tg-lit 10s linear calc(4.8s + var(--i,0) * .14s) infinite}
 .tg i{animation:tg-pop 10s linear calc(4.8s + var(--i,0) * .14s) infinite}
 .tg i.n{animation-name:tg-pop-n}
-@keyframes tg-pop{0%{transform:scaleY(1);animation-timing-function:cubic-bezier(.45,0,.9,.7)}2.8%{transform:scaleY(2);animation-timing-function:cubic-bezier(.1,.45,.4,1)}5.8%{transform:scaleY(.96);animation-timing-function:ease-in-out}7.6%,100%{transform:scaleY(1)}}
-@keyframes tg-pop-n{0%{transform:scaleY(1);animation-timing-function:cubic-bezier(.45,0,.9,.7)}2.8%{transform:scaleY(1.13);animation-timing-function:cubic-bezier(.1,.45,.4,1)}5.8%{transform:scaleY(.99);animation-timing-function:ease-in-out}7.6%,100%{transform:scaleY(1)}}
-@keyframes tg-lit{0%{opacity:0;animation-timing-function:cubic-bezier(.45,0,.9,.7)}2.8%{opacity:.9;animation-timing-function:cubic-bezier(.1,.45,.4,1)}5.8%,100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){.tg i,.tg i:not(.n)::after{animation:none}}
+@keyframes tg-pop{0%{transform:scaleY(1);animation-timing-function:ease-in-out}3.5%{transform:scaleY(1.3);animation-timing-function:ease-in-out}7%,100%{transform:scaleY(1)}}
+@keyframes tg-pop-n{0%{transform:scaleY(1);animation-timing-function:ease-in-out}3.5%{transform:scaleY(1.08);animation-timing-function:ease-in-out}7%,100%{transform:scaleY(1)}}
+@keyframes tg-lit{0%{opacity:0;animation-timing-function:ease-in-out}3.5%{opacity:.55;animation-timing-function:ease-in-out}7%,100%{opacity:0}}
+/* the apex: one glowing pin that glides the whole row at a constant speed; the pins it passes lift to a little over half its height */
+.tg{position:relative}
+.tg b{position:absolute;left:0;bottom:0;width:100%;height:24px;pointer-events:none;opacity:0;will-change:transform,opacity;animation:tg-glide 10s linear 4.8s infinite}
+.tg b::before{content:"";position:absolute;left:0;bottom:0;width:2px;height:100%;border-radius:2px 2px 0 0;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);box-shadow:0 0 9px rgba(20,211,194,.55)}
+@keyframes tg-glide{0%{transform:translate3d(0,0,0);opacity:0}3.5%{transform:translate3d(0,0,0);opacity:1}74.9%{transform:translate3d(calc(100% - 2px),0,0);opacity:1}78%,100%{transform:translate3d(calc(100% - 2px),0,0);opacity:0}}
+@media (prefers-reduced-motion:reduce){.tg i,.tg i:not(.n)::after,.tg b{animation:none}}
 </style>
 </head>
 <body>
@@ -1803,7 +1808,7 @@ function tideGauge(){
   S.sessions.forEach(function(s){ var sd = new Date(s.startedAt); if(sd.getFullYear() === y) tr[isoWeek(sd)] = 1; });
   for(i = 1; i <= 52; i++){ var k = i === cur ? "n" : tr[i] ? "t" : i < cur ? "p" : "", t = i < cur ? i / Math.max(1, cur) : (i - cur) / Math.max(1, 52 - cur), al = k === "p" ? 0.2 + 0.7 * t * t : k === "" ? 0.22 * (1 - t * 0.75) : 1;
     h += '<i class="' + k + '" style="--a:' + al.toFixed(3) + ';--i:' + (i - 1) + '"></i>'; }
-  return '<div class="tg" id="tg">' + h + '</div>';
+  return '<div class="tg" id="tg">' + h + '<b></b></div>';
 }
 function hero(){
   var el = $("#hero"), d = new Date();
