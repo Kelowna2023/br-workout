@@ -594,6 +594,20 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .acc-b .prow::before{content:"";position:absolute;left:0;top:50%;width:6px;height:1px;background:var(--ln2)}
 .acc-b .prow span:last-child{font-size:15px}
 .acc-b>div>:first-child{margin-top:-4px}
+
+/* ---------- hierarchy pass 3 ---------- */
+.x-of{font-size:15px;color:var(--mu)}
+.x-cur .lab{font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-.02em}
+.x-cur .lab span{color:var(--mu);font-weight:400}
+.hw-u{font-size:15px;color:var(--mu)}
+.hw-u button{font-size:15px}
+.rest-t{font-size:15px}
+.trk b{color:var(--tx)}
+/* body: the bar is the divider, no double lines */
+.grow-r{border-bottom:0;padding:16px 0 14px}
+.grow-r:first-child{border-top:0}
+.grow-r p{margin-top:12px;background:#161616}
+.b-info:empty{min-height:0;margin:0}
 </style>
 </head>
 <body>
@@ -1172,7 +1186,7 @@ function scoreboard(){
   var h = rows.slice(0, 8).map(function(r){ var f = r.d.days[0].top, b = r.d.best, up = r.d.days.length > 1 && beats(b.w, b.r, f);
     return '<button type="button" class="sc" data-act="pg-go" data-k="' + esc(r.k) + '" data-rv><b>' + esc(r.name) + '</b><small>' + (r.d.days.length > 1 ? esc(setTxt(f.w, f.r, u)) + '  →  ' + esc(setTxt(b.w, b.r, u)) : esc(setTxt(f.w, f.r, u)) + ' · the starting line') + '</small>' +
       (up ? '<em>' + (b.w > f.w ? "+" + fmtW(b.w - f.w) + " " + esc(u) : "+" + (b.r - f.r) + (b.r - f.r === 1 ? " rep" : " reps")) + '</em>' : '<em class="z">' + r.d.days.length + (r.d.days.length === 1 ? " day" : " days") + '</em>') + '</button>'; }).join("");
-  return '<div class="sec"><h2>Scoreboard</h2><span class="muted" style="font-size:13px">start → best</span></div>' + (h ? '<div class="list">' + h + '</div>' : '<div class="empty">Log a lift and it lands here with its starting line. Every session after shows how far it has moved.</div>');
+  return '<div class="sec"><h2>Scoreboard</h2><span class="sec-v">Start → best</span></div>' + (h ? '<div class="list">' + h + '</div>' : '<div class="empty">Log a lift and it lands here with its starting line. Every session after shows how far it has moved.</div>');
 }
 /* inline dials */
 function hwVals(k, g){ var a = [], i, st = wStep(), kg = S.cfg.units === "kg";
@@ -1187,7 +1201,7 @@ function hw(k, cur, ghost, cls, g){
 }
 function wPos(el, v){ if(v === undefined) return el._v ? el.scrollTop : el.scrollLeft; if(el._v) el.scrollTop = v; else el.scrollLeft = v; }
 function wheelPaint(el){ var sp = el.firstChild.children, W = el._w, c = wPos(el) / W, a = Math.max(0, Math.floor(c) - 3), b = Math.min(sp.length - 1, Math.ceil(c) + 3);
-  for(var i = a; i <= b; i++){ var d = Math.abs(i - c); sp[i].style.transform = "scale(" + Math.max(0.36, 1 - d * 0.64).toFixed(3) + ")"; sp[i].style.opacity = Math.max(0.14, 1 - d * 0.86).toFixed(3); } 
+  for(var i = a; i <= b; i++){ var d = Math.abs(i - c); var sm = el._sm == null ? (el._sm = el.classList.contains("sm")) : el._sm; sp[i].style.transform = "scale(" + Math.max(sm ? 0.6 : 0.36, 1 - d * (sm ? 0.4 : 0.64)).toFixed(3) + ")"; sp[i].style.opacity = (el._v ? Math.max(0, 1 - d * 1.5) : Math.max(sm ? 0.42 : 0.14, 1 - d * (sm ? 0.58 : 0.86))).toFixed(3); } 
   if(el._v && el.parentNode.classList.contains("hwx")){ var n = sp[clamp(Math.round(c), 0, sp.length - 1)], L = n.textContent.length; el._cw = el._cw || {}; if(!el._cw[L]){ var rg = document.createRange(); rg.selectNodeContents(n); var sc = n.getBoundingClientRect().height / n.offsetHeight || 1; el._cw[L] = rg.getBoundingClientRect().width / sc; } if(el._ax !== L){ el._ax = L; el.parentNode.style.setProperty("--ax", (el._cw[L] / 2 + 12).toFixed(1) + "px"); } } }
 function wheelSet(el, v){ var sp = el.firstChild.children, idx = 0, best = 1e9; for(var i = 0; i < sp.length; i++){ var dd = Math.abs(+sp[i].dataset.v - v); if(dd < best){ best = dd; idx = i; } } el._live = false; wPos(el, idx * el._w); wheelPaint(el); }
 function typeSheet(k){
@@ -1576,12 +1590,12 @@ function winTxt(st, u){
 function vExercise(){
   var a = S.active, ei = a.openEx, x = a.exercises[ei], u = S.cfg.units, g = gearOf(x.name), ci = curIdx(x), h = histIndex()[key(x.name)], top = h ? topOf(h.last) : null, note = S.cfg.notes[key(x.name)];
   var beaten = top && x.sets.some(function(q){ return q.done && beats(num(q.w), num(q.r), top); });
-  var o = '<div class="x-of" data-rv>' + (ei + 1) + ' of ' + a.exercises.length + '</div><h1 class="big' + (x.name.length > 16 ? " lg" : "") + '">' + esc(x.name) + '</h1>' +
+  var o = '<div class="x-of" data-rv>Lift ' + (ei + 1) + ' of ' + a.exercises.length + '</div><h1 class="big' + (x.name.length > 16 ? " lg" : "") + '">' + esc(x.name) + '</h1>' +
     '<div class="x-beat" data-rv><span>' + (top ? (beaten ? "Beaten: " : "Beat ") + esc(setTxt(top.w, top.r, u)) : "First time. Today sets the bar") + '</span><button type="button" data-act="gear-pick" data-e="' + ei + '">' + esc(GEAR[g]) + '</button></div>' +
     (note ? '<div class="x-note" data-rv>' + esc(note) + '</div>' : '');
   o += '<div class="x-segs" data-rv>' + x.sets.map(function(q, i){ return '<span><i' + (q.done ? (UI.just && UI.just.e === ei && UI.just.s === i ? ' data-on' : ' class="on"') : '') + '></i></span>'; }).join("") + '</div>';
   if(ci >= 0){ var st = x.sets[ci], hn = hint(x, ci);
-    o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' of ' + x.sets.length + '</div>' +
+    o += '<div class="x-cur" data-rv id="cur"><div class="lab">Set ' + (ci + 1) + ' <span>of ' + x.sets.length + '</span></div>' +
       '<div class="hwx">' + hw("w", blank(st.w) ? hn.w : st.w, blank(st.w), "v", g) + '<button type="button" class="hw-b m" data-act="hw-step" data-d="-1" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><button type="button" class="hw-b p" data-act="hw-step" data-d="1" aria-label="More"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>' + '</div><div class="hw-u">' + esc(unitLabel(g, u)) + (g === "bar" ? ' <button type="button" data-act="plates">Count plates</button>' : '') + '</div>' +
       '<div class="hwx">' + hw("r", blank(st.r) ? hn.r : st.r, blank(st.r), "v") + '<button type="button" class="hw-b m" data-act="hw-step" data-d="-1" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><button type="button" class="hw-b p" data-act="hw-step" data-d="1" aria-label="More"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>' + '</div><div class="hw-u">' + esc((x.repLabel || "reps").toLowerCase()) + (x.target ? " · aim " + esc(x.target) : "") + '</div>' +
       '<button type="button" class="btn go x-go" data-act="check" data-e="' + ei + '" data-s="' + ci + '">Complete set</button></div>';
@@ -1701,6 +1715,7 @@ function vProgEx(){
       '<div class="pday-s"><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + '</span>' + (x.best ? '<span class="tag">Best</span>' : '') + (x.up ? '<span class="up">▲ ' + esc(x.up) + '</span>' : '') + '</div>' + notes + '</div>'; }
   return '<h1 class="big' + (name.length > 16 ? " lg" : "") + '">' + esc(name) + '</h1>' +
     '<div class="sub" data-rv>' + (d.best ? 'Best <b>' + esc(setTxt(d.best.w, d.best.r, u)) + '</b> · ' + esc(fmtShort(d.best.t)) : "") + '</div><div class="hz" data-rv></div>' +
+    (d.best ? '<div class="sec"><h2>Next time</h2></div><div class="list" style="margin-top:0;border-top:0"><div class="trk"><div><b style="color:var(--t)">Beat ' + esc(setTxt(d.best.w, d.best.r, u)) + '</b><small>One more rep, or a little more weight, and it moves.</small></div></div></div>' : '') +
     '<div class="sec"><h2>Sessions</h2><span class="sec-v">' + d.days.length + ' logged</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div><div style="height:60px"></div>';
 }
 
@@ -1727,8 +1742,8 @@ function vBody(){
     rows += '<button type="button" class="grow-r" data-act="bsel" data-g="' + g[0] + '" aria-pressed="' + (UI.bsel === g[0]) + '" data-rv><div><span>' + g[0] + '</span><span>' + n + '</span></div><p><i style="width:' + Math.min(100, n / 20 * 100) + '%"></i></p></button>'; });
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
     info = '<b>' + esc(UI.bsel) + ' · ' + n2 + (n2 === 1 ? " set" : " sets") + '</b>' + (ex ? Object.keys(ex).map(function(k){ return esc(k) + " · " + ex[k]; }).join("<br>") : "Nothing logged in the last 7 days"); }
-  else info = "Tap a body part";
-  var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets per muscle over the last 7 days</div><div class="hz" data-rv></div>' + vCheck() +
+  else info = "";
+  var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets per muscle over the last 7 days. Tap one to see what worked it.</div><div class="hz" data-rv></div>' + vCheck() +
     '<div class="bmap" data-rv><svg viewBox="14 0 192 202" role="img" aria-label="Body map shaded by sets in the last 7 days">' + bodyFig(MM_FRONT, 0, w.mus, sel) + bodyFig(MM_BACK, 106, w.mus, sel) + '</svg></div><div class="b-info" id="b-info" aria-live="polite">' + info + '</div>' +
     '<div class="sec"><h2>Muscles</h2><span class="sec-v">Aim for 10–20</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div>';
   var last = ms.length ? ms[ms.length - 1] : null;
