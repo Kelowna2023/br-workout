@@ -931,7 +931,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "119";
+var BUILD = "120";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1188,7 +1188,7 @@ function reveal(){
   if(calm) return;
   var dir = UI.navDir, type = view.dataset.v, INOUT = "cubic-bezier(.65,0,.35,1)", each = function(sel, fn){ [].forEach.call(view.querySelectorAll(sel), fn); }; UI.navDir = null;
   /* going forward, the page's contents settle in order: a few pixels, a long ease. Going back or across, the dissolve is enough. */
-  if(dir === "fwd") revealList().forEach(function(el, i){ if(el.classList.contains("hz")) return; el.animate([{ opacity:0, transform:"translate3d(0,10px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:900, delay:(UI.gliding ? 400 : 90) + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
+  if(dir === "fwd") revealList().forEach(function(el, i){ if(el.classList.contains("hz") || (UI.gliding && el.classList.contains("big"))) return; el.animate([{ opacity:0, transform:"translate3d(0,10px,0)" }, { opacity:1, transform:"translate3d(0,0,0)" }], { duration:900, delay:(UI.gliding ? 400 : 90) + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
   if(dir === "back") return;
   each(".hz", function(el){ el.animate([{ transform:"scaleX(0)" }, { transform:"scaleX(1)" }], { duration:1200, delay:120, easing:INOUT, fill:"backwards" }); });
   if(type === "body") each(".to40 b.num", function(el){ var n = parseInt(el.textContent, 10) || 0, t0 = performance.now(), D = 1200; if(n < 2) return; el.style.fontVariantNumeric = "tabular-nums";
