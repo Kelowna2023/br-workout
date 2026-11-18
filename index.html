@@ -373,8 +373,13 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .up,.fs-r span:last-child .up{color:var(--t);font-weight:600;font-size:13px}
 
 /* ---- body ---- */
-.bmap{margin:10px -10px 0}
-.bmap svg{display:block;width:100%;height:auto}
+.bmap{margin:6px calc(var(--g) * -1) 0;perspective:1400px}
+.vit-in{position:relative;aspect-ratio:1080/1118;will-change:transform}
+.vit.back .vit-in{transform:rotateY(180deg)}
+.vit img{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;pointer-events:none}
+.vit svg{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen}
+.vit-g{transition:opacity .5s}
+
 .bmap path[data-m]{transition:fill .45s cubic-bezier(.22,1,.36,1),fill-opacity .45s cubic-bezier(.22,1,.36,1),stroke .45s;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bside{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:14px}
 .bside button{min-height:44px;padding:0 6px;font-size:14px;font-weight:500;color:var(--mu2);transition:color .4s cubic-bezier(.22,1,.36,1)}
@@ -1944,60 +1949,53 @@ function sets7(){
   [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.startedAt >= since) w.exercises.forEach(function(x){ add(x.name, x.sets.filter(function(q){ return q.done; }).length); }); });
   return { mus:mus, grp:grp, ex:ex };
 }
-/* the body map, after Leonardo's Vitruvian Man: one figure in the square and the circle, arms and legs in both positions.
-   The muscles are regions of the drawing itself; trained ones fill with teal. It turns to show the back */
-var VIT = {
-  arm: [["DELT", "M37.6,32.8 C33,31 27.5,31.4 23,33.2 L23,42 C27,42.6 30.4,44 32.4,45.8 C32.2,40.6 34,36 37.6,32.8 Z"],
-        ["UPPER", "M23,33.2 C13.6,32 4.4,32.8 -5,34.4 L-5,41.2 C4.4,42.8 13.6,43.2 23,42 Z"],
-        ["forearms", "M-5,34.4 C-13.6,33.4 -22.4,34.4 -31,35.8 L-31,40.4 C-22.4,42.2 -13.6,42.6 -5,41.2 Z"]],
-  hand: "M-31,35.8 L-40.5,35.2 L-47,36.6 L-47,38.4 L-40.5,40.8 L-31,40.4 M-40.5,35.2 L-36,37.6",
-  knee: "M37,134.4 C36.4,137.6 36.4,141.2 37,144.4 M45.2,134.4 C46,137.6 46,141.2 45.2,144.4",
-  arm2: "M29.8,32.2 C8,23 -14,13 -32.6,5 L-40.4,3.4 L-34.8,9 C-15,18.6 6,29 26.2,39.8",
-  leg2: "M48.3,93 Q25,138 1.1,181.1 L-1,188.6 L-11,188.4 L-3.5,178.9 Q13,136 35.7,87"
-};
+/* the body map is Leonardo's own Vitruvian Man (1490), his ink lifted off the page and set in light on black.
+   The muscles you've trained glow through the drawing in teal; tap one to see what worked it. Turn the sheet to see the back */
+var VM = { front:[
+    ["traps", "M508,298 L462,328 L510,334 Z", 1], ["frontdelts", "M418,330 Q435,316 456,330 L460,374 Q436,380 420,364 Z", 1],
+    ["chest", "M456,334 Q492,324 529,338 L529,406 Q492,426 460,406 Z", 1], ["biceps", "M419,333 L338,337 L338,373 L419,367 Z", 1],
+    ["forearms", "M336,339 L226,345 L226,371 L336,373 Z", 1], ["abs", "M505,420 H530 V592 L513,586 Q502,500 505,420 Z", 1],
+    ["obliques", "M468,415 L503,420 Q500,500 511,586 L478,560 Q470,490 468,415 Z", 1],
+    ["quads", "M466,610 L528,612 L528,790 L490,790 Q470,700 466,610 Z", 1], ["shins", "M492,825 L530,825 L528,960 L502,960 Z", 1] ],
+  back:[
+    ["traps", "M530,290 L570,326 L600,336 L548,372 L530,440 L512,372 L460,336 L490,326 Z", 0], ["reardelts", "M418,330 Q435,316 456,330 L460,374 Q436,380 420,364 Z", 1],
+    ["upperback", "M462,340 L512,378 L524,440 L462,405 Z", 1], ["lats", "M464,412 L524,448 L526,470 L518,560 L490,566 Q470,490 464,412 Z", 1],
+    ["lowerback", "M530,472 V596 H506 L504,572 L522,560 Z", 1], ["triceps", "M419,333 L338,337 L338,373 L419,367 Z", 1],
+    ["forearms", "M336,339 L226,345 L226,371 L336,373 Z", 1], ["glutes", "M470,590 L500,600 H530 V668 Q500,690 472,660 Q466,625 470,590 Z", 1],
+    ["hams", "M468,672 Q500,700 528,680 L528,792 L490,792 Q470,730 468,672 Z", 1], ["calves", "M490,822 Q486,880 500,920 L506,960 L524,960 L528,920 Q534,880 530,822 Z", 1] ] };
 function vitFig(side, mus, sel){
-  var back = side === "back", INK = "#EDE6D6", h = "", mir = function(x){ return x + '<g transform="translate(100,0) scale(-1,1)">' + x + '</g>'; };
-  var reg = function(m, d){ var v = mus[m] || 0, on = !!sel[m];
-    return '<path class="vd vm' + (on ? " sel" : "") + '" data-act="bmus" data-m="' + m + '" d="' + d + '" ' + (on ? 'fill="#14D3C2" fill-opacity=".95" stroke="#9FF5EA" stroke-opacity=".9"' : v ? 'fill="#14D3C2" fill-opacity="' + Math.min(.62, 0.2 + v / 30).toFixed(2) + '" stroke="#14D3C2" stroke-opacity=".7"' : 'fill="#EDE6D6" fill-opacity=".028" stroke="' + INK + '" stroke-opacity=".42"') + ' stroke-width=".45" stroke-linejoin="round"/>'; };
-  var ink = function(d, op, w){ return '<path class="vd" d="' + d + '" fill="none" stroke="' + INK + '" stroke-opacity="' + op + '" stroke-width="' + (w || .45) + '" stroke-linecap="round" stroke-linejoin="round"/>'; };
-  /* the geometry: circle on the navel, square the height of the man, both standing on the same ground */
-  h += '<circle class="vd" cx="50" cy="79.7" r="118.3" fill="none" stroke="#14D3C2" stroke-opacity=".5" stroke-width=".55" transform="rotate(-90 50 79.7)"/>' +
-       '<circle class="vd" cx="50.4" cy="79.9" r="119" fill="none" stroke="#14D3C2" stroke-opacity=".14" stroke-width=".4" transform="rotate(150 50 79.7)"/>' +
-       ink("M-47.3,3.4 H147.3 V198 H-47.3 Z", .34) + ink("M-47,3 H147.6 V198.3 H-47.6 Z", .1, .35);
-  /* the second position, lighter: arms raised to the circle, legs apart */
-  h += mir(ink(VIT.arm2, .2, .4)) + mir(ink(VIT.leg2, .2, .4));
-  /* head and neck */
-  h += '<ellipse class="vd" cx="50" cy="13" rx="7.6" ry="9.6" fill="#EDE6D6" fill-opacity=".028" stroke="' + INK + '" stroke-opacity=".5" stroke-width=".45"/>' + ink("M46,22 L45.4,27.4 M54,22 L54.6,27.4", .42);
-  if(!back) h += ink("M46.4,9.5 C48.6,8.4 51.4,8.4 53.6,9.5 M50,10.6 V15.4 M48,18.2 H52", .16, .35);
-  else h += ink("M43.4,8 C46,3.6 54,3.6 56.6,8 M44.6,15.6 C46.6,20.6 53.4,20.6 55.4,15.6", .16, .35);
-  var shapes = back ? MM_BACK : MM_FRONT;
-  shapes.forEach(function(sh){ if(/delts|biceps|triceps|forearms/.test(sh[0])) return; var x = reg(sh[0], sh[1]); h += sh[2] ? mir(x) : x; });
-  VIT.arm.forEach(function(a){ var m = a[0] === "DELT" ? (back ? "reardelts" : "frontdelts") : a[0] === "UPPER" ? (back ? "triceps" : "biceps") : a[0]; h += mir(reg(m, a[1])); });
-  h += mir(ink(VIT.hand, .42)) + mir(ink(VIT.knee, .42)) + mir(ink("M38.4,190 L36,198 H46.6 L44.2,190", .42));
-  h += ink(back ? "M50,58 V86" : "M50,33.4 V50", .14, .35) + (back ? "" : '<circle class="vd" cx="50" cy="79.7" r=".9" fill="none" stroke="' + INK + '" stroke-opacity=".5" stroke-width=".35"/>');
-  /* his measures on the square, and the scale bar beneath it */
-  var tk = ""; [22.6, 52, 79.7, 100.7, 149.4].forEach(function(y){ tk += "M-47.3," + y + " h4 M147.3," + y + " h-4 "; }); h += ink(tk, .5, .4);
-  var sc = "M-47.3,207 H147.3"; for(var q = 0; q <= 8; q++) sc += " M" + (-47.3 + q * 24.325).toFixed(2) + "," + (q % 4 === 0 ? 204 : 205.2) + " V" + (q % 4 === 0 ? 210 : 208.8);
-  for(var q2 = 1; q2 < 6; q2++) sc += " M" + (-47.3 + q2 * 4.054).toFixed(2) + ",205.9 v2.2 M" + (147.3 - q2 * 4.054).toFixed(2) + ",205.9 v2.2";
-  h += ink(sc, .36, .4);
-  return '<svg viewBox="-72 -42 244 256" role="img" aria-label="Vitruvian figure, ' + side + ' view, muscles shaded by sets in the last 7 days">' + h + '</svg>';
+  var glow = "", core = "", hit = "", both = function(x){ return x + '<g transform="translate(1060,0) scale(-1,1)">' + x + '</g>'; };
+  VM[side].forEach(function(sh){ var m = sh[0], v = mus[m] || 0, on = !!sel[m], w = function(x){ return sh[2] ? both(x) : x; };
+    if(on || v){ glow += w('<path d="' + sh[1] + '" fill="#14D3C2" fill-opacity="' + (on ? 1 : Math.min(.8, 0.34 + v / 26).toFixed(2)) + '"/>'); }
+    if(on) core += w('<path d="' + sh[1] + '" fill="#7FF2E6" fill-opacity=".5"/>');
+    hit += w('<path data-act="bmus" data-m="' + m + '" d="' + sh[1] + '" fill="#000" fill-opacity="0" stroke="#000" stroke-opacity="0" stroke-width="26" pointer-events="all"/>'); });
+  return '<div class="vit' + (side === "back" ? " back" : "") + '"><div class="vit-in"><img src="vitruvian.webp" width="1080" height="1118" alt="Leonardo da Vinci, Vitruvian Man" decoding="async" draggable="false">' +
+    '<svg viewBox="0 0 1080 1118" role="img" aria-label="' + side + ' muscles, lit by sets in the last 7 days"><defs><filter id="vg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="13"/></filter><filter id="vg2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter></defs>' +
+    '<circle class="vit-c" cx="532" cy="521" r="478" fill="none" stroke="#14D3C2" stroke-opacity=".5" stroke-width="2.2" transform="rotate(-90 532 521)"/>' +
+    '<g class="vit-g" filter="url(#vg)">' + glow + '</g><g class="vit-g" filter="url(#vg2)">' + core + '</g>' + hit + '</svg></div></div>';
 }
-/* drawn on the page stroke by stroke, the way it was drawn the first time */
+/* entering: the circle is struck first, then the ink blooms outward from the navel, then the muscles light. Turning to the back turns the sheet over */
 var VITK = "";
 function vitMaybe(type){
   if(type !== "body"){ VITK = ""; return; } var k = "body:" + (UI.bside || "front"); if(k === VITK) return; var first = VITK === ""; VITK = k;
-  var sv = view.querySelector(".bmap svg"); if(!sv || calm) return;
-  var els = sv.querySelectorAll(".vd"), n = els.length, gap = Math.min(46, (first ? 2600 : 1500) / n);
-  [].forEach.call(els, function(el, i){ var L = 300; try{ L = Math.ceil(el.getTotalLength()) + 2; }catch(e){}
-    var fo = el.getAttribute("fill-opacity"), kf = [{ strokeDasharray:L + "px", strokeDashoffset:L + "px", fillOpacity:0 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", fillOpacity:0, offset:.7 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", fillOpacity:fo || 0 }];
-    el.animate(kf, { duration:first ? 1500 : 1000, delay:(first ? 260 : 60) + i * gap, easing:"cubic-bezier(.45,0,.15,1)", fill:"backwards" }); });
+  var box = view.querySelector(".vit-in"); if(!box || calm) return; var img = box.querySelector("img"), c = box.querySelector(".vit-c"), gs = box.querySelectorAll(".vit-g"), EZ = "cubic-bezier(.22,1,.36,1)";
+  if(first){
+    var L = Math.ceil(2 * Math.PI * 478) + 4;
+    c.animate([{ strokeDasharray:L + "px", strokeDashoffset:L + "px", strokeOpacity:.9 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", strokeOpacity:.9, offset:.8 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", strokeOpacity:.5 }], { duration:1900, delay:200, easing:"cubic-bezier(.5,0,.15,1)", fill:"backwards" });
+    img.animate([{ clipPath:"circle(0% at 49.3% 46.6%)", opacity:0, filter:"blur(6px) brightness(1.7)" }, { opacity:1, offset:.35 }, { clipPath:"circle(78% at 49.3% 46.6%)", opacity:1, filter:"blur(0px) brightness(1)" }], { duration:2600, delay:900, easing:"cubic-bezier(.3,0,.15,1)", fill:"backwards" });
+    [].forEach.call(gs, function(g){ g.animate([{ opacity:0 }, { opacity:1 }], { duration:1400, delay:2700, easing:EZ, fill:"backwards" }); });
+  } else {
+    var from = (UI.bside || "front") === "back" ? "rotateY(0deg)" : "rotateY(180deg)", to = (UI.bside || "front") === "back" ? "rotateY(180deg)" : "rotateY(0deg)";
+    box.animate([{ transform:from }, { transform:to }], { duration:1100, easing:"cubic-bezier(.6,0,.2,1)" });
+    [].forEach.call(gs, function(g){ g.animate([{ opacity:0 }, { opacity:0, offset:.5 }, { opacity:1 }], { duration:1500, easing:"ease-out" }); });
+  }
 }
 function vBody(){
   var w = sets7(), on = {}, rows = "", mu = measUnit(), ms = S.cfg.meas || [], sel = {}, info;
   S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ var m = mmFor(x.name); if(!m) return; var P = mmExpand(m[0]); BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })) on[g[0]] = 1; }); }); });
   BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); if(!on[g[0]] && !w.grp[g[0]]) return; var n = w.grp[g[0]] || 0;
     rows += '<button type="button" class="grow-r" data-act="bsel" data-g="' + g[0] + '" aria-pressed="' + (UI.bsel === g[0]) + '" data-rv><div><span>' + g[0] + '</span><span>' + n + '</span></div><p><i style="width:' + Math.min(100, n / 20 * 100) + '%"></i></p></button>'; });
-  var side = UI.bside || "front", has = function(sd){ return (sd === "back" ? MM_BACK : MM_FRONT).some(function(x){ return sel[x[0]]; }) || (sel[sd === "back" ? "reardelts" : "frontdelts"] || sel[sd === "back" ? "triceps" : "biceps"] || sel.forearms); };
+  var side = UI.bside || "front", has = function(sd){ return VM[sd].some(function(x){ return sel[x[0]]; }); };
   if(UI.bsel && UI.bselNew){ UI.bselNew = false; if(!has(side) && has(side === "back" ? "front" : "back")) side = UI.bside = side === "back" ? "front" : "back"; }
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
     info = '<b>' + esc(UI.bsel) + ' · ' + n2 + (n2 === 1 ? " set" : " sets") + '</b>' + (ex ? Object.keys(ex).map(function(k){ return esc(k) + " · " + ex[k]; }).join("<br>") : "Nothing logged in the last 7 days"); }

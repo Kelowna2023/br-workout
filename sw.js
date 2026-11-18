@@ -1,8 +1,8 @@
 /* Offline copy of the app.
    The app page itself: always try the network first (so a new version shows the moment you open it),
    fall back to the saved copy when there's no signal. Everything else: saved copy first. */
-var CACHE = "wake-v198";
-var CORE = ["./", "index.html", "manifest.webmanifest", "icon-w-180.png", "icon-w-192.png", "icon-w-512.png", "fonts/inter-tight.woff2", "fonts/inter-tight-macron.woff2", "fonts/wake-greek.woff2", "fonts/wake-kanji.woff2", "fonts/wake-sanskrit.woff2"];
+var CACHE = "wake-v199";
+var CORE = ["./", "index.html", "manifest.webmanifest", "icon-w-180.png", "icon-w-192.png", "icon-w-512.png", "fonts/inter-tight.woff2", "fonts/inter-tight-macron.woff2", "fonts/wake-greek.woff2", "fonts/wake-kanji.woff2", "fonts/wake-sanskrit.woff2", "vitruvian.webp"];
 self.addEventListener("install", function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){
     return Promise.all(CORE.map(function(u){ return fetch(new Request(u, { cache:"reload" })).then(function(r){ if(r.ok) return c.put(u, r); }); }));
