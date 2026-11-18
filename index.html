@@ -499,17 +499,15 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-wd.now>*,.h-wd.now .wd-w{transition:none}
 @media (prefers-reduced-motion:reduce){.h-wd>*,.wd-w{transition:none}}
 /* the way in: a single thread of light rises out of the water and dissolves, again and again, like a drop of light surfacing. It follows the finger out */
-#h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;transform:translate3d(0,18px,0) scaleY(.15);transform-origin:50% 100%;filter:blur(5px);transition:opacity 2.2s cubic-bezier(.3,.6,.2,1),transform 2.6s cubic-bezier(.16,1,.3,1),filter 2.2s cubic-bezier(.3,.6,.2,1)}
-#h-cue.in{opacity:1;transform:none;filter:blur(0)}#h-cue.now{transition:none}
-#h-cue:not(.in) i,#h-cue:not(.in) em{animation:none}
-#h-cue.in i,#h-cue.in em{animation-delay:1.5s}#h-cue.now i,#h-cue.now em{animation-delay:0s}
+#h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;clip-path:inset(100% -4px 0 -4px);transition:opacity 1.6s cubic-bezier(.3,.6,.2,1),clip-path 2.4s cubic-bezier(.16,1,.3,1)}
+#h-cue.in{opacity:1;clip-path:inset(-40px -4px 0 -4px)}#h-cue.now{transition:none}
+#h-cue:not(.in) i{animation:none}
+#h-cue.in i{animation-delay:1.5s}#h-cue.now i{animation-delay:0s}
 #h-cue b{position:absolute;inset:0;will-change:transform,opacity}
 #h-cue b::before{content:"";position:absolute;left:.5px;top:0;bottom:0;width:1px;transform:scaleX(.5);background:linear-gradient(to top,transparent,rgba(20,211,194,.13) 28%,rgba(20,211,194,.13) 72%,transparent)}
-#h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 100%;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.75) 62%,#C9FFF8);box-shadow:0 0 7px rgba(20,211,194,.55);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
-#h-cue em{position:absolute;left:-7px;top:0;width:16px;height:12px;border-radius:50%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(201,255,248,.4),rgba(20,211,194,.1) 50%,transparent 75%);opacity:0;filter:blur(1px);animation:cue-bloom 3.6s cubic-bezier(.6,0,.2,1) infinite}
-@keyframes cue-rise{0%{opacity:0;transform:translate3d(0,6px,0) scaleY(.15)}16%{opacity:1}52%{opacity:1;transform:translate3d(0,-22px,0) scaleY(1)}70%{opacity:0;transform:translate3d(0,-34px,0) scaleY(.35)}100%{opacity:0;transform:translate3d(0,-34px,0) scaleY(.35)}}
-@keyframes cue-bloom{0%,44%{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1)}82%,100%{opacity:0;transform:scale(1.5)}}
-@media (prefers-reduced-motion:reduce){#h-cue i{animation:none;opacity:.8;transform:translate3d(0,-14px,0)}#h-cue em{animation:none}}
+#h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 100%;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.8) 70%,#E6FFFC);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
+@keyframes cue-rise{0%{opacity:0;transform:translate3d(0,6px,0) scaleY(.4)}16%{opacity:1}52%{opacity:1;transform:translate3d(0,-22px,0) scaleY(1)}70%{opacity:0;transform:translate3d(0,-34px,0) scaleY(.35)}100%{opacity:0;transform:translate3d(0,-34px,0) scaleY(.35)}}
+@media (prefers-reduced-motion:reduce){#h-cue i{animation:none;opacity:.8;transform:translate3d(0,-14px,0)}}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
 #tide i{position:absolute;left:0;right:0;background:var(--t);will-change:transform;transform:scaleY(0)}
 #tide .a{top:0;transform-origin:50% 100%}#tide .b{bottom:0;transform-origin:50% 0}
@@ -649,7 +647,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
     <div class="h-sea" id="h-sea"><div class="h-glow"></div><div class="h-rise"><div class="h-w" id="h-w" aria-label="Wake">Wake<i></i></div></div><div class="h-line"><em class="gl"></em><em class="gr"></em></div><div class="h-ref" id="h-ref" aria-hidden="true"></div></div>
     <canvas id="h-sc" aria-hidden="true"></canvas>
     <div class="h-cd h-wd" id="h-cd"></div>
-    <div id="h-cue" aria-hidden="true"><b><i></i><em></em></b></div>
+    <div id="h-cue" aria-hidden="true"><b><i></i></b></div>
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
   <main id="view"></main>
