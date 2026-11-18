@@ -489,7 +489,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .oh::before{content:"";position:absolute;inset:0;transform:scaleY(.5);transform-origin:0 0;background:linear-gradient(90deg,rgba(20,211,194,.7),rgba(20,211,194,.7) 55%,transparent 92%)}
 .gl.one,.gr.one{animation:none}
 .h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(20,211,194,.2),rgba(20,211,194,.05) 50%,transparent 72%);opacity:.28;pointer-events:none;will-change:transform}
-.h-top{position:absolute;left:var(--g);right:var(--g);top:calc(var(--st) + 48px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
+.h-top{position:absolute;left:var(--g);right:var(--g);top:calc(40.5% - min(33vw,150px) * .73 - 36px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
 .h-sea{will-change:transform;position:absolute;left:0;right:0;top:49%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
 .h-rise{position:absolute;left:0;right:0;bottom:0;height:.868em;overflow:hidden;display:flex;justify-content:center}
 .h-w{display:flex;align-items:flex-end;height:1em;white-space:nowrap;will-change:transform}
@@ -518,7 +518,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 #h-go svg{width:24px;height:12px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;animation:h-up 2.3s cubic-bezier(.45,0,.3,1) infinite}
 @keyframes h-up{0%{opacity:0;transform:translate3d(0,9px,0)}35%{opacity:.9}70%{opacity:.9}100%{opacity:0;transform:translate3d(0,-9px,0)}}
 /* the day's word: an old word for the work, in its own script, floating in the water under the name */
-.h-sea{top:43%}
+.h-sea{top:40.5%}
 #h-sc{position:absolute;left:0;top:0;pointer-events:none;will-change:opacity}
 #h-cd.h-wd{position:absolute;left:8%;right:8%;top:71.5%;margin:0;text-align:center}
 .h-wd>*{display:block;opacity:0;transition:opacity 1.8s cubic-bezier(.3,.6,.2,1)}
@@ -2129,11 +2129,12 @@ function wordDraw(ts){
   var f = calm ? 1 : Math.min(1, (ts - WD.t0) / 3200); f = 1 - Math.pow(1 - f, 3);
   var ex = EN ? Math.min(1, EN.t / 760) : 0, g = s.ctx, d = s.d, still = 1 - f + ex * ex * 1.3, time = calm ? 0 : ts; f *= Math.pow(1 - ex, 1.6);
   g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, s.w + s.M * 2, s.h);
-  for(var j = 0; j < s.h; j++){
-    var k = j / s.h, amp = 0.7 + k * 1.3 + still * (5 + k * 9);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  for(var r = 0, Hd = s.c.height; r < Hd; r++){ var j = r / d,
+    k = j / s.h, amp = 0.7 + k * 1.3 + still * (5 + k * 9);
     var x = Math.sin(j * 0.21 - time * 0.0009) * amp + Math.sin(j * 0.063 + time * 0.0005) * amp * 0.6;
-    g.globalAlpha = f * (0.2 * Math.pow(1 - k, 1.35) + 0.025);
-    g.drawImage(s.c, 0, j * d, s.c.width, d, s.M + x, j, s.w, 1);
+    g.globalAlpha = f * (0.3 * Math.pow(1 - k, 1.25) + 0.045);
+    g.drawImage(s.c, 0, r, s.c.width, 1, (s.M + x) * d, r, s.c.width, 1);
   }
   g.globalAlpha = 1;
 }
@@ -2167,21 +2168,49 @@ function hero(quick){
   [[".h-top", 1900, 0]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
 }
+/* the reflection: the wordmark drawn once (upside down, in its own font, kerning and dot), then laid into a canvas one device-pixel row at a time on a smooth, continuous wave. No slices, no steps */
 function buildRef(ref, fs, N, base){
-  var H = Math.round(fs * 0.868), sh = Math.ceil(H / N), html = "";
-  for(var i = 0; i < N; i++) html += '<div class="st" style="height:' + sh + 'px;opacity:' + (base * Math.pow(1 - i / N, 1.6)).toFixed(3) + '"><div class="h-w" style="margin-top:' + (-(fs * 0.132) - i * sh).toFixed(1) + 'px">Wake<i></i></div></div>';
-  ref.innerHTML = html; return [].slice.call(ref.children);
+  var src = ref.id === "wm-ref" ? $("#wm") : $("#h-w"), o = { base:base, ok:false, ref:ref, src:src, fs:fs };
+  var make = function(){
+    var tn = null; for(var c = src.firstChild; c; c = c.nextSibling) if(c.nodeType === 3 && c.nodeValue.trim()){ tn = c; break; } if(!tn) return;
+    var cs = getComputedStyle(src), d = Math.min(window.devicePixelRatio || 1, 3), sr = src.getBoundingClientRect(), H = Math.round(fs * 0.868), PAD = 16;
+    /* where the baseline sits in the source box */
+    var W = Math.ceil(sr.width) + PAD * 2, off = document.createElement("canvas"), g = off.getContext("2d");
+    off.width = Math.ceil(W * d); off.height = Math.ceil(H * d); g.scale(d, d);
+    g.font = cs.fontStyle + " " + cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily; g.fillStyle = cs.color; g.textBaseline = "alphabetic";
+    /* baseline inside the box: line-height is 1em and the text sits at the bottom of it */
+    var mm = g.measureText("Wake"), fA = mm.fontBoundingBoxAscent || fs * 0.97, fD = mm.fontBoundingBoxDescent || fs * 0.26, fsz = parseFloat(cs.fontSize), by = sr.height - fsz + (fsz - (fA + fD)) / 2 + fA;
+    var rg = document.createRange(), txt = tn.nodeValue;
+    for(var k = 0; k < txt.length; k++){ rg.setStart(tn, k); rg.setEnd(tn, k + 1); var r = rg.getBoundingClientRect(); if(txt[k].trim()) g.fillText(txt[k], PAD + r.left - sr.left, H); }
+    var dot = src.querySelector("i"); if(dot){ var dr = dot.getBoundingClientRect(), dc = getComputedStyle(dot).backgroundColor; if(!dc || /rgba\(0, 0, 0, 0\)|transparent/.test(dc)) dc = "#14D3C2";
+      g.fillStyle = dc; var rad = (dot.offsetWidth || dr.width) / 2; g.beginPath(); g.arc(PAD + dr.left - sr.left + dr.width / 2, H - (by - (dr.top - sr.top) - dr.height / 2), rad, 0, Math.PI * 2); g.fill(); }
+    var cv = ref.querySelector("canvas") || document.createElement("canvas"); ref.innerHTML = ""; ref.appendChild(cv);
+    cv.width = off.width; cv.height = off.height; cv.style.cssText = "position:absolute;top:0;width:" + W + "px;height:" + H + "px;left:" + (sr.left - ref.getBoundingClientRect().left - PAD).toFixed(1) + "px";
+    ref.style.height = H + "px"; o.off = off; o.cv = cv; o.ctx = cv.getContext("2d"); o.W = W; o.H = H; o.d = d; o.ok = true; };
+  o.make = make; make(); setTimeout(make, 2400); setTimeout(make, 4200); /* again once the entrance has settled */
+  try{ document.fonts.ready.then(function(){ make(); }); }catch(e){}
+  addEventListener("resize", function(){ setTimeout(make, 60); });
+  return o;
+}
+function refDraw(o, t, amp, px){
+  if(!o || !o.ok) return; var g = o.ctx, d = o.d, Hd = o.off.height, Wd = o.off.width;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, Wd, Hd);
+  for(var r = 0; r < Hd; r++){ var y = r / d, k = y / o.H;
+    var x = Math.sin(t * 1.15 + y * 0.2 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + y * 0.068) * amp * k * 1.2;
+    g.globalAlpha = o.base * Math.pow(1 - k, 1.6);
+    g.drawImage(o.off, 0, Hd - 1 - r, Wd, 1, x * d, r, Wd, 1); }
+  g.globalAlpha = 1;
 }
 /* the wave along the opening tide runs as CSS animations (see .tg i), so it stays on the compositor and never stutters */
 var TG = { t0:0, up:[], s:null, last:0 };
 function swell(){} /* the opening row of weeks is still: no wave */
-function sway(strips, t, amp, px){ for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
+function sway(strips, t, amp, px){ if(strips && strips.make){ refDraw(strips, t, amp, px); return; } for(var i = 0, N = strips.length; i < N; i++){ var k = i / N, x = Math.sin(t * 1.15 + i * 0.62 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + i * 0.21) * amp * k * 1.2; strips[i].style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)"; } }
 var WMS = [];
 function water(ts){
   requestAnimationFrame(water); if(document.hidden) return;
   var t = ts / 1000; HR.energy *= 0.955;
   if(HR.on){ sway(HR.strips, t, 2.2 + HR.energy, HR.px); wordDraw(ts); }
-  if(app.dataset.s === "home" && UI.refOn && WMS.length) sway(WMS, t, 1.3, HR.px);
+  if(app.dataset.s === "home" && UI.refOn && WMS && (WMS.make || WMS.length)) sway(WMS, t, 1.3, HR.px);
 }
 /* entering: no wipe. The name leaves the horizon and travels to its place at the top of your workouts, reflection and all */
 function leave(){
