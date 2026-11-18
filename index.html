@@ -72,8 +72,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
 /* the neighbouring section, laid out beside this one while you swipe */
-#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;-webkit-mask-image:none;mask-image:none}
-#app[data-s] main.peek.home{-webkit-mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px));mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px))}
+#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;background:var(--bg);-webkit-mask-image:none;mask-image:none;padding:0}
+main.peek>.pk-in{padding:calc(var(--st) + 52px) var(--g) 26px;will-change:opacity}
 #app.pk-home #wm{opacity:1!important;visibility:visible}
 /* home: the name stays put; the list dissolves as it slides up under the reflection */
 #app[data-s="home"] main{-webkit-mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px));mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px))}
@@ -1425,23 +1425,29 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
   var peek = function(n){ if(pkN === n) return; dropPeek(); if(!n) return;
     pk = document.createElement("main"); pk.className = "peek" + (n === "today" ? " home" : ""); pk.setAttribute("aria-hidden", "true");
     pk.style.left = view.offsetLeft + "px"; pk.style.top = view.offsetTop + "px"; pk.style.width = view.offsetWidth + "px"; pk.style.height = view.offsetHeight + "px";
-    pk.innerHTML = pageHTML(n); view.parentNode.insertBefore(pk, view.nextSibling); pkN = n;
+    var cs = getComputedStyle(view); pk.innerHTML = '<div class="pk-in" style="padding:' + cs.padding + '">' + pageHTML(n) + '</div>'; view.parentNode.insertBefore(pk, view.nextSibling); pkN = n;
     [].forEach.call(pk.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); });
     if(n === "today"){ var rows = pk.querySelectorAll(".wrow"), lst = pk.querySelector(".list");
-      if(rows.length && lst){ var rh = clamp(Math.floor((pk.clientHeight - lst.offsetTop - 14) / rows.length), 84, 132); [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; }); }
+      if(rows.length && lst){ var rh = clamp(Math.floor((pk.clientHeight - (lst.getBoundingClientRect().top - pk.getBoundingClientRect().top) - 14) / rows.length), 84, 132); [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; }); }
       app.classList.add("pk-home"); } };
   var place = function(x){
-    var tr = "translate3d(" + x.toFixed(2) + "px,0,0)", j = i0 + (x < 0 ? 1 : -1), side = x < 0 ? 1 : -1;
-    peek(TABS[j] && x !== 0 ? TABS[j] : "");
-    movers.forEach(function(m){ m.style.transform = m === wm ? "translate3d(" + x.toFixed(2) + "px," + HERO_Y + "px,0)" : tr; });
-    if(pk){ var px = x + side * W; pk.style.transform = "translate3d(" + px.toFixed(2) + "px,0,0)";
-      if(pkN === "today") wm.style.transform = "translate3d(" + px.toFixed(2) + "px," + HERO_Y + "px,0)"; }
-    if(TABS[j] && tx[TABS[j]] != null){ var k = Math.min(1, Math.abs(x) / W), p = k * k * (3 - 2 * k), a = tx[TABS[i0]], b = tx[TABS[j]], cx = a + (b - a) * p, st = 1 + Math.sin(p * Math.PI) * 1.1;
+    var j = i0 + (x < 0 ? 1 : -1), side = x < 0 ? 1 : -1, open = TABS[j] && x !== 0;
+    peek(open ? TABS[j] : "");
+    var k = open ? Math.min(1, Math.abs(x) / W) : 0, sk = k * k * (3 - 2 * k), back = open ? x * 0.28 : x, sc = 1 - 0.05 * sk;
+    var tr = "translate3d(" + back.toFixed(2) + "px,0,0) scale(" + sc.toFixed(4) + ")";
+    movers.forEach(function(m){
+      if(m === wm){ m.style.transform = "translate3d(" + back.toFixed(2) + "px," + HERO_Y + "px,0)"; m.style.opacity = Math.max(0, 1 - k * 1.6).toFixed(3); }
+      else if(m === view){ m.style.transform = tr; m.style.opacity = (1 - 0.72 * sk).toFixed(3); }
+      else { m.style.transform = "translate3d(" + back.toFixed(2) + "px,0,0)"; m.style.opacity = Math.max(0, 1 - k * 1.8).toFixed(3); } });
+    if(pk){ var px = x + side * W, ease = 1 - Math.pow(1 - k, 2.2); pk.style.transform = "translate3d(" + px.toFixed(2) + "px,0,0)";
+      pk.firstChild.style.opacity = (0.25 + 0.75 * ease).toFixed(3);
+      if(pkN === "today"){ wm.style.transform = "translate3d(" + px.toFixed(2) + "px," + HERO_Y + "px,0)"; wm.style.opacity = (0.25 + 0.75 * ease).toFixed(3); } }
+    if(TABS[j] && tx[TABS[j]] != null){ var p = sk, a = tx[TABS[i0]], b = tx[TABS[j]], cx = a + (b - a) * p, st = 1 + Math.sin(p * Math.PI) * 1.1;
       dot.style.transform = dy0.replace(/translate3d\([-\d.]+px/, "translate3d(" + cx.toFixed(2) + "px") + " scale(" + st.toFixed(3) + "," + (1 / Math.sqrt(st)).toFixed(3) + ")";
       $("#tab-" + TABS[i0]).style.color = mix(1 - p); $("#tab-" + TABS[j]).style.color = mix(p);
       var q = TABS[i0 - side]; if(q) $("#tab-" + q).style.color = ""; } };
   var clear = function(){ movers.forEach(function(m){ m.style.transition = ""; m.style.transform = m === wm ? "translate3d(0," + HERO_Y + "px,0)" : ""; m.style.opacity = ""; });
-    wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; TABS.forEach(function(n){ $("#tab-" + n).style.color = ""; }); dropPeek(); };
+    wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; wm.style.opacity = ""; TABS.forEach(function(n){ $("#tab-" + n).style.color = ""; }); dropPeek(); };
   /* one spring for every release: x'' = -w^2 (x - target) - 2w x' */
   var spring = function(x, vel, target, w, done){ var last = 0;
     var step = function(ts){ var dt = last ? Math.min(32, ts - last) : 16; last = ts;
@@ -1455,7 +1461,7 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
   view.addEventListener("touchmove", function(e){ if(lock < 0) return; var t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
     if(!lock){ if(Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)){ lock = -1; return; } if(Math.abs(mx) < 10 || Math.abs(mx) < Math.abs(my) * 1.3) return;
       cancelAnimationFrame(raf); lock = 1; UI.swx = true; i0 = Math.max(0, TABS.indexOf(viewName())); W = view.offsetWidth; x0 = t.clientX; lx = t.clientX; lt = e.timeStamp; v = 0;
-      tx = {}; TABS.forEach(function(n){ tx[n] = tabX(n); }); fromHome = app.dataset.s === "home";
+      tx = {}; TABS.forEach(function(n){ tx[n] = tabX(n); }); fromHome = app.dataset.s === "home"; view.style.transformOrigin = "50% " + (view.scrollTop + view.clientHeight * 0.45).toFixed(0) + "px";
       dot = $("#tab-dot"); if(dot._a) try{ dot._a.cancel(); }catch(er){} dy0 = dot.style.transform || "translate3d(0px,0px,0)";
       movers = [view, $("#bar")]; if(fromHome) movers.push(wm); movers.forEach(function(m){ m.getAnimations().forEach(function(q){ try{ q.cancel(); }catch(er){} }); m.style.transition = "none"; m.style.opacity = ""; }); }
     if(e.cancelable) e.preventDefault();
