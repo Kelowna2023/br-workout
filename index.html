@@ -505,8 +505,8 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 #h-cue.in i{animation-delay:1.5s}#h-cue.now i{animation-delay:0s}
 #h-cue b{position:absolute;inset:0;will-change:transform,opacity}
 #h-cue b::before{content:"";position:absolute;left:.5px;top:0;bottom:0;width:1px;transform:scaleX(.5);background:linear-gradient(to top,transparent,rgba(20,211,194,.13) 28%,rgba(20,211,194,.13) 72%,transparent)}
-#h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 100%;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.8) 70%,#E6FFFC);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
-@keyframes cue-rise{0%{opacity:0;transform:translate3d(0,0,0) scaleY(.4)}16%{opacity:1}52%{opacity:1;transform:translate3d(0,calc(var(--rise,24px) * -.68),0) scaleY(1)}72%{opacity:0;transform:translate3d(0,calc(var(--rise,24px) * -1),0) scaleY(.35)}100%{opacity:0;transform:translate3d(0,calc(var(--rise,24px) * -1),0) scaleY(.35)}}
+#h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 0;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.8) 70%,#E6FFFC);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
+@keyframes cue-rise{0%{opacity:0;transform:translate3d(0,22px,0) scaleY(.1);animation-timing-function:cubic-bezier(.3,0,.2,1)}12%{opacity:1}45%{opacity:1;transform:translate3d(0,calc(var(--rise,24px) * -.55),0) scaleY(1);animation-timing-function:cubic-bezier(.25,0,.15,1)}64%{opacity:.85}82%{opacity:0;transform:translate3d(0,calc(var(--rise,24px) * -1),0) scaleY(.05)}100%{opacity:0;transform:translate3d(0,calc(var(--rise,24px) * -1),0) scaleY(.05)}}
 @media (prefers-reduced-motion:reduce){#h-cue i{animation:none;opacity:.8;transform:translate3d(0,-14px,0)}}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
 #tide i{position:absolute;left:0;right:0;background:var(--t);will-change:transform;transform:scaleY(0)}
