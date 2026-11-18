@@ -1507,13 +1507,32 @@ function ghostArt(type){
     return sv(h);
   }
   if(type === "body"){
-    /* proportion: the classical circle and square behind the figure, with the canon's divisions, drawn in hairlines */
-    var bm = view.querySelector(".bmap svg"), vr = view.getBoundingClientRect(), br = bm ? bm.getBoundingClientRect() : null, bx = W / 2, by = br ? br.top - vr.top + view.scrollTop + br.height * 0.5 : 350, R = Math.min(W * 0.46, br ? br.height * 0.62 : 178), sq = R * 1.7, top = by - R;
-    var lines = '<circle class="gd" cx="' + bx + '" cy="' + by + '" r="' + R + '" stroke="#14D3C2" stroke-opacity=".16" stroke-width=".7"/>' +
-      '<rect class="gd" x="' + (bx - sq / 2) + '" y="' + (by + R - sq) + '" width="' + sq + '" height="' + sq + '" stroke="#fff" stroke-opacity=".07" stroke-width=".6"/>' +
-      '<circle class="gd" cx="' + bx + '" cy="' + by + '" r="' + (R * 0.618).toFixed(1) + '" stroke="#fff" stroke-opacity=".04" stroke-width=".5"/>';
-    for(var j = 1; j < 8; j++){ var yy = by + R - sq * j / 8; lines += '<path class="gd" d="M' + (bx - sq / 2 - 10) + ' ' + yy.toFixed(1) + ' H' + (bx - sq / 2 + 8) + ' M' + (bx + sq / 2 - 8) + ' ' + yy.toFixed(1) + ' H' + (bx + sq / 2 + 10) + '" stroke="#fff" stroke-opacity=".12" stroke-width=".6"/>'; }
-    lines += '<path class="gd" d="M' + bx + ' ' + (top - 26) + ' V' + (by + R + 26) + '" stroke="#14D3C2" stroke-opacity=".1" stroke-width=".5" stroke-dasharray="1 6"/>';
+    /* after Leonardo's Vitruvian Man: the square the height of the figures, the circle centred on the navel and resting on the same ground,
+       a hairline man between them with arms and legs in both positions, and the scale bar underneath. Each stroke is drawn in turn */
+    var bm = view.querySelector(".bmap svg"), vr = view.getBoundingClientRect(), br = bm ? bm.getBoundingClientRect() : null, bx = W / 2;
+    var sd = Math.min(br ? br.height * 0.98 : 300, (W - 10) / 1.216), y0 = br ? br.top - vr.top + view.scrollTop + br.height * 0.99 : 520, R = sd * 0.608;
+    var X = function(u){ return (bx + u * sd).toFixed(1); }, Y = function(v){ return (y0 - v * sd).toFixed(1); };
+    var ln = function(d, op, w, c){ return '<path class="gd" d="' + d + '" stroke="' + (c || "#EDE6D6") + '" stroke-opacity="' + op + '" stroke-width="' + (w || .7) + '" stroke-linecap="round"/>'; };
+    var L = function(a, b, c, d2){ return "M" + X(a) + " " + Y(b) + " L" + X(c) + " " + Y(d2); };
+    var lines = '<circle class="gd" cx="' + X(0) + '" cy="' + Y(0.608) + '" r="' + R.toFixed(1) + '" stroke="#14D3C2" stroke-opacity=".26" stroke-width=".8" transform="rotate(-90 ' + X(0) + ' ' + Y(0.608) + ')"/>' +
+      '<circle class="gd" cx="' + X(0.003) + '" cy="' + Y(0.606) + '" r="' + (R + 1.2).toFixed(1) + '" stroke="#14D3C2" stroke-opacity=".09" stroke-width=".6" transform="rotate(140 ' + X(0) + ' ' + Y(0.608) + ')"/>' +
+      ln("M" + X(-0.5) + " " + Y(1) + " H" + X(0.5) + " V" + Y(0) + " H" + X(-0.5) + " Z", .15) +
+      ln("M" + X(-0.497) + " " + Y(1.004) + " H" + X(0.503) + " V" + Y(-0.003) + " H" + X(-0.502) + " Z", .06, .6);
+    /* the man */
+    lines += '<ellipse class="gd" cx="' + X(0) + '" cy="' + Y(0.936) + '" rx="' + (sd * 0.046).toFixed(1) + '" ry="' + (sd * 0.064).toFixed(1) + '" stroke="#EDE6D6" stroke-opacity=".2" stroke-width=".7"/>' +
+      ln(L(0, 0.872, 0, 0.5), .11) + ln(L(-0.125, 0.82, 0.125, 0.82), .2) +
+      ln("M" + X(-0.125) + " " + Y(0.82) + " Q" + X(-0.105) + " " + Y(0.66) + " " + X(-0.078) + " " + Y(0.5) + " H" + X(0.078) + " Q" + X(0.105) + " " + Y(0.66) + " " + X(0.125) + " " + Y(0.82), .2) +
+      ln(L(-0.125, 0.82, -0.5, 0.82), .2) + ln(L(0.125, 0.82, 0.5, 0.82), .2) +
+      ln(L(-0.125, 0.82, -0.465, 1), .13) + ln(L(0.125, 0.82, 0.465, 1), .13) +
+      ln(L(-0.07, 0.5, -0.04, 0), .2) + ln(L(0.07, 0.5, 0.04, 0), .2) +
+      ln(L(-0.07, 0.5, -0.27, 0.063), .13) + ln(L(0.07, 0.5, 0.27, 0.063), .13);
+    /* his measures: chin, chest, navel, knee */
+    [0.875, 0.75, 0.608, 0.25].forEach(function(v){ lines += '<path class="gd" d="M' + X(-0.5) + ' ' + Y(v) + ' h9 M' + X(0.5) + ' ' + Y(v) + ' h-9" stroke="#EDE6D6" stroke-opacity=".28" stroke-width=".7"/>'; });
+    /* the scale bar under the square */
+    var sy = y0 + 16, sc = "M" + X(-0.5) + " " + sy.toFixed(1) + " H" + X(0.5);
+    for(var q = 0; q <= 8; q++) sc += " M" + X(-0.5 + q / 8) + " " + (sy - (q % 4 === 0 ? 5 : 3)).toFixed(1) + " v" + (q % 4 === 0 ? 10 : 6);
+    for(var q2 = 1; q2 < 6; q2++) sc += " M" + X(-0.5 + q2 / 48) + " " + (sy - 2).toFixed(1) + " v4 M" + X(0.5 - q2 / 48) + " " + (sy - 2).toFixed(1) + " v4";
+    lines += ln(sc, .22, .6);
     return sv(lines);
   }
   return "";
@@ -1528,7 +1547,7 @@ function ghostSet(type){
   /* every line draws itself in, slowly */
   [].forEach.call(el.querySelectorAll(".gd"), function(pth, i){ var L = 2000; try{ L = Math.ceil(pth.getTotalLength()); }catch(e){}
     if(pth.getAttribute("stroke-dasharray")) { pth.animate([{ opacity:0 }, { opacity:1 }], { duration:1800, delay:600, easing:EZ, fill:"backwards" }); return; }
-    pth.style.strokeDasharray = L; pth.animate([{ strokeDashoffset:L }, { strokeDashoffset:0 }], { duration:pth.classList.contains("gd2") ? 3000 : 2600, delay:200 + i * 160, easing:EZ, fill:"backwards" }); });
+    pth.style.strokeDasharray = L; pth.animate([{ strokeDashoffset:L }, { strokeDashoffset:0 }], { duration:pth.classList.contains("gd2") ? 3000 : 2600, delay:200 + i * (type === "body" ? 150 : 160), easing:type === "body" ? "cubic-bezier(.45,0,.2,1)" : EZ, fill:"backwards" }); });
   [].forEach.call(el.querySelectorAll(".gfade"), function(q){ q.animate([{ opacity:0 }, { opacity:1 }], { duration:2400, delay:600, easing:EZ, fill:"backwards" }); });
   [].forEach.call(el.querySelectorAll(".gme"), function(q){ q.animate([{ opacity:0, transform:"scale(.2)" }, { opacity:1, transform:"none" }], { duration:1400, delay:2600, easing:"cubic-bezier(.34,1.3,.5,1)", fill:"backwards" }); });
   /* the rings ripple outward from the edge, one week after another */
