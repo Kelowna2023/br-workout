@@ -284,12 +284,11 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .x-more button{color:var(--t);font-weight:500;font-size:15px;padding:12px 0}
 
 /* ---- tabs ---- */
-#tabs{flex:none;display:flex;justify-content:space-around;padding:6px 6px calc(var(--sb) + 4px);border-top:.5px solid #1A1A1A;background:var(--bg);z-index:15;view-transition-name:tabs}
-#tabs a{flex:1;display:grid;justify-items:center;align-content:center;min-height:50px;font-size:15px;font-weight:400;letter-spacing:-.005em;color:var(--mu2);text-decoration:none;transition:color .5s cubic-bezier(.3,.6,.2,1),transform .3s var(--spring)}
-#tabs a::after{content:"";width:4px;height:4px;border-radius:50%;background:var(--t);margin-top:7px;opacity:0;transform:scale(0);transition:opacity .5s cubic-bezier(.3,.6,.2,1),transform .6s cubic-bezier(.34,1.3,.5,1)}
-#tabs a.tap{transform:scale(.94)}
-#tabs a[aria-current="page"]{color:var(--tx);font-weight:500}
-#tabs a[aria-current="page"]::after{opacity:1;transform:none}
+#tabs{position:relative;flex:none;display:flex;justify-content:space-around;padding:6px 6px calc(var(--sb) + 4px);border-top:.5px solid #1A1A1A;background:var(--bg);z-index:15;view-transition-name:tabs}
+#tabs a{flex:1;display:grid;justify-items:center;align-content:center;min-height:50px;padding-bottom:11px;font-size:15px;font-weight:500;letter-spacing:-.005em;color:var(--mu2);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .18s ease-out,transform .25s var(--spring)}
+#tabs a.tap{transform:scale(.95)}
+#tabs a[aria-current="page"]{color:var(--tx)}
+#tab-dot{position:absolute;left:0;top:0;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--t);pointer-events:none;opacity:0;will-change:transform}
 #app[data-s="wk"] #tabs,#app[data-s="ex"] #tabs,#app[data-s="setup"] #tabs{display:none}
 
 /* ---- history ---- */
@@ -646,6 +645,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
     <a href="#history" id="tab-history">History</a>
     <a href="#progress" id="tab-progress">Progress</a>
     <a href="#body" id="tab-body">Body</a>
+    <i id="tab-dot" aria-hidden="true"></i>
   </nav>
   <div id="clock" hidden>
     <div class="ck-bg"></div>
@@ -1279,7 +1279,7 @@ function render(){
   else t = { history:"History", progress:"Progress", body:"Body" }[type];
   $("#bar-l").innerHTML = l; $("#bar-t").textContent = t; $("#bar-r").innerHTML = r;
   var d = new Date(); $("#bar-date").textContent = d.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + "  ·  Week " + isoWeek(d);
-  ["today","history","progress","body"].forEach(function(n){ var el = $("#tab-" + n); if(viewName() === n) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current"); });
+  tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
   if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor((view.clientHeight - lst.offsetTop - 14) / UI.rows.length), 84, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
   view.scrollTop = fresh ? 0 : keep;
@@ -1344,7 +1344,7 @@ function pieceAt(p, G){ var g = G.g[p.i]; return "translate3d(" + (g.l - p.ox * 
 function nav(fn, dir, src, destSel){
   UI.navDir = dir || "fwd";
   if(calm || UI.instant || UI.navBusy){ fn(); return; }
-  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:200, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], A = null, ps = [];
+  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:tab ? 110 : 200, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], A = null, ps = [];
   var drop = function(list){ list.forEach(function(p){ if(p.el.parentNode) p.el.parentNode.removeChild(p.el); }); };
   var melt = function(list){ list.forEach(function(p){ var m = p.el.animate([{ opacity:1 }, { opacity:0 }], { duration:260, easing:"ease-out", fill:"forwards" }); m.onfinish = m.oncancel = function(){ drop([p]); }; }); setTimeout(function(){ drop(list); }, 500); };
   var el0 = back ? (destSel ? view.querySelector(".big") : null) : src;
@@ -1368,11 +1368,25 @@ function nav(fn, dir, src, destSel){
           ps.forEach(function(p){ var ga = p.el.animate([{ transform:pieceAt(p, A), fontSize:A.fs + "px", fontWeight:A.fw, letterSpacing:A.ls.toFixed(4) + "em" }, { transform:pieceAt(p, B), fontSize:B.fs + "px", fontWeight:B.fw, letterSpacing:B.ls.toFixed(4) + "em" }], { duration:720, easing:"cubic-bezier(.62,0,.18,1)", fill:"forwards" });
             if(!n++) ga.onfinish = ga.oncancel = land; }); setTimeout(land, 1000); } }
       if(!glide) melt(ps);
-      view.animate([{ opacity:0 }, { opacity:1 }], { duration:back && glide ? 900 : 760, delay:back && glide ? 160 : 0, easing:IN, fill:"backwards" });
-      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN });
-      if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:700, easing:IN }); } };
+      if(tab) view.animate([{ opacity:0, transform:"translate3d(0,8px,0)" }, { opacity:1, transform:"none" }], { duration:380, easing:IN, fill:"backwards" });
+      else view.animate([{ opacity:0 }, { opacity:1 }], { duration:back && glide ? 900 : 760, delay:back && glide ? 160 : 0, easing:IN, fill:"backwards" });
+      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:tab ? 380 : 700, easing:IN });
+      if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:tab ? 380 : 700, easing:IN }); } };
   outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
 }
+/* the current tab: its word turns white at once and one teal dot glides under it */
+function tabMark(n, glide){
+  var on = null; ["today","history","progress","body"].forEach(function(k){ var el = $("#tab-" + k); if(k === n){ el.setAttribute("aria-current", "page"); on = el; } else el.removeAttribute("aria-current"); });
+  var dot = $("#tab-dot"); if(!on){ dot.style.opacity = 0; return; }
+  var tb = $("#tabs").getBoundingClientRect(), r = on.getBoundingClientRect(); if(!r.width) return;
+  var to = "translate3d(" + (r.left - tb.left + r.width / 2).toFixed(1) + "px," + (r.top - tb.top + r.height - 12).toFixed(1) + "px,0)", from = dot.style.transform, was = dot.style.opacity === "1";
+  dot.style.transform = to; dot.style.opacity = 1;
+  if(glide && was && from && from !== to && !calm){
+    if(dot._a) try{ dot._a.cancel(); }catch(e){}
+    dot._a = dot.animate([{ transform:from + " scale(1)" }, { transform:from.replace(/translate3d\(([-\d.]+)px/, function(m, x){ return "translate3d(" + ((+x + parseFloat(to.slice(12))) / 2).toFixed(1) + "px"; }) + " scale(2.2,0.7)", offset:0.45 }, { transform:to + " scale(1)" }], { duration:420, easing:"cubic-bezier(.3,0,.1,1)" });
+  }
+}
+addEventListener("resize", function(){ tabMark(viewName(), false); });
 function goBack(){
   var type = view.dataset.v, a = S.active;
   if(type === "wk"){ var rid = a.routineId; nav(function(){ S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + rid + '"] .wn'); }
@@ -2106,7 +2120,7 @@ function enter(){
 /* ---------- events ---------- */
 document.addEventListener("click", function(ev){
   if(ev.target.id === "sheet"){ closeSheet(); return; }
-  var tab = ev.target.closest("#tabs a"); if(tab){ ev.preventDefault(); var hsh = tab.getAttribute("href"); haptic();
+  var tab = ev.target.closest("#tabs a"); if(tab){ ev.preventDefault(); var hsh = tab.getAttribute("href"); haptic(); tabMark(hsh.slice(1), true);
     nav(function(){ if(hsh === "#today") S.pick = true; if(hsh === "#progress" && viewName() === "progress") UI.pgEx = null; if(location.hash !== hsh) history.replaceState(null, "", hsh); render(); }, "tab"); return; }
   var hs = ev.target.closest(".hw span"); if(hs){ var he = hs.closest(".hw"), hi = [].indexOf.call(hs.parentNode.children, hs); he._live = true; he.scrollTo(he._v ? { top:hi * he._w, behavior:"smooth" } : { left:hi * he._w, behavior:"smooth" }); return; }
   var b = ev.target.closest("[data-act]"); if(!b) return;
