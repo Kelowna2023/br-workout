@@ -285,13 +285,14 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .x-more button{color:var(--t);font-weight:500;font-size:15px;padding:12px 0}
 
 /* ---- tabs ---- */
-/* the tab bar: a floating capsule of smoked glass. The page runs on underneath it, softened by the blur; a glass pill slides to the section you tap */
-#tabs{position:absolute;left:16px;right:16px;bottom:calc(max(var(--sb), 12px) + 4px);display:flex;padding:5px;border-radius:30px;background:rgba(24,24,24,.58);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.4);z-index:15;view-transition-name:tabs;transform:translateZ(0)}
-#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:25px;background:rgba(255,255,255,.085);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.05);pointer-events:none;opacity:0;will-change:transform,width}
+/* the tab bar: a floating soft-square of smoked glass, the same corners as the buttons. The page runs on underneath it, softened by the blur;
+   a glass key lit from below in teal slides to the section you tap */
+#tabs{position:absolute;left:16px;right:16px;bottom:calc(max(var(--sb), 12px) + 4px);display:flex;padding:5px;border-radius:20px;background:rgba(18,22,22,.6);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.4);z-index:15;view-transition-name:tabs;transform:translateZ(0)}
+#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:15px;background:radial-gradient(120% 140% at 50% 120%,rgba(20,211,194,.42),rgba(15,168,155,.16) 45%,rgba(20,211,194,.05) 80%);box-shadow:inset 0 0 0 .5px rgba(120,240,230,.28),inset 0 1px 0 rgba(255,255,255,.06),0 0 18px rgba(20,211,194,.14);pointer-events:none;opacity:0;will-change:transform,width}
 #app[data-s="home"] main,#app[data-s="history"] main,#app[data-s="progress"] main,#app[data-s="body"] main{padding-bottom:calc(max(var(--sb), 12px) + 96px)}
-#tabs a{position:relative;z-index:1;flex:1;display:grid;justify-items:center;align-content:center;min-height:48px;padding:0;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .18s ease-out,transform .25s var(--spring)}
+#tabs a{position:relative;z-index:1;flex:1;display:grid;justify-items:center;align-content:center;min-height:48px;padding:0;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .42s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
 #tabs a.tap{transform:scale(.94)}
-#tabs a[aria-current="page"]{color:var(--tx)}
+#tabs a[aria-current="page"]{color:#F5FFFD}
 #tab-dot{display:none}
 #app[data-s="wk"] #tabs,#app[data-s="ex"] #tabs,#app[data-s="setup"] #tabs{display:none}
 
@@ -1296,7 +1297,7 @@ function render(){
   var d = new Date(); $("#bar-date").textContent = d.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + "  ·  Week " + isoWeek(d);
   tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
-  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor((view.clientHeight - lst.offsetTop - 14 - ($("#tabs").offsetHeight + 28)) / UI.rows.length), 84, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
+  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor(($("#tabs").getBoundingClientRect().top - view.getBoundingClientRect().top - lst.offsetTop - 18) / UI.rows.length), 66, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
   view.scrollTop = fresh ? 0 : keep;
   initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
@@ -1359,14 +1360,14 @@ function pieceAt(p, G){ var g = G.g[p.i]; return "translate3d(" + (g.l - p.ox * 
 function nav(fn, dir, src, destSel){
   UI.navDir = dir || "fwd";
   if(calm || UI.instant || UI.navBusy){ fn(); return; }
-  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:tab ? 110 : 200, easing:"cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, kf = [{ opacity:1 }, { opacity:0 }], A = null, ps = [];
+  var back = dir === "back", tab = dir === "tab", bar = $("#bar"), wasHome = app.dataset.s === "home", outs = [], fo = { duration:tab ? 170 : 200, easing:tab ? "cubic-bezier(.4,0,1,1)" : "cubic-bezier(.4,0,.7,.2)", fill:"forwards" }, sg = UI.tabSgn || 1, kf = [{ opacity:1 }, { opacity:0 }], A = null, ps = [];
   var drop = function(list){ list.forEach(function(p){ if(p.el.parentNode) p.el.parentNode.removeChild(p.el); }); };
   var melt = function(list){ list.forEach(function(p){ var m = p.el.animate([{ opacity:1 }, { opacity:0 }], { duration:260, easing:"ease-out", fill:"forwards" }); m.onfinish = m.oncancel = function(){ drop([p]); }; }); setTimeout(function(){ drop(list); }, 500); };
   var el0 = back ? (destSel ? view.querySelector(".big") : null) : src;
   if(el0){ A = glyphs(el0); if(A && A.seen) ps = pieces(A, A.br); else A = null; }
   UI.scr = UI.scr || {}; if(!back) UI.scr[UI.key] = view.scrollTop;
   UI.navBusy = true; view.style.transformOrigin = "50% " + (view.scrollTop + view.clientHeight * 0.38).toFixed(0) + "px";
-  outs.push(view.animate([{ opacity:1, transform:"scale(1)" }, { opacity:0, transform:"scale(" + (tab ? 1 : back ? 1.014 : 0.986) + ")" }], fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
+  outs.push(view.animate(tab ? [{ opacity:1, transform:"none" }, { opacity:0, transform:"translate3d(" + (-sg * 12) + "px,0,0)" }] : [{ opacity:1, transform:"scale(1)" }, { opacity:0, transform:"scale(" + (back ? 1.014 : 0.986) + ")" }], fo)); outs.push(bar.animate(kf, fo)); if(wasHome) outs.push(wm.animate(kf, fo));
   var done = false, swap = function(){ if(done) return; done = true;
     UI.gliding = !!A;
     try{ fn(); } finally {
@@ -1383,10 +1384,11 @@ function nav(fn, dir, src, destSel){
           ps.forEach(function(p){ var ga = p.el.animate([{ transform:pieceAt(p, A), fontSize:A.fs + "px", fontWeight:A.fw, letterSpacing:A.ls.toFixed(4) + "em" }, { transform:pieceAt(p, B), fontSize:B.fs + "px", fontWeight:B.fw, letterSpacing:B.ls.toFixed(4) + "em" }], { duration:720, easing:"cubic-bezier(.62,0,.18,1)", fill:"forwards" });
             if(!n++) ga.onfinish = ga.oncancel = land; }); setTimeout(land, 1000); } }
       if(!glide) melt(ps);
-      if(tab) view.animate([{ opacity:0, transform:"translate3d(0,8px,0)" }, { opacity:1, transform:"none" }], { duration:380, easing:IN, fill:"backwards" });
+      if(tab){ var EZ = "cubic-bezier(.16,1,.3,1)";
+        revealList().slice(0, 12).forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(" + (sg * 22) + "px,0,0)" }, { opacity:1, transform:"none" }], { duration:720, delay:i * 32, easing:EZ, fill:"backwards" }); }); }
       else view.animate([{ opacity:0 }, { opacity:1 }], { duration:back && glide ? 900 : 760, delay:back && glide ? 160 : 0, easing:IN, fill:"backwards" });
-      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:tab ? 380 : 700, easing:IN });
-      if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:tab ? 380 : 700, easing:IN }); } };
+      bar.animate([{ opacity:0 }, { opacity:1 }], { duration:tab ? 520 : 700, easing:IN });
+      if(app.dataset.s === "home") wm.animate(tab ? [{ opacity:0, transform:"translate3d(" + (sg * 22) + "px," + HERO_Y + "px,0)" }, { opacity:1, transform:"translate3d(0," + HERO_Y + "px,0)" }] : [{ opacity:0 }, { opacity:1 }], { duration:tab ? 720 : 700, easing:tab ? "cubic-bezier(.16,1,.3,1)" : IN }); } };
   outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
 }
 /* the current tab: its word turns white, and the glass pill glides under it, stretching a touch as it travels like liquid */
@@ -1402,7 +1404,7 @@ function tabMark(n, glide){
     pill._a = pill.animate([
       { transform:"translate3d(" + fx.toFixed(1) + "px,0,0)", width:fw.toFixed(1) + "px" },
       { transform:"translate3d(" + (x > fx ? fx + (x - fx) * 0.32 : x + (fx - x) * 0.68).toFixed(1) + "px,0,0)", width:(Math.max(fw, w) + span * 0.18).toFixed(1) + "px", offset:0.42 },
-      { transform:"translate3d(" + x.toFixed(1) + "px,0,0)", width:w.toFixed(1) + "px" }], { duration:520, easing:"cubic-bezier(.32,.72,0,1)" });
+      { transform:"translate3d(" + x.toFixed(1) + "px,0,0)", width:w.toFixed(1) + "px" }], { duration:600, easing:"cubic-bezier(.32,.72,0,1)" });
   }
 }
 addEventListener("resize", function(){ tabMark(viewName(), false); });
@@ -2159,7 +2161,7 @@ function enter(){
 /* ---------- events ---------- */
 document.addEventListener("click", function(ev){
   if(ev.target.id === "sheet"){ closeSheet(); return; }
-  var tab = ev.target.closest("#tabs a"); if(tab){ ev.preventDefault(); var hsh = tab.getAttribute("href"); haptic(); tabMark(hsh.slice(1), true);
+  var tab = ev.target.closest("#tabs a"); if(tab){ ev.preventDefault(); var hsh = tab.getAttribute("href"); if(hsh.slice(1) === viewName() && app.dataset.s !== "pg"){ view.scrollTo({ top:0, behavior:"smooth" }); return; } UI.tabSgn = TABS.indexOf(hsh.slice(1)) >= TABS.indexOf(viewName()) ? 1 : -1; haptic(); tabMark(hsh.slice(1), true);
     nav(function(){ if(hsh === "#today") S.pick = true; if(hsh === "#progress" && viewName() === "progress") UI.pgEx = null; if(location.hash !== hsh) history.replaceState(null, "", hsh); render(); }, "tab"); return; }
   var hs = ev.target.closest(".hw span"); if(hs){ var he = hs.closest(".hw"), hi = [].indexOf.call(hs.parentNode.children, hs); he._live = true; he.scrollTo(he._v ? { top:hi * he._w, behavior:"smooth" } : { left:hi * he._w, behavior:"smooth" }); return; }
   var b = ev.target.closest("[data-act]"); if(!b) return;
