@@ -1569,7 +1569,7 @@ function vHome(){
   for(var i = 0; i < goal; i++) segs += '<span><i' + (i < n ? ' data-on style="transition-delay:' + (i * 90) + 'ms"' : '') + '></i></span>';
   S.cfg.routines.forEach(function(r){ var c = r.exercises.filter(function(x){ return key(x.name); }).length;
     rows += '<button type="button" class="wrow' + (done[r.id] || prog[r.id] ? " on" : "") + '" data-act="start" data-id="' + esc(r.id) + '" data-rv><span><b class="wn">' + esc(r.name || "Workout") + '</b><small>' + c + (c === 1 ? " lift" : " lifts") + (last[r.id] ? " · Last " + esc(rel(last[r.id])) : "") + '</small></span>' +
-      '<span class="wr">' + (prog[r.id] ? '<span class="tag q">In progress</span>' : done[r.id] ? '<span class="tag">Complete</span>' : '') + wave(1.2 + Math.min(cnt[r.id] || 0, 6) * 0.55) + '</span></button>'; });
+      '<span class="wr">' + (prog[r.id] ? '<span class="tag q">In progress</span>' : done[r.id] ? '<span class="tag">Complete</span>' : '') + '</span></button>'; });
   var need = bkNeed();
   return '<div class="hero"></div>' +
     '<div data-rv><div class="wk"><span class="wk-s"><b>' + n + '</b> of ' + goal + ' this week</span></div><div class="segs">' + segs + '</div></div>' +
