@@ -78,7 +78,7 @@ main::-webkit-scrollbar{display:none}
 #view{z-index:1}
 #ghost{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .gh{position:absolute;right:-30px;top:calc(var(--st) + 208px);will-change:transform}
-.gh-w{display:block;writing-mode:vertical-rl;font:400 152px/1 "Wake Greek",serif;letter-spacing:.01em;white-space:nowrap;color:transparent;background:linear-gradient(180deg,rgba(20,211,194,.15),rgba(20,211,194,.075) 45%,rgba(20,211,194,.015) 88%);-webkit-background-clip:text;background-clip:text;will-change:transform,opacity,filter}
+.gh-w{display:block;writing-mode:vertical-rl;font:400 168px/1 "Wake Greek",serif;letter-spacing:.01em;white-space:nowrap;color:rgba(20,211,194,.16);-webkit-mask-image:linear-gradient(180deg,#000 10%,rgba(0,0,0,.45) 55%,transparent 92%);mask-image:linear-gradient(180deg,#000 10%,rgba(0,0,0,.45) 55%,transparent 92%)}
 .gcap{margin:64px 0 8px;font-size:13px;line-height:1.55;color:var(--mu2);max-width:17em}
 .gcap b{display:block;font-weight:300;font-size:15px;letter-spacing:.16em;color:#9AA9A6;margin-bottom:4px}
 .gcap span{font-family:"Wake Greek",serif;font-size:15px;letter-spacing:.04em;color:rgba(20,211,194,.55);margin-left:10px}
@@ -516,6 +516,8 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-wd.in>*{opacity:1}
 .wd-w{font:100 25px/1.1 var(--font);color:rgba(245,242,236,.9);letter-spacing:.2em;margin-right:-.2em;transition:opacity 1.8s cubic-bezier(.3,.6,.2,1),font-weight 3.4s cubic-bezier(.4,0,.1,1) .3s,letter-spacing 3.4s cubic-bezier(.4,0,.1,1) .3s}
 .h-wd.in .wd-w{font-weight:280;letter-spacing:.07em}
+.wd-p{margin-top:10px;font-size:13px;font-weight:300;letter-spacing:.16em;color:#6F6C66;transition-delay:.7s}
+.wd-p b{font-weight:500;color:#A29E96}
 .wd-o{margin-top:13px;font-size:13px;font-weight:400;letter-spacing:.02em;color:#94918A;transition-delay:.9s}
 .wd-d{margin:7px auto 0;max-width:19em;font-size:13.5px;font-weight:300;line-height:1.55;color:var(--mu);text-wrap:balance;transition-delay:1.4s}
 .h-wd.now>*,.h-wd.now .wd-w{transition:none}
@@ -1441,7 +1443,7 @@ function goBack(){
 var TABS = ["today","history","progress","body"];
 var GH = { progress:["προκοπή","prokopē","The Stoic word for progress: the slow, daily kind."], history:["μνήμη","mnēmē","Greek for memory."], body:["σῶμα","sōma","Greek for the body."] }, GHK = "";
 var CAP = { home:["ἄσκησις","askēsis","Greek for training. To the Stoics, the body and the character were trained as one."] };
-function ghostCap(type){ var g = GH[type] || CAP[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
+function ghostCap(type){ return ""; var g = GH[type] || CAP[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
 function ghostSet(type){
   if(type === GHK) return; GHK = type; var box = $("#ghost"), g = GH[type];
   [].forEach.call(box.children, function(o){ if(calm){ o.remove(); return; } var a = o.animate([{ opacity:1 }, { opacity:0, filter:"blur(6px)" }], { duration:520, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" }); a.onfinish = function(){ o.remove(); }; });
@@ -1974,6 +1976,8 @@ var LINES = [
   ["Dwell on the beauty of life. Watch the stars, ", "and see yourself running with them.", "Marcus Aurelius"]
 ];
 var WORDS = [["Askēsis","ἄσκησις","g","Greek for training","To the Stoics, training the body and training the character were one practice."],["Gaman","我慢","j","Japanese for endurance","Bearing what is hard with patience and dignity."],["Tapas","तपस्","s","Sanskrit for heat","The inner fire that discipline builds."],["Aretē","ἀρετή","g","Greek for excellence","Becoming the fullest version of what you are."],["Shoshin","初心","j","Japanese for beginner’s mind","Meeting the familiar as if for the first time."],["Hexis","ἕξις","g","Greek for a settled state","Aristotle’s word for what repetition makes of you."],["Abhyāsa","अभ्यास","s","Sanskrit for practice","Steady effort, kept up for a long time without a break."],["Zanshin","残心","j","Japanese for remaining mind","The awareness that stays after the movement is finished."],["Ponos","πόνος","g","Greek for toil","Honest labour, which the Greeks counted the price of anything good."],["Kaizen","改善","j","Japanese for improvement","Change for the better, a little at a time."],["Enkrateia","ἐγκράτεια","g","Greek for self-mastery","Power over yourself, before power over anything else."],["Dhyāna","ध्यान","s","Sanskrit for meditation","It travelled east as chan, and arrived in Japan as zen."],["Mushin","無心","j","Japanese for no mind","Acting cleanly, without the chatter of thought."],["Karteria","καρτερία","g","Greek for perseverance","Staying with the work after it stops being easy."],["Kintsugi","金継ぎ","j","Japanese for golden joinery","Broken pottery mended with gold, so the repair becomes the beauty."],["Sthira","स्थिर","s","Sanskrit for steady","Firm and unhurried. In yoga it is always paired with ease."],["Agōn","ἀγών","g","Greek for contest","The struggle itself, and the root of the word agony."],["Fudōshin","不動心","j","Japanese for immovable mind","Composure that pressure cannot shift."],["Sōphrosynē","σωφροσύνη","g","Greek for soundness of mind","Knowing your measure and keeping to it."],["Vīrya","वीर्य","s","Sanskrit for vigour","The energy to keep going, gladly."],["Shugyō","修行","j","Japanese for deep training","Practice that polishes the person, not only the skill."],["Praxis","πρᾶξις","g","Greek for doing","Knowledge counts once it is acted on."],["Kokoro","心","j","Japanese for heart","Heart, mind and spirit as one thing, not three."],["Andreia","ἀνδρεία","g","Greek for courage","To Aristotle, the mean between fear and recklessness."],["Sādhanā","साधना","s","Sanskrit for daily practice","A discipline kept for its own sake."],["Keiko","稽古","j","Japanese for practice","Literally, to reflect on what came before."],["Prosochē","προσοχή","g","Greek for attention","The Stoic habit of watching what you do while you do it."],["Seijaku","静寂","j","Japanese for stillness","Quiet found in the middle of activity."],["Eudaimonia","εὐδαιμονία","g","Greek for flourishing","A life lived well, built from what you do each day."],["Wabi-sabi","侘寂","j","Japanese for weathered beauty","Finding grace in the imperfect and the unfinished."],["Ataraxia","ἀταραξία","g","Greek for untroubled","A calm that outside events cannot disturb."],["Kairos","καιρός","g","Greek for the right moment","Not clock time. The moment that asks to be used."]];
+var PRON = {"Askēsis": "*ahs*-kay-sis", "Gaman": "gah-mahn", "Tapas": "*tuh*-pus", "Aretē": "ah-reh-*tay*", "Shoshin": "shoh-sheen", "Hexis": "*hek*-sis", "Abhyāsa": "ub-*yah*-suh", "Zanshin": "zahn-sheen", "Ponos": "*poh*-nos", "Kaizen": "kai-zen", "Enkrateia": "en-kra-*tay*-uh", "Dhyāna": "*dyah*-nuh", "Mushin": "moo-sheen", "Karteria": "kar-teh-*ree*-uh", "Kintsugi": "kin-tsoo-gee", "Sthira": "*sti*-ruh", "Agōn": "ah-*gohn*", "Fudōshin": "foo-doh-sheen", "Sōphrosynē": "soh-*froh*-soo-nay", "Vīrya": "*veer*-yuh", "Shugyō": "shoo-gyoh", "Praxis": "*prak*-sis", "Kokoro": "koh-koh-roh", "Andreia": "an-*dray*-uh", "Sādhanā": "*sah*-duh-nah", "Keiko": "kay-koh", "Prosochē": "pro-soh-*kay*", "Seijaku": "say-jah-koo", "Eudaimonia": "yoo-dye-*moh*-nee-uh", "Wabi-sabi": "wah-bee sah-bee", "Ataraxia": "at-uh-*rak*-see-uh", "Kairos": "*kai*-ros"};
+function pron(w){ var p = PRON[w]; return p ? esc(p).replace(/\*([^*]+)\*/g, '<b>$1</b>') : ''; }
 var WF = { g:'"Wake Greek",serif', j:'"Wake Kanji",serif', s:'"Wake Sanskrit",serif' }, WD = { off:null, t0:-1, tm:0, key:"" };
 function wordToday(){ var n = Math.round((dayStart(Date.now()) - new Date(2026, 10, 17).getTime()) / 864e5), L = WORDS.length; return WORDS[((n % L) + L) % L]; }
 /* paint the script once into its own small canvas; water() then floats it row by row */
@@ -1994,7 +1998,7 @@ function wordSet(delay){
   var x = wordToday(), cd = $("#h-cd");
   clearTimeout(WD.tm); WD.t0 = -1; WD.off = null;
   cd.classList.add("now"); cd.classList.remove("in");
-  cd.innerHTML = '<b class="wd-w">' + esc(x[0]) + '</b><span class="wd-o">' + esc(x[3]) + '</span><span class="wd-d">' + esc(x[4]) + '</span>';
+  cd.innerHTML = '<b class="wd-w">' + esc(x[0]) + '</b>' + (PRON[x[0]] ? '<span class="wd-p">' + pron(x[0]) + '</span>' : '') + '<span class="wd-o">' + esc(x[3]) + '</span><span class="wd-d">' + esc(x[4]) + '</span>';
   void cd.offsetWidth; cd.classList.remove("now");
   var cv = $("#h-sc"); cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
   var ready = function(){ if(wordToday() === x && !$("#hero").hidden) try{ wordBuild(x); }catch(e){} };
