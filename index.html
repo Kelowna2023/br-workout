@@ -72,8 +72,9 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
 /* the neighbouring section, laid out beside this one while you swipe */
-#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;background:var(--bg);-webkit-mask-image:none;mask-image:none;padding:0}
+#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;will-change:transform;contain:layout paint;background:var(--bg);-webkit-mask-image:none;mask-image:none;padding:0}
 main.peek>.pk-in{padding:calc(var(--st) + 52px) var(--g) 26px;will-change:opacity}
+main.peek[hidden]{display:block!important;visibility:hidden}
 #app.pk-home #wm{opacity:1!important;visibility:visible}
 /* home: the name stays put; the list dissolves as it slides up under the reflection */
 #app[data-s="home"] main{-webkit-mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px));mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px))}
@@ -1301,7 +1302,7 @@ function render(){
   initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ [].forEach.call(view.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); }); }); });
-  afterRender();
+  afterRender(); if(PK.prep) PK.prep();
 }
 /* every page arrives the same way: its blocks rise in reading order, list rows one by one */
 function revealList(){ var out = []; [].forEach.call(view.children, function(c){ if(c.classList.contains("hero") || !c.offsetHeight) return; if(c.classList.contains("list") && c.children.length > 1) [].forEach.call(c.children, function(k){ out.push(k); }); else out.push(c); }); return out.slice(0, 18); }
@@ -1412,24 +1413,34 @@ function goBack(){
 }
 /* swipe sideways between the four sections, like turning a page: the next section is laid out beside this one and both travel
    together under the thumb. Nothing fades. Let go and a critically damped spring carries on from the thumb's own speed */
-var TABS = ["today","history","progress","body"];
+var TABS = ["today","history","progress","body"], PK = { prep:null };
 function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n).getBoundingClientRect(); return r.left - tb.left + r.width / 2; }
 (function(){
-  var x0 = 0, y0 = 0, dx = 0, lock = 0, i0 = 0, W = 1, lx = 0, lt = 0, v = 0, dot, dy0 = "", movers = [], tx = {}, raf = 0, pk = null, pkN = "", fromHome = false;
+  var mvRaf = 0, x0 = 0, y0 = 0, dx = 0, lock = 0, i0 = 0, W = 1, lx = 0, lt = 0, v = 0, dot, dy0 = "", movers = [], tx = {}, raf = 0, pk = null, pkN = "", fromHome = false;
   var paneOK = function(){ return /^(home|history|progress|body)$/.test(app.dataset.s) && $("#hero").hidden && !EN && $("#sheet").hidden && !UI.navBusy; };
   var mix = function(p){ return "color-mix(in srgb, var(--tx) " + (p * 100).toFixed(1) + "%, var(--mu2))"; };
   var pageHTML = function(n){ var keep = UI.pgEx, h = "";
     try{ if(n === "today") h = vHome(); else if(n === "history") h = vHistory(); else if(n === "progress"){ UI.pgEx = null; h = vProgress(); } else h = vBody(); } catch(e){ h = ""; } finally { UI.pgEx = keep; }
     return h; };
-  var dropPeek = function(){ if(pk){ pk.remove(); pk = null; } pkN = ""; app.classList.remove("pk-home"); };
+  /* the neighbouring sections are laid out ahead of time, hidden, so the first frame of a swipe has nothing to build */
+  var cache = {}, prepT = 0;
+  var build = function(n){
+    var el = document.createElement("main"); el.className = "peek" + (n === "today" ? " home" : ""); el.setAttribute("aria-hidden", "true"); el.hidden = true;
+    el.style.left = view.offsetLeft + "px"; el.style.top = view.offsetTop + "px"; el.style.width = view.offsetWidth + "px"; el.style.height = view.offsetHeight + "px";
+    var cs = getComputedStyle(view); el.innerHTML = '<div class="pk-in" style="padding:' + cs.padding + '">' + pageHTML(n) + '</div>'; view.parentNode.insertBefore(el, view.nextSibling);
+    [].forEach.call(el.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); });
+    if(n === "today"){ var rows = el.querySelectorAll(".wrow"), lst = el.querySelector(".list");
+      if(rows.length && lst){ var rh = clamp(Math.floor((el.clientHeight - (lst.getBoundingClientRect().top - el.getBoundingClientRect().top) - 14) / rows.length), 84, 132); [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; }); } }
+    el.style.transform = "translate3d(" + (view.offsetWidth * 2) + "px,0,0)";
+    return el; };
+  var flush = function(){ for(var n in cache) cache[n].remove(); cache = {}; };
+  PK.prep = function(){ clearTimeout(prepT); flush(); if(!/^(home|history|progress|body)$/.test(app.dataset.s)) return;
+    prepT = setTimeout(function(){ if(lock === 1 || pk) return; var i = Math.max(0, TABS.indexOf(viewName()));
+      [TABS[i - 1], TABS[i + 1]].forEach(function(n){ if(n && !cache[n]) try{ cache[n] = build(n); }catch(e){} }); }, 350); };
+  var dropPeek = function(){ if(pk){ pk.hidden = true; pk.style.transform = "translate3d(" + (W * 2) + "px,0,0)"; pk = null; } pkN = ""; app.classList.remove("pk-home"); };
   var peek = function(n){ if(pkN === n) return; dropPeek(); if(!n) return;
-    pk = document.createElement("main"); pk.className = "peek" + (n === "today" ? " home" : ""); pk.setAttribute("aria-hidden", "true");
-    pk.style.left = view.offsetLeft + "px"; pk.style.top = view.offsetTop + "px"; pk.style.width = view.offsetWidth + "px"; pk.style.height = view.offsetHeight + "px";
-    var cs = getComputedStyle(view); pk.innerHTML = '<div class="pk-in" style="padding:' + cs.padding + '">' + pageHTML(n) + '</div>'; view.parentNode.insertBefore(pk, view.nextSibling); pkN = n;
-    [].forEach.call(pk.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); });
-    if(n === "today"){ var rows = pk.querySelectorAll(".wrow"), lst = pk.querySelector(".list");
-      if(rows.length && lst){ var rh = clamp(Math.floor((pk.clientHeight - (lst.getBoundingClientRect().top - pk.getBoundingClientRect().top) - 14) / rows.length), 84, 132); [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; }); }
-      app.classList.add("pk-home"); } };
+    pk = cache[n] || (cache[n] = build(n)); pk.hidden = false; pkN = n;
+    if(n === "today") app.classList.add("pk-home"); };
   var place = function(x){
     var j = i0 + (x < 0 ? 1 : -1), side = x < 0 ? 1 : -1, open = TABS[j] && x !== 0;
     peek(open ? TABS[j] : "");
@@ -1469,8 +1480,8 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
     dx = t.clientX - x0; var j = i0 + (dx < 0 ? 1 : -1);
     if(!TABS[j]){ var r = Math.abs(dx); dx = Math.sign(dx) * W * 0.12 * (1 - Math.exp(-r / (W * 0.45))); }
     else dx = Math.max(-W, Math.min(W, dx));
-    place(dx); }, { passive:false });
-  var end = function(e){ if(lock !== 1){ lock = 0; return; } lock = 0; UI.swx = false;
+    if(!mvRaf) mvRaf = requestAnimationFrame(function(){ mvRaf = 0; if(lock === 1) place(dx); }); }, { passive:false });
+  var end = function(e){ if(lock !== 1){ lock = 0; return; } lock = 0; UI.swx = false; cancelAnimationFrame(mvRaf); mvRaf = 0;
     if(e && e.timeStamp - lt > 90) v = 0; /* held still before letting go: no fling */
     var j = i0 + (dx < 0 ? 1 : -1), sgn = dx < 0 ? -1 : 1, edge = !TABS[j];
     var go = !edge && (Math.abs(dx) > W * 0.35 || (Math.abs(v) > 0.3 && Math.sign(v) === sgn && Math.abs(dx) > 24));
