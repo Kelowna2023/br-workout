@@ -490,17 +490,19 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-sea{top:43%}
 #h-sc{position:absolute;left:0;top:0;pointer-events:none;will-change:opacity}
 #h-cd.h-wd{position:absolute;left:8%;right:8%;top:77%;margin:0;text-align:center}
-.h-wd>*{display:block;opacity:0;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1)}
+.h-wd>*{display:block;opacity:0;transition:opacity 1.8s cubic-bezier(.3,.6,.2,1)}
 .h-wd.in>*{opacity:1}
-.wd-w{font:100 25px/1.1 var(--font);color:rgba(245,242,236,.9);letter-spacing:.2em;margin-right:-.2em;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1),font-weight 4.2s cubic-bezier(.4,0,.1,1) .4s,letter-spacing 4.2s cubic-bezier(.4,0,.1,1) .4s}
+.wd-w{font:100 25px/1.1 var(--font);color:rgba(245,242,236,.9);letter-spacing:.2em;margin-right:-.2em;transition:opacity 1.8s cubic-bezier(.3,.6,.2,1),font-weight 3.4s cubic-bezier(.4,0,.1,1) .3s,letter-spacing 3.4s cubic-bezier(.4,0,.1,1) .3s}
 .h-wd.in .wd-w{font-weight:280;letter-spacing:.07em}
-.wd-o{margin-top:13px;font-size:13px;font-weight:400;letter-spacing:.02em;color:#94918A;transition-delay:1.5s}
-.wd-d{margin:7px auto 0;max-width:19em;font-size:13.5px;font-weight:300;line-height:1.55;color:var(--mu);text-wrap:balance;transition-delay:2.2s}
+.wd-o{margin-top:13px;font-size:13px;font-weight:400;letter-spacing:.02em;color:#94918A;transition-delay:.9s}
+.wd-d{margin:7px auto 0;max-width:19em;font-size:13.5px;font-weight:300;line-height:1.55;color:var(--mu);text-wrap:balance;transition-delay:1.4s}
 .h-wd.now>*,.h-wd.now .wd-w{transition:none}
 @media (prefers-reduced-motion:reduce){.h-wd>*,.wd-w{transition:none}}
 /* the way in: a single thread of light rises out of the water and dissolves, again and again, like a drop of light surfacing. It follows the finger out */
-#h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;transition:opacity 2.2s cubic-bezier(.3,.6,.2,1)}
-#h-cue.in{opacity:1}#h-cue.now{transition:none}
+#h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;transform:translate3d(0,18px,0) scaleY(.15);transform-origin:50% 100%;filter:blur(5px);transition:opacity 2.2s cubic-bezier(.3,.6,.2,1),transform 2.6s cubic-bezier(.16,1,.3,1),filter 2.2s cubic-bezier(.3,.6,.2,1)}
+#h-cue.in{opacity:1;transform:none;filter:blur(0)}#h-cue.now{transition:none}
+#h-cue:not(.in) i,#h-cue:not(.in) em{animation:none}
+#h-cue.in i,#h-cue.in em{animation-delay:1.5s}#h-cue.now i,#h-cue.now em{animation-delay:0s}
 #h-cue b{position:absolute;inset:0;will-change:transform,opacity}
 #h-cue b::before{content:"";position:absolute;left:.5px;top:0;bottom:0;width:1px;transform:scaleX(.5);background:linear-gradient(to top,transparent,rgba(20,211,194,.13) 28%,rgba(20,211,194,.13) 72%,transparent)}
 #h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 100%;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.75) 62%,#C9FFF8);box-shadow:0 0 7px rgba(20,211,194,.55);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
@@ -1398,6 +1400,7 @@ function tabMark(n, glide){
   }
 }
 addEventListener("resize", function(){ tabMark(viewName(), false); });
+addEventListener("resize", function(){ if(!$("#hero").hidden) cuePlace(); });
 function goBack(){
   var type = view.dataset.v, a = S.active;
   if(type === "wk"){ var rid = a.routineId; nav(function(){ S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + rid + '"] .wn'); }
@@ -1998,15 +2001,23 @@ function wordSet(delay){
   var show = function(){ cd.classList.add("in"); WD.t0 = performance.now(); };
   if(calm){ cd.classList.add("now", "in"); WD.t0 = 0; } else WD.tm = setTimeout(show, delay);
 }
+function cuePlace(){
+  var c = $("#h-cue"), el = $("#hero"), d = $("#h-cd").lastElementChild; if(!d || el.hidden) return;
+  c.style.top = ""; c.style.height = ""; c.style.bottom = "";
+  var hb = el.getBoundingClientRect(), sb = Math.max(0, parseFloat(getComputedStyle(c).bottom) - 16), tb = d.getBoundingClientRect().bottom - hb.top;
+  var room = hb.height - sb - 12 - tb, h = Math.max(26, Math.min(46, room - 44)), top = tb + Math.max(22, (room - h) * 0.42);
+  c.style.bottom = "auto"; c.style.top = top.toFixed(1) + "px"; c.style.height = h.toFixed(1) + "px";
+}
 function cueSet(delay){
   var c = $("#h-cue"); clearTimeout(HR.cueTm); c.classList.add("now"); c.classList.remove("in"); void c.offsetWidth; c.classList.remove("now");
+  cuePlace(); try{ document.fonts.ready.then(cuePlace); }catch(e){}
   if(calm || delay <= 0){ c.classList.add("now", "in"); return; }
   HR.cueTm = setTimeout(function(){ c.classList.add("in"); }, delay);
 }
 function wordOff(){ clearTimeout(WD.tm); WD.t0 = -1; $("#h-cd").classList.remove("in"); }
 function wordDraw(ts){
   var s = WD.off; if(!s || WD.t0 < 0) return;
-  var f = calm ? 1 : Math.min(1, (ts - WD.t0) / 4200); f = 1 - Math.pow(1 - f, 3);
+  var f = calm ? 1 : Math.min(1, (ts - WD.t0) / 3200); f = 1 - Math.pow(1 - f, 3);
   var ex = EN ? Math.min(1, EN.t / 760) : 0, g = s.ctx, d = s.d, still = 1 - f + ex * ex * 1.3, time = calm ? 0 : ts; f *= Math.pow(1 - ex, 1.6);
   g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, s.w + s.M * 2, s.h);
   for(var j = 0; j < s.h; j++){
@@ -2028,8 +2039,8 @@ function tideGauge(){
 function hero(quick){
   var el = $("#hero"), d = new Date();
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "";
-  wordSet(quick ? 1300 : 2300);
-  cueSet(quick ? 2700 : 4600);
+  wordSet(quick ? 900 : 1500);
+  cueSet(quick ? 2300 : 3400);
   UI.intro = true; el.hidden = false; HR.busy = false; wm.querySelector("i").classList.remove("breathe");
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   TG.t0 = performance.now(); TG.up.length = 0; TG.s = null; TG.last = 0;
