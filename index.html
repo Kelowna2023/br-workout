@@ -57,6 +57,9 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 .bk svg{width:20px;height:20px}
 #bar-t{position:absolute;left:50%;top:var(--st);height:52px;display:flex;align-items:center;transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:-.02em;opacity:var(--tp,0);max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .ib{width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:50%;transition:transform .3s var(--spring),color .2s}
+.ib.due,#tabs a.due{position:relative}
+.ib.due::after{content:"";position:absolute;top:10px;right:9px;width:5px;height:5px;border-radius:50%;background:var(--t);box-shadow:0 0 0 2px var(--bg),0 0 8px rgba(20,211,194,.55)}
+#tabs a.due::after{content:"";position:absolute;top:11px;right:calc(50% - 27px);width:4px;height:4px;border-radius:50%;background:var(--t);box-shadow:0 0 6px rgba(20,211,194,.6)}
 .ib.tap{transform:scale(.88);color:var(--tx)}
 #bar-date{position:absolute;left:var(--g);top:calc(var(--st) + 30px);height:52px;display:flex;align-items:center;font-size:14px;color:#A8A49C;font-weight:500;pointer-events:none}
 
@@ -1301,16 +1304,16 @@ function render(){
   var k = screenKey(), fresh = k !== UI.key, keep = view.scrollTop, type = k.split(":")[0], a = S.active, l = "", t = "", r = "";
   UI.key = k; if(fresh) UI.th = {};
   var html = type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
-  if(GH[type]) html += ghostCap(type);
+  if(GH[type] || CAP[type]) html += ghostCap(type);
   view.innerHTML = html; view.dataset.v = type; app.dataset.s = type; ghostSet(UI.intro ? "" : type);
   if(type !== "ex" && UI.clock){ UI.clock = false; $("#clock").hidden = true; }
-  if(type === "home") r = ib("setup-open", "Setup", IC.gear);
+  if(type === "home") r = ib("setup-open", "Setup", IC.gear).replace('class="ib"', 'class="ib' + (bkNeed() ? " due" : "") + '"');
   else if(type === "wk"){ l = bk("to-list", "Workouts"); t = a.name; }
   else if(type === "ex"){ l = bk("ex-close", a.name); t = a.exercises[a.openEx].name; r = ib("ex-more", "Options", IC.more, ' data-e="' + a.openEx + '"'); }
   else if(type === "pg"){ l = bk("pg-back", "Progress"); t = (histIndex()[UI.pgEx] || {}).name || ""; }
   else if(type === "setup"){ l = bk("setup-close", "Workouts"); t = "Setup"; }
   else t = { history:"History", progress:"Progress", body:"Body" }[type];
-  $("#bar-l").innerHTML = l; $("#bar-t").textContent = t; $("#bar-r").innerHTML = r;
+  $("#bar-l").innerHTML = l; $("#bar-t").textContent = t; $("#bar-r").innerHTML = r; try{ $("#tab-body").classList.toggle("due", !!checkin().due); }catch(e){}
   var d = new Date(); $("#bar-date").textContent = d.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + "  ·  Week " + isoWeek(d);
   tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
@@ -1437,7 +1440,8 @@ function goBack(){
 /* sections change by tapping the tab bar only, the iOS way: no sideways swipe between them (it fought swipe-back, the calendar and scrolling) */
 var TABS = ["today","history","progress","body"];
 var GH = { progress:["προκοπή","prokopē","The Stoic word for progress: the slow, daily kind."], history:["μνήμη","mnēmē","Greek for memory."], body:["σῶμα","sōma","Greek for the body."] }, GHK = "";
-function ghostCap(type){ var g = GH[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
+var CAP = { home:["ἄσκησις","askēsis","Greek for training. To the Stoics, the body and the character were trained as one."] };
+function ghostCap(type){ var g = GH[type] || CAP[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
 function ghostSet(type){
   if(type === GHK) return; GHK = type; var box = $("#ghost"), g = GH[type];
   [].forEach.call(box.children, function(o){ if(calm){ o.remove(); return; } var a = o.animate([{ opacity:1 }, { opacity:0, filter:"blur(6px)" }], { duration:520, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" }); a.onfinish = function(){ o.remove(); }; });
@@ -1637,12 +1641,10 @@ function vHome(){
   S.cfg.routines.forEach(function(r){ var c = r.exercises.filter(function(x){ return key(x.name); }).length;
     rows += '<button type="button" class="wrow' + (done[r.id] || prog[r.id] ? " on" : "") + '" data-act="start" data-id="' + esc(r.id) + '" data-rv><span><b class="wn">' + esc(r.name || "Workout") + '</b><small>' + c + (c === 1 ? " lift" : " lifts") + (last[r.id] ? " · Last " + esc(rel(last[r.id])) : "") + '</small></span>' +
       '<span class="wr">' + (prog[r.id] ? '<span class="tag q">In progress</span>' : done[r.id] ? '<span class="tag">Complete</span>' : '') + '</span></button>'; });
-  var need = bkNeed();
   return '<div class="hero"></div>' +
     '<div data-rv><div class="wk"><span class="wk-s"><b>' + n + '</b> of ' + goal + ' this week</span></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
-    (need ? '<div class="foot" data-rv><button type="button" class="t" data-act="backup">Back up your ' + need + (need === 1 ? " new workout" : " new workouts") + '</button></div>' : '') +
-    (checkin().due ? '<div class="foot" data-rv><button type="button" class="t" data-act="ci-open">Check-in day. Log your photo and weight</button></div>' : '');
+    '';
 }
 
 /* ---------- workout: the list of lifts ---------- */
@@ -1872,7 +1874,7 @@ function vSetup(){
     '<div class="sec"><h2>The goal</h2></div><div class="list">' +
     '<div class="opt"><span>Goal bodyweight (' + esc(S.cfg.units) + ')</span><input class="field num" id="goal-w" inputmode="decimal" style="width:92px;text-align:center" value="' + esc(S.cfg.goal.w) + '" aria-label="Goal bodyweight"></div>' +
     '<div class="opt"><span>The date</span><input class="field" id="goal-d" type="date" style="width:170px" value="' + esc(S.cfg.goal.date) + '" aria-label="Goal date"></div></div>' +
-    '<div class="sec"><h2>Backup</h2></div><div class="muted">' + (k ? "Last backup " + esc(fmtShort(k.at)) + ", " + (k.n || 0) + " workouts." : "No backup saved yet.") + ' Your workouts live on this phone only.</div>' +
+    '<div class="sec"><h2>Backup</h2></div><div class="muted">' + (k ? "Last backup " + esc(fmtShort(k.at)) + ", " + (k.n || 0) + " workouts." : "No backup saved yet.") + (bkNeed() ? ' <b style="color:var(--tx);font-weight:500">' + bkNeed() + (bkNeed() === 1 ? " new workout" : " new workouts") + ' since.</b>' : '') + ' Your workouts live on this phone only.</div>' +
     '<div class="stack" style="margin-top:14px"><button type="button" class="btn" data-act="backup">Back up or restore</button></div>' +
     '<div class="ver">Wake · build ' + BUILD + '</div>';
   return h;
