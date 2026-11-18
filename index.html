@@ -491,10 +491,10 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 #h-cd.h-wd{position:absolute;left:8%;right:8%;top:77%;margin:0;text-align:center}
 .h-wd>*{display:block;opacity:0;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1)}
 .h-wd.in>*{opacity:1}
-.wd-w{font:120 30px/1.1 var(--font);color:var(--tx);letter-spacing:.16em;margin-right:-.16em;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1),font-weight 4.2s cubic-bezier(.4,0,.1,1) .4s,letter-spacing 4.2s cubic-bezier(.4,0,.1,1) .4s}
-.h-wd.in .wd-w{font-weight:540;letter-spacing:.02em}
-.wd-o{margin-top:14px;font-size:15px;font-weight:500;color:#A3A29C;transition-delay:1.5s}
-.wd-d{margin:5px auto 0;max-width:17.5em;font-size:15px;line-height:1.45;color:var(--mu);text-wrap:balance;transition-delay:2.2s}
+.wd-w{font:100 25px/1.1 var(--font);color:rgba(245,242,236,.9);letter-spacing:.2em;margin-right:-.2em;transition:opacity 2.4s cubic-bezier(.3,.6,.2,1),font-weight 4.2s cubic-bezier(.4,0,.1,1) .4s,letter-spacing 4.2s cubic-bezier(.4,0,.1,1) .4s}
+.h-wd.in .wd-w{font-weight:280;letter-spacing:.07em}
+.wd-o{margin-top:13px;font-size:13px;font-weight:400;letter-spacing:.02em;color:#94918A;transition-delay:1.5s}
+.wd-d{margin:7px auto 0;max-width:19em;font-size:13.5px;font-weight:300;line-height:1.55;color:var(--mu);text-wrap:balance;transition-delay:2.2s}
 .h-wd.now>*,.h-wd.now .wd-w{transition:none}
 @media (prefers-reduced-motion:reduce){.h-wd>*,.wd-w{transition:none}}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
@@ -1909,7 +1909,7 @@ function wordBuild(x){
   var el = $("#hero"), cv = $("#h-sc"), W = el.clientWidth, H = el.clientHeight, d = Math.min(window.devicePixelRatio || 1, 3), ff = WF[x[2]];
   var c = document.createElement("canvas"), o = c.getContext("2d");
   o.font = "100px " + ff; var m = o.measureText(x[1]);
-  var size = Math.min(100 * (W * 0.8) / m.width, H * 0.15, 150);
+  var size = Math.min(100 * (W * 0.7) / m.width, H * 0.13, 130);
   o.font = size + "px " + ff; m = o.measureText(x[1]);
   var asc = m.actualBoundingBoxAscent, desc = m.actualBoundingBoxDescent, pad = 10, w = Math.ceil(m.width + pad * 2), h = Math.ceil(asc + desc + pad * 2);
   c.width = Math.ceil(w * d); c.height = Math.ceil(h * d); o.scale(d, d); o.font = size + "px " + ff; o.fillStyle = "#14D3C2"; o.fillText(x[1], pad, pad + asc);
@@ -1939,7 +1939,7 @@ function wordDraw(ts){
   for(var j = 0; j < s.h; j++){
     var k = j / s.h, amp = 0.7 + k * 1.3 + still * (5 + k * 9);
     var x = Math.sin(j * 0.21 - time * 0.0009) * amp + Math.sin(j * 0.063 + time * 0.0005) * amp * 0.6;
-    g.globalAlpha = f * (0.27 * Math.pow(1 - k, 1.35) + 0.035);
+    g.globalAlpha = f * (0.2 * Math.pow(1 - k, 1.35) + 0.025);
     g.drawImage(s.c, 0, j * d, s.c.width, d, s.M + x, j, s.w, 1);
   }
   g.globalAlpha = 1;
