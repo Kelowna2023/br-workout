@@ -288,7 +288,11 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 /* the tab bar: a floating soft-square of smoked glass, the same corners as the buttons. The page runs on underneath it, softened by the blur;
    a glass key lit from below in teal slides to the section you tap */
 #tabs{position:absolute;left:16px;right:16px;bottom:calc(max(var(--sb), 12px) + 4px);display:flex;padding:5px;border-radius:20px;background:rgba(18,22,22,.6);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.4);z-index:15;view-transition-name:tabs;transform:translateZ(0)}
-#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:15px;background:radial-gradient(120% 140% at 50% 120%,rgba(20,211,194,.42),rgba(15,168,155,.16) 45%,rgba(20,211,194,.05) 80%);box-shadow:inset 0 0 0 .5px rgba(120,240,230,.28),inset 0 1px 0 rgba(255,255,255,.06),0 0 18px rgba(20,211,194,.14);pointer-events:none;opacity:0;will-change:transform,width}
+#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:15px;background:radial-gradient(90% 70% at 50% 118%,rgba(20,211,194,.2),rgba(20,211,194,.05) 55%,transparent 80%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.075),inset 0 1px 0 rgba(255,255,255,.05);pointer-events:none;opacity:0;will-change:transform,width}
+#tab-pill::after{content:"";position:absolute;left:34%;right:34%;bottom:0;height:1px;transform:scaleY(.5);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.75),transparent)}
+/* a soft fall to black behind the bar, so the page dissolves before it reaches the glass */
+#tab-veil{position:absolute;left:0;right:0;bottom:0;height:calc(max(var(--sb), 12px) + 104px);background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.72) 34%,#000 52%);pointer-events:none;z-index:14}
+#app[data-s="wk"] #tab-veil,#app[data-s="ex"] #tab-veil,#app[data-s="setup"] #tab-veil{display:none}
 #app[data-s="home"] main,#app[data-s="history"] main,#app[data-s="progress"] main,#app[data-s="body"] main{padding-bottom:calc(max(var(--sb), 12px) + 96px)}
 #tabs a{position:relative;z-index:1;flex:1;display:grid;justify-items:center;align-content:center;min-height:48px;padding:0;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .42s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
 #tabs a.tap{transform:scale(.94)}
@@ -334,6 +338,8 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .acc-b>div{overflow:hidden}
 .acc-b>div>*{opacity:0;transform:translate3d(0,-8px,0);transition:opacity .35s ease,transform .5s var(--out)}
 .acc.open .acc-b>div>*{opacity:1;transform:none;transition:opacity .6s ease .18s,transform .8s var(--out) .18s}
+.pg-up{font-style:normal;color:var(--t);font-size:10px;margin-right:7px;position:relative;top:-1px}
+.sub b{color:var(--tx);font-weight:500}
 .prow{width:100%;min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:16px;border-top:.5px solid #161616}
 .prow span:last-child{color:var(--mu);font-size:14px;font-variant-numeric:tabular-nums;flex:none}
 .acc-b>div>:last-child{margin-bottom:10px}
@@ -656,6 +662,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
   <main id="view"></main>
+  <div id="tab-veil" aria-hidden="true"></div>
   <nav id="tabs" aria-label="Sections">
     <a href="#today" id="tab-today">Train</a>
     <a href="#history" id="tab-history">History</a>
@@ -1297,7 +1304,7 @@ function render(){
   var d = new Date(); $("#bar-date").textContent = d.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + "  ·  Week " + isoWeek(d);
   tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
-  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor(($("#tabs").getBoundingClientRect().top - view.getBoundingClientRect().top - lst.offsetTop - 18) / UI.rows.length), 66, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
+  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor(($("#tabs").getBoundingClientRect().top - view.getBoundingClientRect().top - lst.offsetTop - 34) / UI.rows.length), 66, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
   view.scrollTop = fresh ? 0 : keep;
   initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
@@ -1754,15 +1761,18 @@ function pgData(k){
   return { days:out, best:best };
 }
 function vProgress(){
-  var idx = histIndex(), seen = {}, u = S.cfg.units, h = "";
-  var rowFor = function(name){ var k = key(name), hx = idx[k], tp = hx ? topOf(hx.last) : null; seen[k] = 1;
-    return hx ? '<button type="button" class="prow" data-act="pg-go" data-k="' + esc(k) + '"><span>' + esc(name) + '</span><span>' + (tp ? esc(setTxt(tp.w, tp.r, u)) : "") + '</span></button>'
-      : '<div class="prow"><span style="color:var(--mu2)">' + esc(name) + '</span><span>Not logged yet</span></div>'; };
+  var idx = histIndex(), seen = {}, u = S.cfg.units, h = "", ups = 0, logged = 0, D = {};
+  Object.keys(idx).forEach(function(k){ var d = pgData(k); D[k] = d; if(d.days.length){ logged++; if(d.days.length > 1 && beats(d.best.w, d.best.r, d.days[0].top)) ups++; } });
+  var rowFor = function(name){ var k = key(name), d = D[k]; seen[k] = 1;
+    if(!d || !d.days.length) return '<div class="prow"><span style="color:var(--mu2)">' + esc(name) + '</span><span style="color:var(--mu2)">Not yet</span></div>';
+    var up = d.days.length > 1 && beats(d.best.w, d.best.r, d.days[0].top);
+    return '<button type="button" class="prow" data-act="pg-go" data-k="' + esc(k) + '"><span>' + esc(name) + '</span><span>' + (up ? '<i class="pg-up">▲</i>' : '') + esc(setTxt(d.best.w, d.best.r, u)) + '</span></button>'; };
   S.cfg.routines.forEach(function(r){ var rows = r.exercises.filter(function(x){ return key(x.name); }).map(function(x){ return rowFor(x.name); }).join(""), open = UI.pgGrp === r.id;
     h += '<div class="acc' + (open ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="' + esc(r.id) + '" aria-expanded="' + open + '">' + esc(r.name) + IC.chev + '</button><div class="acc-b"><div>' + rows + '</div></div></div>'; });
   var other = Object.keys(idx).filter(function(k){ return !seen[k]; });
   if(other.length) h += '<div class="acc' + (UI.pgGrp === "_o" ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="_o">Other lifts' + IC.chev + '</button><div class="acc-b"><div>' + other.map(function(k){ return rowFor(idx[k].name); }).join("") + '</div></div></div>';
-  return '<h1 class="big">Progress</h1><div class="sub" data-rv>Pick a workout, then a lift</div><div class="hz" data-rv></div>' + scoreboard() + '<div class="sec"><h2>By workout</h2></div><div class="list">' + h + '</div>';
+  var line = ups ? '<b>' + ups + (ups === 1 ? ' lift' : ' lifts') + '</b> up since you started' : logged ? 'Log a lift twice to see it move' : 'Your lifts show here once you log them';
+  return '<h1 class="big">Progress</h1><div class="sub" data-rv>' + line + '</div><div class="hz" data-rv></div><div class="list" style="margin-top:28px">' + h + '</div>';
 }
 function vProgEx(){
   var d = pgData(UI.pgEx), u = S.cfg.units, name = (histIndex()[UI.pgEx] || {}).name || "", g = gearOf(name), rows = "";
