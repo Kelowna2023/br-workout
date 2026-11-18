@@ -2004,7 +2004,7 @@ function cuePlace(){
   c.style.top = ""; c.style.height = ""; c.style.bottom = "";
   var hb = el.getBoundingClientRect(), sb = Math.max(0, parseFloat(getComputedStyle(c).bottom) - 16), tb = d.getBoundingClientRect().bottom - hb.top;
   /* clear water: at least 40px under the last line of text, ending just above the home bar */
-  var lim = hb.height - Math.max(sb * 0.5, 14), top = tb + 40, h = Math.min(50, lim - top);
+  var lim = hb.height - Math.max(sb * 0.5, 14), top = tb + 30, h = Math.min(70, lim - top);
   if(h < 28){ h = 28; top = Math.max(tb + 24, lim - h); }
   c.style.bottom = "auto"; c.style.top = top.toFixed(1) + "px"; c.style.height = h.toFixed(1) + "px"; c.style.setProperty("--rise", Math.max(6, h - 22).toFixed(1) + "px");
 }
