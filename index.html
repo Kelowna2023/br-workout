@@ -500,13 +500,13 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 @media (prefers-reduced-motion:reduce){.h-wd>*,.wd-w{transition:none}}
 /* the way in: a single thread of light rises out of the water and dissolves, again and again, like a drop of light surfacing. It follows the finger out */
 #h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;clip-path:inset(100% -4px 0 -4px);transition:opacity 1.6s cubic-bezier(.3,.6,.2,1),clip-path 2.4s cubic-bezier(.16,1,.3,1)}
-#h-cue.in{opacity:1;clip-path:inset(-40px -4px 0 -4px)}#h-cue.now{transition:none}
+#h-cue.in{opacity:1;clip-path:inset(0 -4px 0 -4px)}#h-cue.now{transition:none}
 #h-cue:not(.in) i{animation:none}
 #h-cue.in i{animation-delay:1.5s}#h-cue.now i{animation-delay:0s}
 #h-cue b{position:absolute;inset:0;will-change:transform,opacity}
 #h-cue b::before{content:"";position:absolute;left:.5px;top:0;bottom:0;width:1px;transform:scaleX(.5);background:linear-gradient(to top,transparent,rgba(20,211,194,.13) 28%,rgba(20,211,194,.13) 72%,transparent)}
 #h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 100%;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.8) 70%,#E6FFFC);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
-@keyframes cue-rise{0%{opacity:0;transform:translate3d(0,6px,0) scaleY(.4)}16%{opacity:1}52%{opacity:1;transform:translate3d(0,-22px,0) scaleY(1)}70%{opacity:0;transform:translate3d(0,-34px,0) scaleY(.35)}100%{opacity:0;transform:translate3d(0,-34px,0) scaleY(.35)}}
+@keyframes cue-rise{0%{opacity:0;transform:translate3d(0,0,0) scaleY(.4)}16%{opacity:1}52%{opacity:1;transform:translate3d(0,calc(var(--rise,24px) * -.68),0) scaleY(1)}72%{opacity:0;transform:translate3d(0,calc(var(--rise,24px) * -1),0) scaleY(.35)}100%{opacity:0;transform:translate3d(0,calc(var(--rise,24px) * -1),0) scaleY(.35)}}
 @media (prefers-reduced-motion:reduce){#h-cue i{animation:none;opacity:.8;transform:translate3d(0,-14px,0)}}
 #tide{position:absolute;inset:0;z-index:53;pointer-events:none;will-change:transform}
 #tide i{position:absolute;left:0;right:0;background:var(--t);will-change:transform;transform:scaleY(0)}
@@ -2003,8 +2003,10 @@ function cuePlace(){
   var c = $("#h-cue"), el = $("#hero"), d = $("#h-cd").lastElementChild; if(!d || el.hidden) return;
   c.style.top = ""; c.style.height = ""; c.style.bottom = "";
   var hb = el.getBoundingClientRect(), sb = Math.max(0, parseFloat(getComputedStyle(c).bottom) - 16), tb = d.getBoundingClientRect().bottom - hb.top;
-  var room = hb.height - sb - 12 - tb, h = Math.max(26, Math.min(46, room - 44)), top = tb + Math.max(22, (room - h) * 0.42);
-  c.style.bottom = "auto"; c.style.top = top.toFixed(1) + "px"; c.style.height = h.toFixed(1) + "px";
+  /* clear water: at least 40px under the last line of text, ending just above the home bar */
+  var lim = hb.height - Math.max(sb * 0.5, 14), top = tb + 40, h = Math.min(50, lim - top);
+  if(h < 28){ h = 28; top = Math.max(tb + 24, lim - h); }
+  c.style.bottom = "auto"; c.style.top = top.toFixed(1) + "px"; c.style.height = h.toFixed(1) + "px"; c.style.setProperty("--rise", Math.max(6, h - 22).toFixed(1) + "px");
 }
 function cueSet(delay){
   var c = $("#h-cue"); clearTimeout(HR.cueTm); c.classList.add("now"); c.classList.remove("in"); void c.offsetWidth; c.classList.remove("now");
