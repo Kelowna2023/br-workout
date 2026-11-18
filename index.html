@@ -673,6 +673,20 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .list.tight .wn{font-size:22px}.list.tight .wrow small{margin-top:3px}
 .list.tighter .wn{font-size:20px}.list.tighter .wrow small{font-size:12px;margin-top:2px}
 #app[data-s="home"] .list .wrow:last-child{border-bottom-color:transparent}
+/* ---- a quiet piece behind each main page ---- */
+#deco{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.dk-tide,.dk-rings{position:absolute;opacity:0;transition:opacity .9s ease}
+#app[data-s="home"] .dk-tide,#app[data-s="history"] .dk-rings{opacity:1}
+.dk-tide{left:0;right:0;bottom:0;height:var(--lvl,17%);transition:opacity .9s ease,height 2.2s cubic-bezier(.22,1,.36,1)}
+.dk-tide i{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,211,194,var(--ink,.1)),rgba(20,211,194,.035))}
+.dk-tide svg{position:absolute;left:0;bottom:100%;width:200%;height:14px;margin-bottom:-1px;fill:rgba(20,211,194,.035);will-change:transform}
+.dk-tide .w1{animation:drift2 16s linear infinite}
+.dk-tide .w2{height:10px;fill:rgba(20,211,194,.05);animation:drift2 27s linear infinite reverse}
+.dk-tide::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(20,211,194,.5) 30%,rgba(159,245,234,.7) 62%,transparent);opacity:.55}
+.dk-rings{right:0;bottom:calc(max(var(--sb), 12px) + 40px);width:min(118vw,520px);height:min(118vw,520px)}
+.dk-rings .rip{transform-origin:400px 400px;animation:dkrip 7s cubic-bezier(.2,.6,.3,1) infinite}
+@keyframes dkrip{from{transform:scale(1);opacity:.5}to{transform:scale(7.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){.dk-tide svg,.dk-rings .rip{animation:none}.dk-rings .rip{opacity:0}}
 </style>
 </head>
 <body>
@@ -689,6 +703,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
   <div id="ghost" aria-hidden="true"></div>
+  <div id="deco" aria-hidden="true"><div class="dk-tide"><svg class="w1" viewBox="0 0 800 14" preserveAspectRatio="none"><path d="M0 14V7q25-9 50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0V14Z"/></svg><svg class="w2" viewBox="0 0 800 14" preserveAspectRatio="none"><path d="M0 14V7q25-9 50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0V14Z"/></svg><i></i></div><svg class="dk-rings" viewBox="0 0 400 400"></svg></div>
   <main id="view"></main>
   <div id="tab-veil" aria-hidden="true"></div>
   <nav id="tabs" aria-label="Sections">
@@ -1107,7 +1122,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "123";
+var BUILD = "124";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1334,6 +1349,7 @@ function render(){
   tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
   view.style.overflowY = "";
+  deco(type);
   if(type === "home" && UI.rows.length){ fitHome(); requestAnimationFrame(function(){ requestAnimationFrame(fitHome); }); setTimeout(fitHome, 450); setTimeout(fitHome, 1400); }
   view.scrollTop = fresh ? 0 : keep;
   initWheels(); paint(); tick();
@@ -1698,6 +1714,13 @@ function addPhoto(file){
     .then(function(){ toast("Photo saved"); return loadPhotos(); }).catch(function(){ toast("Couldn't save that photo"); });
 }
 
+/* a quiet piece behind each main page: the tide rises with the week on Train, one ring per workout on History */
+function deco(type){ var el = $("#deco"); if(!el) return;
+  if(type === "home"){ var ws = weekStart(Date.now()), goal = Math.max(1, +S.cfg.weeklyGoal || 5), n = S.sessions.filter(function(q){ return q.startedAt >= ws; }).length, f = Math.min(1, n / goal);
+    el.querySelector(".dk-tide").style.setProperty("--lvl", (17 + f * 45).toFixed(1) + "%"); el.querySelector(".dk-tide").style.setProperty("--ink", (0.1 + f * 0.1).toFixed(3)); }
+  if(type === "history"){ var c = Math.min(16, S.sessions.length), h = "", i; for(i = 0; i < c + 2; i++){ var live = i < c, r = 54 + i * 22;
+      h += '<circle cx="400" cy="400" r="' + r + '" fill="none" stroke="#14D3C2" stroke-width="' + (live ? 1 : 0.6) + '" opacity="' + (live ? Math.max(0.08, 0.42 - i * 0.022) : 0.07).toFixed(3) + '"' + (live ? '' : ' stroke-dasharray="2 7"') + '/>'; }
+    h += '<circle class="rip" cx="400" cy="400" r="54" fill="none" stroke="#14D3C2" stroke-width="1"/>'; el.querySelector(".dk-rings").innerHTML = h; } }
 /* the home list always ends above the tab bar: rows share whatever height the screen really has */
 function fitHome(){ if(app.dataset.s !== "home") return; var lst = view.querySelector(".list"), rows = lst ? lst.querySelectorAll(".wrow") : [], tb = $("#tabs"); if(!rows.length || !tb) return;
   var top = lst.getBoundingClientRect().top + view.scrollTop, avail = tb.getBoundingClientRect().top - 12 - top; if(!(avail > 0)) return;
