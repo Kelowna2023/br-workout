@@ -77,8 +77,11 @@ main::-webkit-scrollbar{display:none}
 /* each section's name in Greek, set huge and vertical down the right edge, far behind the page: it surfaces slowly, out of focus into focus, and drifts a little slower than you scroll */
 #view{z-index:1}
 #ghost{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.gh{position:absolute;right:-30px;top:calc(var(--st) + 208px);will-change:transform}
-.gh-w{display:block;writing-mode:vertical-rl;font:400 168px/1 "Wake Greek",serif;letter-spacing:.01em;white-space:nowrap;color:rgba(20,211,194,.16);-webkit-mask-image:linear-gradient(180deg,#000 10%,rgba(0,0,0,.45) 55%,transparent 92%);mask-image:linear-gradient(180deg,#000 10%,rgba(0,0,0,.45) 55%,transparent 92%)}
+.gh{position:absolute;left:0;top:0;will-change:transform}
+.gh svg{display:block}
+.gh .gring,.gh .gme{transform-box:fill-box;transform-origin:center}
+.gh-history .gring{transform-box:view-box;transform-origin:calc(100% + 24px) 36%}
+.gh-w{display:block;will-change:transform,opacity;transform:translateZ(0)}
 .gcap{margin:64px 0 8px;font-size:13px;line-height:1.55;color:var(--mu2);max-width:17em}
 .gcap b{display:block;font-weight:300;font-size:15px;letter-spacing:.16em;color:#9AA9A6;margin-bottom:4px}
 .gcap span{font-family:"Wake Greek",serif;font-size:15px;letter-spacing:.04em;color:rgba(20,211,194,.55);margin-left:10px}
@@ -1342,7 +1345,7 @@ var raf = 0;
 function onScroll(){ if(!raf) raf = requestAnimationFrame(function(){ raf = 0; paint(); }); }
 function paint(){
   var y = view.scrollTop, type = view.dataset.v, bar = $("#bar"), vh = view.clientHeight, gh = $("#ghost").lastElementChild;
-  if(gh) gh.style.transform = "translate3d(0," + (-y * 0.22).toFixed(1) + "px,0)";
+  if(gh) gh.style.transform = "translate3d(0," + (-y * (gh.classList.contains("gh-body") ? 1 : 0.22)).toFixed(1) + "px,0)";
   if(type === "home"){
     /* the wordmark, its date and its reflection stay pinned; the list scrolls up beneath them and dissolves at the horizon */
     if(!UI.intro) wm.style.transform = "translate3d(0," + HERO_Y + "px,0)";
@@ -1444,12 +1447,61 @@ var TABS = ["today","history","progress","body"];
 var GH = { progress:["προκοπή","prokopē","The Stoic word for progress: the slow, daily kind."], history:["μνήμη","mnēmē","Greek for memory."], body:["σῶμα","sōma","Greek for the body."] }, GHK = "";
 var CAP = { home:["ἄσκησις","askēsis","Greek for training. To the Stoics, the body and the character were trained as one."] };
 function ghostCap(type){ return ""; var g = GH[type] || CAP[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
+/* each section gets its own quiet drawing behind the page, made from what that page is about and from your own training */
+var GHOST = { progress:1, history:1, body:1 };
+function ghostArt(type){
+  var W = Math.min(innerWidth, 560), H = innerHeight, sv = function(inner, extra){ return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none" ' + (extra || "") + '>' + inner + '</svg>'; };
+  if(type === "progress"){
+    /* the ascent: a ridge that climbs left to right; the part of the year you've trained is lit, a point of light marks where you are */
+    var weeks = {}, y = new Date().getFullYear(); S.sessions.forEach(function(q){ var d = new Date(q.startedAt); if(d.getFullYear() === y) weeks[isoWeek(d)] = 1; });
+    var done = Object.keys(weeks).length, cur = Math.min(52, isoWeek(new Date())), f = Math.max(0.04, Math.min(1, cur / 52));
+    var ridge = function(seed, top, bot, amp){ var pts = [], n = 64; for(var i = 0; i <= n; i++){ var t = i / n, x = -20 + t * (W + 40),
+        yy = bot - (bot - top) * Math.pow(t, 1.25) - Math.sin(t * 9 + seed) * amp * (0.4 + t) - Math.sin(t * 23 + seed * 2) * amp * 0.35 * (1 - t * 0.5); pts.push([x, yy]); } return pts; };
+    var P = ridge(1.3, H * 0.6, H * 0.94, 11), B = ridge(4.1, H * 0.67, H * 0.97, 8), path = function(a){ return "M" + a.map(function(p){ return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" L"); };
+    var k = Math.round(f * (P.length - 1)), lit = P.slice(0, k + 1), me = P[k];
+    return sv('<defs><linearGradient id="gp" x1="0" x2="1"><stop offset="0" stop-color="#14D3C2" stop-opacity=".05"/><stop offset="1" stop-color="#14D3C2" stop-opacity=".5"/></linearGradient>' +
+      '<linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14D3C2" stop-opacity=".07"/><stop offset="1" stop-color="#14D3C2" stop-opacity="0"/></linearGradient></defs>' +
+      '<path class="gd" d="' + path(B) + '" stroke="#fff" stroke-opacity=".05" stroke-width=".6"/>' +
+      '<path d="' + path(P) + ' L' + (W + 20) + ' ' + H + ' L-20 ' + H + 'Z" fill="url(#gf)" class="gfade"/>' +
+      '<path class="gd" d="' + path(P) + '" stroke="#fff" stroke-opacity=".09" stroke-width=".7"/>' +
+      '<path class="gd gd2" d="' + path(lit) + '" stroke="url(#gp)" stroke-width="1.1"/>' +
+      '<circle class="gme" cx="' + me[0].toFixed(1) + '" cy="' + me[1].toFixed(1) + '" r="2.2" fill="#9FF5EA"/><circle class="gme" cx="' + me[0].toFixed(1) + '" cy="' + me[1].toFixed(1) + '" r="9" fill="#14D3C2" fill-opacity=".14"/>');
+  }
+  if(type === "history"){
+    /* rings: one for every week of the year, rippling in from the edge; the weeks you trained hold a little teal */
+    var tr = {}, yr = new Date().getFullYear(), cw = Math.min(52, isoWeek(new Date())); S.sessions.forEach(function(q){ var d = new Date(q.startedAt); if(d.getFullYear() === yr) tr[isoWeek(d)] = 1; });
+    var cx = W + 24, cy = H * 0.36, h = "";
+    for(var i = 1; i <= 52; i++){ var r = 26 + i * 13, on = tr[i], now = i === cw, fut = i > cw;
+      h += '<circle class="gring" style="--i:' + i + '" cx="' + cx + '" cy="' + cy.toFixed(0) + '" r="' + r + '" stroke="' + (on || now ? "#14D3C2" : "#fff") + '" stroke-opacity="' + (now ? .42 : on ? .3 : fut ? .025 : .055) + '" stroke-width="' + (now ? 1 : on ? .9 : .5) + '"' + (now ? ' stroke-dasharray="2 5"' : '') + '/>'; }
+    return sv(h);
+  }
+  if(type === "body"){
+    /* proportion: the classical circle and square behind the figure, with the canon's divisions, drawn in hairlines */
+    var bm = view.querySelector(".bmap svg"), vr = view.getBoundingClientRect(), br = bm ? bm.getBoundingClientRect() : null, bx = W / 2, by = br ? br.top - vr.top + view.scrollTop + br.height * 0.5 : 350, R = Math.min(W * 0.46, br ? br.height * 0.62 : 178), sq = R * 1.7, top = by - R;
+    var lines = '<circle class="gd" cx="' + bx + '" cy="' + by + '" r="' + R + '" stroke="#14D3C2" stroke-opacity=".16" stroke-width=".7"/>' +
+      '<rect class="gd" x="' + (bx - sq / 2) + '" y="' + (by + R - sq) + '" width="' + sq + '" height="' + sq + '" stroke="#fff" stroke-opacity=".07" stroke-width=".6"/>' +
+      '<circle class="gd" cx="' + bx + '" cy="' + by + '" r="' + (R * 0.618).toFixed(1) + '" stroke="#fff" stroke-opacity=".04" stroke-width=".5"/>';
+    for(var j = 1; j < 8; j++){ var yy = by + R - sq * j / 8; lines += '<path class="gd" d="M' + (bx - sq / 2 - 10) + ' ' + yy.toFixed(1) + ' H' + (bx - sq / 2 + 8) + ' M' + (bx + sq / 2 - 8) + ' ' + yy.toFixed(1) + ' H' + (bx + sq / 2 + 10) + '" stroke="#fff" stroke-opacity=".12" stroke-width=".6"/>'; }
+    lines += '<path class="gd" d="M' + bx + ' ' + (top - 26) + ' V' + (by + R + 26) + '" stroke="#14D3C2" stroke-opacity=".1" stroke-width=".5" stroke-dasharray="1 6"/>';
+    return sv(lines);
+  }
+  return "";
+}
 function ghostSet(type){
-  if(type === GHK) return; GHK = type; var box = $("#ghost"), g = GH[type];
-  [].forEach.call(box.children, function(o){ if(calm){ o.remove(); return; } var a = o.animate([{ opacity:1 }, { opacity:0, filter:"blur(6px)" }], { duration:520, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" }); a.onfinish = function(){ o.remove(); }; });
-  if(!g) return;
-  var el = document.createElement("div"); el.className = "gh"; el.innerHTML = '<span class="gh-w">' + g[0] + '</span>'; box.appendChild(el);
-  if(!calm) el.firstChild.animate([{ opacity:0, filter:"blur(18px)", transform:"translate3d(0,56px,0) scale(1.04)" }, { opacity:0.55, filter:"blur(6px)", offset:0.45 }, { opacity:1, filter:"blur(0px)", transform:"none" }], { duration:3200, delay:180, easing:"cubic-bezier(.16,1,.3,1)", fill:"backwards" });
+  if(type === GHK) return; GHK = type; var box = $("#ghost");
+  [].forEach.call(box.children, function(o){ if(calm){ o.remove(); return; } var a = o.animate([{ opacity:1 }, { opacity:0 }], { duration:480, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" }); a.onfinish = function(){ o.remove(); }; });
+  if(!GHOST[type]) return;
+  var el = document.createElement("div"); el.className = "gh gh-" + type; el.innerHTML = ghostArt(type); box.appendChild(el);
+  if(calm) return;
+  var EZ = "cubic-bezier(.16,1,.3,1)";
+  /* every line draws itself in, slowly */
+  [].forEach.call(el.querySelectorAll(".gd"), function(pth, i){ var L = 2000; try{ L = Math.ceil(pth.getTotalLength()); }catch(e){}
+    if(pth.getAttribute("stroke-dasharray")) { pth.animate([{ opacity:0 }, { opacity:1 }], { duration:1800, delay:600, easing:EZ, fill:"backwards" }); return; }
+    pth.style.strokeDasharray = L; pth.animate([{ strokeDashoffset:L }, { strokeDashoffset:0 }], { duration:pth.classList.contains("gd2") ? 3000 : 2600, delay:200 + i * 160, easing:EZ, fill:"backwards" }); });
+  [].forEach.call(el.querySelectorAll(".gfade"), function(q){ q.animate([{ opacity:0 }, { opacity:1 }], { duration:2400, delay:600, easing:EZ, fill:"backwards" }); });
+  [].forEach.call(el.querySelectorAll(".gme"), function(q){ q.animate([{ opacity:0, transform:"scale(.2)" }, { opacity:1, transform:"none" }], { duration:1400, delay:2600, easing:"cubic-bezier(.34,1.3,.5,1)", fill:"backwards" }); });
+  /* the rings ripple outward from the edge, one week after another */
+  [].forEach.call(el.querySelectorAll(".gring"), function(c, i){ c.animate([{ opacity:0, transform:"scale(.82)" }, { opacity:1, transform:"none" }], { duration:1700, delay:120 + i * 26, easing:EZ, fill:"backwards" }); });
 }
 /* drag from the left edge: the page follows your thumb, let go to step back */
 (function(){
