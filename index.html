@@ -72,7 +72,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
 /* the neighbouring section, laid out beside this one while you swipe */
-#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;will-change:transform;contain:layout paint;background:var(--bg);-webkit-mask-image:none;mask-image:none;padding:0}
+#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;will-change:transform,opacity;contain:layout paint;background:transparent;-webkit-mask-image:none;mask-image:none;padding:0}
 main.peek>.pk-in{padding:calc(var(--st) + 52px) var(--g) 26px;will-change:opacity}
 main.peek[hidden]{display:block!important;visibility:hidden}
 #app.pk-home #wm{opacity:1!important;visibility:visible}
@@ -1431,7 +1431,7 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
     [].forEach.call(el.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); });
     if(n === "today"){ var rows = el.querySelectorAll(".wrow"), lst = el.querySelector(".list");
       if(rows.length && lst){ var rh = clamp(Math.floor((el.clientHeight - (lst.getBoundingClientRect().top - el.getBoundingClientRect().top) - 14) / rows.length), 84, 132); [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; }); } }
-    el.style.transform = "translate3d(" + (view.offsetWidth * 2) + "px,0,0)";
+    el.style.transform = "translate3d(" + (view.offsetWidth * 2) + "px,0,0)"; el.style.transformOrigin = "50% 45%";
     return el; };
   var flush = function(){ for(var n in cache) cache[n].remove(); cache = {}; };
   PK.prep = function(){ clearTimeout(prepT); flush(); if(!/^(home|history|progress|body)$/.test(app.dataset.s)) return;
@@ -1441,21 +1441,26 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
   var peek = function(n){ if(pkN === n) return; dropPeek(); if(!n) return;
     pk = cache[n] || (cache[n] = build(n)); pk.hidden = false; pkN = n;
     if(n === "today") app.classList.add("pk-home"); };
+  /* the swipe is a dissolve the thumb holds: this section drifts the way you push and fades out, the next drifts in from the other side and settles,
+     both on the same spot, so there is never an edge or a seam. FULL is how far the thumb travels for the whole change */
+  var FULL = 0.62, ss = function(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
   var place = function(x){
     var j = i0 + (x < 0 ? 1 : -1), side = x < 0 ? 1 : -1, open = TABS[j] && x !== 0;
     peek(open ? TABS[j] : "");
-    var k = open ? Math.min(1, Math.abs(x) / W) : 0, sk = k * k * (3 - 2 * k), back = open ? x * 0.28 : x, sc = 1 - 0.05 * sk;
-    var tr = "translate3d(" + back.toFixed(2) + "px,0,0) scale(" + sc.toFixed(4) + ")";
+    var p = open ? Math.min(1, Math.abs(x) / (W * FULL)) : 0, D = W * 0.16;
+    var oOut = 1 - ss(p / 0.72), oIn = ss((p - 0.26) / 0.74);
+    var bx = open ? -side * D * ss(p) : x, sc = 1 - 0.035 * ss(p);
+    var tr = "translate3d(" + bx.toFixed(2) + "px,0,0) scale(" + sc.toFixed(4) + ")";
     movers.forEach(function(m){
-      if(m === wm){ m.style.transform = "translate3d(" + back.toFixed(2) + "px," + HERO_Y + "px,0)"; m.style.opacity = Math.max(0, 1 - k * 1.6).toFixed(3); }
-      else if(m === view){ m.style.transform = tr; m.style.opacity = (1 - 0.72 * sk).toFixed(3); }
-      else { m.style.transform = "translate3d(" + back.toFixed(2) + "px,0,0)"; m.style.opacity = Math.max(0, 1 - k * 1.8).toFixed(3); } });
-    if(pk){ var px = x + side * W, ease = 1 - Math.pow(1 - k, 2.2); pk.style.transform = "translate3d(" + px.toFixed(2) + "px,0,0)";
-      pk.firstChild.style.opacity = (0.25 + 0.75 * ease).toFixed(3);
-      if(pkN === "today"){ wm.style.transform = "translate3d(" + px.toFixed(2) + "px," + HERO_Y + "px,0)"; wm.style.opacity = (0.25 + 0.75 * ease).toFixed(3); } }
-    if(TABS[j] && tx[TABS[j]] != null){ var p = sk, a = tx[TABS[i0]], b = tx[TABS[j]], cx = a + (b - a) * p, st = 1 + Math.sin(p * Math.PI) * 1.1;
+      if(m === wm){ m.style.transform = "translate3d(" + bx.toFixed(2) + "px," + HERO_Y + "px,0)"; m.style.opacity = (1 - ss(p / 0.45)).toFixed(3); }
+      else if(m === view){ m.style.transform = tr; m.style.opacity = oOut.toFixed(3); }
+      else { m.style.transform = "translate3d(" + bx.toFixed(2) + "px,0,0)"; m.style.opacity = (1 - ss(p / 0.45)).toFixed(3); } });
+    if(pk){ var ix = side * D * (1 - ss(p)), isc = 1.035 - 0.035 * ss(p);
+      pk.style.transform = "translate3d(" + ix.toFixed(2) + "px,0,0) scale(" + isc.toFixed(4) + ")"; pk.firstChild.style.opacity = oIn.toFixed(3);
+      if(pkN === "today"){ wm.style.transform = "translate3d(" + ix.toFixed(2) + "px," + HERO_Y + "px,0)"; wm.style.opacity = oIn.toFixed(3); } }
+    if(TABS[j] && tx[TABS[j]] != null){ var q2 = ss(p), a = tx[TABS[i0]], b = tx[TABS[j]], cx = a + (b - a) * q2, st = 1 + Math.sin(q2 * Math.PI) * 1.1;
       dot.style.transform = dy0.replace(/translate3d\([-\d.]+px/, "translate3d(" + cx.toFixed(2) + "px") + " scale(" + st.toFixed(3) + "," + (1 / Math.sqrt(st)).toFixed(3) + ")";
-      $("#tab-" + TABS[i0]).style.color = mix(1 - p); $("#tab-" + TABS[j]).style.color = mix(p);
+      $("#tab-" + TABS[i0]).style.color = mix(1 - q2); $("#tab-" + TABS[j]).style.color = mix(q2);
       var q = TABS[i0 - side]; if(q) $("#tab-" + q).style.color = ""; } };
   var clear = function(){ movers.forEach(function(m){ m.style.transition = ""; m.style.transform = m === wm ? "translate3d(0," + HERO_Y + "px,0)" : ""; m.style.opacity = ""; });
     wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; wm.style.opacity = ""; TABS.forEach(function(n){ $("#tab-" + n).style.color = ""; }); dropPeek(); };
@@ -1479,14 +1484,14 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
     var dt = e.timeStamp - lt; if(dt > 0){ var iv = (t.clientX - lx) / dt; v = dt > 60 ? iv : v * 0.4 + iv * 0.6; lx = t.clientX; lt = e.timeStamp; }
     dx = t.clientX - x0; var j = i0 + (dx < 0 ? 1 : -1);
     if(!TABS[j]){ var r = Math.abs(dx); dx = Math.sign(dx) * W * 0.12 * (1 - Math.exp(-r / (W * 0.45))); }
-    else dx = Math.max(-W, Math.min(W, dx));
+    else dx = Math.max(-W * FULL, Math.min(W * FULL, dx));
     if(!mvRaf) mvRaf = requestAnimationFrame(function(){ mvRaf = 0; if(lock === 1) place(dx); }); }, { passive:false });
   var end = function(e){ if(lock !== 1){ lock = 0; return; } lock = 0; UI.swx = false; cancelAnimationFrame(mvRaf); mvRaf = 0;
     if(e && e.timeStamp - lt > 90) v = 0; /* held still before letting go: no fling */
     var j = i0 + (dx < 0 ? 1 : -1), sgn = dx < 0 ? -1 : 1, edge = !TABS[j];
-    var go = !edge && (Math.abs(dx) > W * 0.35 || (Math.abs(v) > 0.3 && Math.sign(v) === sgn && Math.abs(dx) > 24));
-    if(!go){ spring(dx, edge ? 0 : v, 0, 0.02, function(){ clear(); tabMark(viewName(), false); }); return; }
-    spring(dx, Math.sign(v) === sgn ? v : 0, sgn * W, 0.021, function(){
+    var go = !edge && (Math.abs(dx) > W * FULL * 0.45 || (Math.abs(v) > 0.3 && Math.sign(v) === sgn && Math.abs(dx) > 24));
+    if(!go){ spring(dx, edge ? 0 : v, 0, 0.017, function(){ clear(); tabMark(viewName(), false); }); return; }
+    spring(dx, Math.sign(v) === sgn ? v : 0, sgn * W * FULL, 0.017, function(){
       /* the page beside you is now the page: swap it in for the real one in the same frame, so nothing moves or blinks */
       var n = TABS[j]; haptic(); UI.instant = true; UI.navDir = "back";
       try{ if(n === "today") S.pick = true; if(n === "progress") UI.pgEx = null; history.replaceState(null, "", "#" + n); render(); } finally { UI.instant = false; UI.navDir = null; }
