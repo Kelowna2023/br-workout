@@ -670,6 +670,9 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .grow-r:first-child{border-top:0}
 .grow-r p{margin-top:12px;background:#161616}
 .b-info:empty{min-height:0;margin:0}
+.list.tight .wn{font-size:22px}.list.tight .wrow small{margin-top:3px}
+.list.tighter .wn{font-size:20px}.list.tighter .wrow small{font-size:12px;margin-top:2px}
+#app[data-s="home"] .list .wrow:last-child{border-bottom-color:transparent}
 </style>
 </head>
 <body>
@@ -1104,7 +1107,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "122";
+var BUILD = "123";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1330,7 +1333,8 @@ function render(){
   var d = new Date(); $("#bar-date").textContent = d.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + "  ·  Week " + isoWeek(d);
   tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
-  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor(($("#tabs").getBoundingClientRect().top - view.getBoundingClientRect().top - lst.offsetTop - 34) / UI.rows.length), 66, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
+  view.style.overflowY = "";
+  if(type === "home" && UI.rows.length){ fitHome(); requestAnimationFrame(function(){ requestAnimationFrame(fitHome); }); setTimeout(fitHome, 450); setTimeout(fitHome, 1400); }
   view.scrollTop = fresh ? 0 : keep;
   initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
@@ -1694,6 +1698,14 @@ function addPhoto(file){
     .then(function(){ toast("Photo saved"); return loadPhotos(); }).catch(function(){ toast("Couldn't save that photo"); });
 }
 
+/* the home list always ends above the tab bar: rows share whatever height the screen really has */
+function fitHome(){ if(app.dataset.s !== "home") return; var lst = view.querySelector(".list"), rows = lst ? lst.querySelectorAll(".wrow") : [], tb = $("#tabs"); if(!rows.length || !tb) return;
+  var top = lst.getBoundingClientRect().top + view.scrollTop, avail = tb.getBoundingClientRect().top - 12 - top; if(!(avail > 0)) return;
+  var rh = clamp(Math.floor(avail / rows.length), 50, 132); UI.rh = rh;
+  lst.classList.toggle("tight", rh < 70); lst.classList.toggle("tighter", rh < 58);
+  [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; e.style.height = rh + "px"; });
+  var fits = rh * rows.length <= avail; if(fits) view.scrollTop = 0; view.style.overflowY = fits ? "hidden" : ""; }
+window.addEventListener("resize", function(){ UI.rh = 0; fitHome(); });
 /* ---------- home ---------- */
 function vHome(){
   var now = Date.now(), ws = weekStart(now), goal = Math.max(1, +S.cfg.weeklyGoal || 5), n = 0, done = {}, prog = {}, last = {}, cnt = {}, segs = "", rows = "";
