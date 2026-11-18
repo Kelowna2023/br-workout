@@ -1415,7 +1415,7 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
   var paneOK = function(){ return /^(home|history|progress|body)$/.test(app.dataset.s) && $("#hero").hidden && !EN && $("#sheet").hidden && !UI.navBusy; };
   var mix = function(p){ return "color-mix(in srgb, var(--tx) " + (p * 100).toFixed(1) + "%, var(--mu2))"; };
   var place = function(x){
-    var k = Math.min(1, Math.abs(x) / (W * EXIT)), o = (1 - Math.pow(k, 2.1) * 0.96).toFixed(3), tr = "translate3d(" + x.toFixed(2) + "px,0,0)";
+    var k = Math.min(1, Math.abs(x) / (W * EXIT)), o = (1 - Math.pow(k * k * (3 - 2 * k), 1.6) * 0.86).toFixed(3), tr = "translate3d(" + x.toFixed(2) + "px,0,0)";
     movers.forEach(function(m){ m.style.transform = m === wm ? "translate3d(" + x.toFixed(2) + "px," + HERO_Y + "px,0)" : tr; m.style.opacity = o; });
     var j = i0 + (x < 0 ? 1 : -1);
     if(TABS[j] && tx[TABS[j]] != null){ var p = k * k * (3 - 2 * k), a = tx[TABS[i0]], b = tx[TABS[j]], cx = a + (b - a) * p, st = 1 + Math.sin(p * Math.PI) * 1.1;
@@ -1457,9 +1457,10 @@ function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n
       try{ if(n === "today") S.pick = true; if(n === "progress") UI.pgEx = null; history.replaceState(null, "", "#" + n); render(); } finally { UI.instant = false; }
       clear(); tabMark(n, false);
       /* the new section drifts in from where the thumb was heading, on a long, soft settle */
-      var IN = "cubic-bezier(.16,1,.3,1)", d0 = -sgn * W * 0.16;
+      var IN = "cubic-bezier(.16,1,.3,1)", d0 = -sgn * W * 0.11;
       [view, $("#bar")].concat(app.dataset.s === "home" ? [wm] : []).forEach(function(m){ var y = m === wm ? HERO_Y : 0;
-        m.animate([{ transform:"translate3d(" + d0.toFixed(1) + "px," + y + "px,0)", opacity:0 }, { opacity:1, offset:0.55 }, { transform:"translate3d(0," + y + "px,0)", opacity:1 }], { duration:620, easing:IN }); });
+        m.animate([{ transform:"translate3d(" + d0.toFixed(1) + "px," + y + "px,0)" }, { transform:"translate3d(0," + y + "px,0)" }], { duration:680, easing:IN });
+        m.animate([{ opacity:0.14 }, { opacity:1 }], { duration:560, easing:"cubic-bezier(.45,.05,.25,1)" }); });
     }, function(x){ return Math.abs(x) >= Math.abs(target) * 0.97; });
   };
   view.addEventListener("touchend", end, { passive:true }); view.addEventListener("touchcancel", end, { passive:true });
