@@ -499,10 +499,10 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .h-wd.now>*,.h-wd.now .wd-w{transition:none}
 @media (prefers-reduced-motion:reduce){.h-wd>*,.wd-w{transition:none}}
 /* the way in: a single thread of light rises out of the water and dissolves, again and again, like a drop of light surfacing. It follows the finger out */
-#h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;clip-path:inset(100% -4px 0 -4px);transition:opacity 1.6s cubic-bezier(.3,.6,.2,1),clip-path 2.4s cubic-bezier(.16,1,.3,1)}
+#h-cue{position:absolute;left:50%;bottom:calc(var(--sb) + 16px);width:2px;height:46px;margin-left:-1px;pointer-events:none;opacity:0;clip-path:inset(100% -4px 0 -4px);transition:opacity 1.1s cubic-bezier(.3,.6,.2,1),clip-path 1.5s cubic-bezier(.16,1,.3,1)}
 #h-cue.in{opacity:1;clip-path:inset(0 -4px 0 -4px)}#h-cue.now{transition:none}
 #h-cue:not(.in) i{animation:none}
-#h-cue.in i{animation-delay:1.5s}#h-cue.now i{animation-delay:0s}
+#h-cue.in i{animation-delay:.5s}#h-cue.now i{animation-delay:0s}
 #h-cue b{position:absolute;inset:0;will-change:transform,opacity}
 #h-cue b::before{content:"";position:absolute;left:.5px;top:0;bottom:0;width:1px;transform:scaleX(.5);background:linear-gradient(to top,transparent,rgba(20,211,194,.13) 28%,rgba(20,211,194,.13) 72%,transparent)}
 #h-cue i{position:absolute;left:.5px;bottom:0;width:1px;height:22px;transform-origin:50% 0;opacity:0;background:linear-gradient(to top,rgba(20,211,194,0),rgba(20,211,194,.8) 70%,#E6FFFC);will-change:transform,opacity;animation:cue-rise 3.6s cubic-bezier(.6,0,.2,1) infinite}
@@ -2040,7 +2040,7 @@ function hero(quick){
   var el = $("#hero"), d = new Date();
   $("#h-date").textContent = d.toLocaleDateString("en-US", { weekday:"long", day:"numeric", month:"long" }); $("#h-week").textContent = "";
   wordSet(quick ? 900 : 1500);
-  cueSet(quick ? 2300 : 3400);
+  cueSet(quick ? 1200 : 1800);
   UI.intro = true; el.hidden = false; HR.busy = false; wm.querySelector("i").classList.remove("breathe");
   var sea = $("#h-sea"), ref = $("#h-ref"); HR.strips = buildRef(ref, parseFloat(getComputedStyle(sea).fontSize), 36, 0.5); HR.hz = sea.offsetTop; HR.on = true;
   TG.t0 = performance.now(); TG.up.length = 0; TG.s = null; TG.last = 0;
