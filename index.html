@@ -1653,7 +1653,7 @@ function vWorkout(){
   a.exercises.forEach(function(x, i){ if(next < 0 && curIdx(x) >= 0) next = i; });
   a.exercises.forEach(function(x, i){ var d = x.sets.filter(function(q){ return q.done; }).length, all = d > 0 && d >= x.sets.length, nx = a.exercises[i + 1]; if(all) dn++; if(d) any = true;
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
-    rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (i === next ? '<small class="t">Up next' + (x.link && nx ? ' · superset with ' + esc(nx.name) : '') + '</small>' : x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
+    rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
       (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
   return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' +
     '<div class="list">' + rows + '</div>' +
