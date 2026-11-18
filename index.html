@@ -233,6 +233,14 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 
 /* ---- workout: the list of lifts ---- */
 .xrow{width:100%;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln)}
+/* a superset: its lifts sit together on one soft-square of glass, lit in teal from the top corner and deepening to sea-blue below */
+.ss-panel{position:relative;margin:12px -14px;padding:0 14px;border-radius:20px;overflow:hidden;
+  background:radial-gradient(110% 85% at 0% 0%,rgba(20,211,194,.26),rgba(20,211,194,.07) 45%,transparent 70%),radial-gradient(90% 90% at 100% 100%,rgba(16,118,150,.22),transparent 65%),linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.015) 60%);
+  box-shadow:inset 0 0 0 .5px rgba(120,240,230,.22),inset 0 1px 0 rgba(255,255,255,.08),0 22px 44px -26px rgba(20,211,194,.45)}
+.ss-panel::before{content:"";position:absolute;left:14%;right:14%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(160,250,240,.6),transparent);pointer-events:none}
+.ss-panel .xrow{border-bottom:0;position:relative}
+.ss-panel .xrow + .xrow::before{content:"";position:absolute;left:0;right:0;top:0;height:.5px;background:linear-gradient(90deg,rgba(255,255,255,.14),rgba(255,255,255,.04))}
+.list > .xrow:has(+ .ss-panel){border-bottom-color:transparent}
 .xrow .nm{font:500 19px/1.2 var(--font);letter-spacing:-.025em;display:block}
 .xrow small{display:block;font-size:12px;color:var(--mu2);margin-top:3px}
 .xrow .ct{font-size:14px;color:var(--mu2);font-variant-numeric:tabular-nums;font-weight:500}
@@ -1707,8 +1715,12 @@ function vWorkout(){
   a.exercises.forEach(function(x, i){ if(next < 0 && curIdx(x) >= 0) next = i; });
   a.exercises.forEach(function(x, i){ var d = x.sets.filter(function(q){ return q.done; }).length, all = d > 0 && d >= x.sets.length, nx = a.exercises[i + 1]; if(all) dn++; if(d) any = true;
     segs += '<span><i' + (all ? ' class="on"' : '') + '></i></span>';
-    rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span>' + (x.link && nx ? '<small>Superset with ' + esc(nx.name) + '</small>' : '') + '</span>' +
-      (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>'; });
+    rows += '<button type="button" class="xrow' + (all ? " done" : "") + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span></span>' +
+      (all ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? '<b>' + d + '</b>' : d) + '/' + x.sets.length + '</span>') + '</button>';
+    /* supersets: a run of linked lifts shares one panel of teal-lit glass */
+    var pv = a.exercises[i - 1], inRun = pv && pv.link, opens = x.link && nx && !inRun, closes = inRun && !(x.link && nx), cut = rows.lastIndexOf('<button type="button" class="xrow');
+    if(opens) rows = rows.slice(0, cut) + '<div class="ss-panel" data-rv>' + rows.slice(cut);
+    if(closes) rows += '</div>'; });
   return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv><b>' + dn + '</b> of ' + a.exercises.length + ' lifts done</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' +
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
