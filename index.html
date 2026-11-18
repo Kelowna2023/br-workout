@@ -2007,10 +2007,25 @@ function leave(){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:q[1], easing:SLOW, fill:"backwards" }); });
   sea.animate([{ transform:"translate3d(" + (tr.left - sl).toFixed(1) + "px," + (tr.top - rise.top).toFixed(1) + "px,0) scale(" + sc.toFixed(4) + ")" }, { transform:"none" }], { duration:1250, easing:EASE }).onfinish = function(){ sea.style.transformOrigin = ""; HR.busy = false; };
 }
-(function(){ var y0 = null;
-  view.addEventListener("touchstart", function(e){ y0 = app.dataset.s === "home" && $("#hero").hidden && view.scrollTop <= 0 && e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive:true });
-  view.addEventListener("touchmove", function(e){ if(y0 == null) return; if(view.scrollTop > 2){ y0 = null; return; } if(e.touches[0].clientY - y0 > 120){ y0 = null; leave(); } }, { passive:true });
-  view.addEventListener("touchend", function(){ y0 = null; }, { passive:true });
+/* the way back is the same timeline, held by the finger in reverse: pull down from the top of your workouts and the name sinks back to the horizon exactly as far as you pull */
+function backBuild(){
+  var el = $("#hero"); if(!el.hidden || HR.busy || EN || app.dataset.s !== "home") return false;
+  view.scrollTop = 0; hero(1);
+  el.getAnimations({ subtree:true }).forEach(function(q){ if(!q.animationName) try{ q.cancel(); }catch(e){} });
+  clearTimeout(WD.tm); $("#h-cd").classList.add("now", "in"); WD.t0 = 0;
+  HR.busy = false; if(!enterBuild()){ HR.busy = false; return false; }
+  EN.drag = true; enterSeek(EN.T); return true;
+}
+(function(){ var y0 = null, ly = 0, lt = 0, v = 0, SLOP = 6, H = 1, on = false;
+  view.addEventListener("touchstart", function(e){ on = false; y0 = app.dataset.s === "home" && $("#hero").hidden && !EN && view.scrollTop <= 0 && e.touches.length === 1 ? e.touches[0].clientY : null; ly = y0; lt = e.timeStamp; v = 0; H = $("#hero").clientHeight || innerHeight; }, { passive:true });
+  view.addEventListener("touchmove", function(e){ if(y0 == null) return; var y = e.touches[0].clientY, dy = y - y0, dt = e.timeStamp - lt;
+    if(!on){ if(view.scrollTop > 0 || dy < -SLOP){ y0 = null; return; } if(dy > 0 && e.cancelable) e.preventDefault(); if(dy < SLOP) return; if(calm){ y0 = null; leave(); return; } if(!backBuild()){ y0 = null; return; } on = true; y0 = y; }
+    if(e.cancelable) e.preventDefault();
+    if(dt > 0){ v = v * 0.6 + ((y - ly) / dt) * 0.4; ly = y; lt = e.timeStamp; }
+    if(EN && EN.drag) enterSeek((1 - Math.max(0, Math.min(1, (y - y0) / (H * 0.5)))) * EN.T); }, { passive:false });
+  var up = function(){ if(y0 == null) return; y0 = null; if(!on){ return; } on = false; if(!EN || !EN.drag) return;
+    var home = v < -0.3 || (v < 0.08 && EN.t / EN.T > 0.6); if(!home) haptic(); enterRun(home); };
+  view.addEventListener("touchend", up, { passive:true }); view.addEventListener("touchcancel", up, { passive:true });
 })();
 /* the way in is one timeline, and the finger holds it: drag up and the name leaves the horizon exactly as far as you have pulled; let go and it finishes, or settles back */
 var EN = null;
