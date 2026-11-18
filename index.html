@@ -373,18 +373,18 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .up,.fs-r span:last-child .up{color:var(--t);font-weight:600;font-size:13px}
 
 /* ---- body ---- */
-.bmap{margin:0 calc(var(--g) * -1) -14px;perspective:1400px}
-.vit-in{position:relative;aspect-ratio:1080/1118;will-change:transform}
+.bmap{margin:34px calc(var(--g) * -1 + 4px) 0;perspective:1400px}
+.vit-in{position:relative;aspect-ratio:1002/1000;will-change:transform}
 .vit svg{position:absolute;inset:0;width:100%;height:100%}
 .vit .vb,.vit.back .vf{display:none}.vit.back .vb{display:inline}
 .vit-g{transition:opacity .5s}
 
 .bmap path[data-m]{transition:fill .45s cubic-bezier(.22,1,.36,1),fill-opacity .45s cubic-bezier(.22,1,.36,1),stroke .45s;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bside{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:14px}
+.bside{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:6px}
 .bside button{min-height:44px;padding:0 6px;font-size:14px;font-weight:500;color:var(--mu2);transition:color .4s cubic-bezier(.22,1,.36,1)}
 .bside button[aria-pressed="true"]{color:var(--tx)}
 .bside i{width:1px;height:12px;background:var(--ln2)}
-.b-info{min-height:44px;margin-top:10px;font-size:14px;color:var(--mu);line-height:1.6;text-align:center}
+.b-info{min-height:44px;margin-top:22px;margin-bottom:26px;font-size:14px;color:var(--mu);line-height:1.6;text-align:center}
 .b-info b{color:var(--t);font-weight:600;font-size:16px;display:block}
 .grow-r{width:100%;display:block;padding:14px 0 12px;border-bottom:.5px solid var(--ln)}
 .grow-r div{display:flex;justify-content:space-between;align-items:baseline;font:500 18px/1 var(--font);letter-spacing:-.02em}
@@ -1970,7 +1970,7 @@ function vitFig(side, mus, sel){
     if(on) core += w('<path d="' + sh[1] + '" fill="#7FF2E6" fill-opacity=".22"/>');
     hit += w('<path data-act="bmus" data-m="' + m + '" d="' + sh[1] + '" fill="#000" fill-opacity="0" stroke="#000" stroke-opacity="0" stroke-width="26" pointer-events="all"/>'); });
   return '<div class="vit' + (side === "back" ? " back" : "") + '"><div class="vit-in">' +
-    '<svg viewBox="0 0 1080 1118" role="img" aria-label="Vitruvian figure, ' + side + ' view, muscles lit by sets in the last 7 days"><defs><filter id="vg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="17"/></filter><filter id="vg2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8"/></filter></defs>' +
+    '<svg viewBox="30 26 1002 1000" role="img" aria-label="Vitruvian figure, ' + side + ' view, muscles lit by sets in the last 7 days"><defs><filter id="vg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="17"/></filter><filter id="vg2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8"/></filter></defs>' +
     '<circle class="vit-c" cx="531" cy="521" r="478" fill="none" stroke="#14D3C2" stroke-opacity=".55" stroke-width="1.8" transform="rotate(-90 531 521)"/>' +
     '<rect class="vit-q" x="139" y="207" width="784" height="792" fill="none" stroke="#EDE6D6" stroke-opacity=".4" stroke-width="1.5"/>' +
     '<g class="vit-g" filter="url(#vg)">' + glow + '</g><g class="vit-g" filter="url(#vg2)">' + core + '</g>' + VIT_BODY + hit + '</svg></div></div>';
