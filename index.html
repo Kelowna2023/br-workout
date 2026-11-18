@@ -119,7 +119,7 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 
 /* ---- home ---- */
-.hero{height:196px}
+.hero{height:168px}
 .wk{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
 .wk-n{font:600 40px/1 var(--font);letter-spacing:-.045em}
 .wk-n b{color:var(--t);font-weight:600}.wk-n span{color:var(--dim)}
@@ -233,13 +233,11 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 
 /* ---- workout: the list of lifts ---- */
 .xrow{width:100%;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln)}
-/* a superset: its lifts sit together on one soft-square of glass, lit in teal from the top corner and deepening to sea-blue below */
-.ss-panel{position:relative;margin:12px -14px;padding:0 14px;border-radius:20px;overflow:hidden;
-  background:radial-gradient(110% 85% at 0% 0%,rgba(20,211,194,.26),rgba(20,211,194,.07) 45%,transparent 70%),radial-gradient(90% 90% at 100% 100%,rgba(16,118,150,.22),transparent 65%),linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.015) 60%);
-  box-shadow:inset 0 0 0 .5px rgba(120,240,230,.22),inset 0 1px 0 rgba(255,255,255,.08),0 22px 44px -26px rgba(20,211,194,.45)}
-.ss-panel::before{content:"";position:absolute;left:14%;right:14%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(160,250,240,.6),transparent);pointer-events:none}
+/* a superset: its lifts sit together on one quiet panel, joined by a single slim teal rule */
+.ss-panel{position:relative;margin:12px -14px;padding:0 14px;border-radius:18px;background:rgba(255,255,255,.022);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.07)}
+.ss-panel::before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:1.5px;border-radius:2px;background:var(--t);opacity:.85;pointer-events:none}
 .ss-panel .xrow{border-bottom:0;position:relative}
-.ss-panel .xrow + .xrow::before{content:"";position:absolute;left:0;right:0;top:0;height:.5px;background:linear-gradient(90deg,rgba(255,255,255,.14),rgba(255,255,255,.04))}
+
 .list > .xrow:has(+ .ss-panel){border-bottom-color:transparent}
 .xrow .nm{font:500 19px/1.2 var(--font);letter-spacing:-.025em;display:block}
 .xrow small{display:block;font-size:12px;color:var(--mu2);margin-top:3px}
@@ -314,7 +312,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 #tab-pill::after{content:"";position:absolute;left:34%;right:34%;bottom:0;height:1px;transform:scaleY(.5);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.75),transparent)}
 /* a soft fall to black behind the bar, so the page dissolves before it reaches the glass */
 #tab-veil{position:absolute;left:0;right:0;bottom:0;height:calc(max(var(--sb), 12px) + 104px);background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.72) 34%,#000 52%);pointer-events:none;z-index:14}
-#app[data-s="wk"] #tab-veil,#app[data-s="ex"] #tab-veil,#app[data-s="setup"] #tab-veil{display:none}
+#app[data-s="home"] #tab-veil,#app[data-s="wk"] #tab-veil,#app[data-s="ex"] #tab-veil,#app[data-s="setup"] #tab-veil{display:none}
 #app[data-s="home"] main,#app[data-s="history"] main,#app[data-s="progress"] main,#app[data-s="body"] main{padding-bottom:calc(max(var(--sb), 12px) + 96px)}
 #tabs a{position:relative;z-index:1;flex:1;display:grid;justify-items:center;align-content:center;min-height:48px;padding:0;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .42s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
 #tabs a.tap{transform:scale(.94)}
@@ -673,7 +671,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .b-info:empty{min-height:0;margin:0}
 .list.tight .wn{font-size:22px}.list.tight .wrow small{margin-top:3px}
 .list.tighter .wn{font-size:20px}.list.tighter .wrow small{font-size:12px;margin-top:2px}
-#app[data-s="home"] .list .wrow:last-child{border-bottom-color:transparent}
+/* the list closes with its own hairline, like the rest */
 /* ---- a quiet piece behind each main page ---- */
 #deco{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .dk-tide,.dk-rings{position:absolute;opacity:0;transition:opacity .9s ease}
@@ -1728,7 +1726,7 @@ function deco(type){ var el = $("#deco"); if(!el) return;
     h += '<circle class="rip" cx="400" cy="400" r="54" fill="none" stroke="#14D3C2" stroke-width="1"/>'; el.querySelector(".dk-rings").innerHTML = h; } }
 /* the home list always ends above the tab bar: rows share whatever height the screen really has */
 function fitHome(){ if(app.dataset.s !== "home") return; var lst = view.querySelector(".list"), rows = lst ? lst.querySelectorAll(".wrow") : [], tb = $("#tabs"); if(!rows.length || !tb) return;
-  var top = lst.getBoundingClientRect().top + view.scrollTop, avail = tb.getBoundingClientRect().top - 12 - top; if(!(avail > 0)) return;
+  var top = lst.getBoundingClientRect().top + view.scrollTop, avail = tb.getBoundingClientRect().top - 40 - top; if(!(avail > 0)) return;
   var rh = clamp(Math.floor(avail / rows.length), 50, 132); UI.rh = rh;
   lst.classList.toggle("tight", rh < 70); lst.classList.toggle("tighter", rh < 58);
   [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; e.style.height = rh + "px"; });
