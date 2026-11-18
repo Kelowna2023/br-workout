@@ -373,7 +373,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .up,.fs-r span:last-child .up{color:var(--t);font-weight:600;font-size:13px}
 
 /* ---- body ---- */
-.bmap{margin:6px calc(var(--g) * -1) 0;perspective:1400px}
+.bmap{margin:0 calc(var(--g) * -1) -14px;perspective:1400px}
 .vit-in{position:relative;aspect-ratio:1080/1118;will-change:transform}
 .vit.back .vit-in{transform:rotateY(180deg)}
 .vit img{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;user-select:none;pointer-events:none}
@@ -1956,7 +1956,7 @@ var VM = { front:[
     ["chest", "M456,334 Q492,324 529,338 L529,406 Q492,426 460,406 Z", 1], ["biceps", "M419,333 L338,337 L338,373 L419,367 Z", 1],
     ["forearms", "M336,339 L226,345 L226,371 L336,373 Z", 1], ["abs", "M505,420 H530 V592 L513,586 Q502,500 505,420 Z", 1],
     ["obliques", "M468,415 L503,420 Q500,500 511,586 L478,560 Q470,490 468,415 Z", 1],
-    ["quads", "M466,610 L528,612 L528,790 L490,790 Q470,700 466,610 Z", 1], ["shins", "M492,825 L530,825 L528,960 L502,960 Z", 1] ],
+    ["quads", "M470,622 Q498,612 524,624 Q527,710 518,786 L494,786 Q474,706 470,622 Z", 1], ["shins", "M492,825 L530,825 L528,960 L502,960 Z", 1] ],
   back:[
     ["traps", "M530,290 L570,326 L600,336 L548,372 L530,440 L512,372 L460,336 L490,326 Z", 0], ["reardelts", "M418,330 Q435,316 456,330 L460,374 Q436,380 420,364 Z", 1],
     ["upperback", "M462,340 L512,378 L524,440 L462,405 Z", 1], ["lats", "M464,412 L524,448 L526,470 L518,560 L490,566 Q470,490 464,412 Z", 1],
@@ -1966,22 +1966,24 @@ var VM = { front:[
 function vitFig(side, mus, sel){
   var glow = "", core = "", hit = "", both = function(x){ return x + '<g transform="translate(1060,0) scale(-1,1)">' + x + '</g>'; };
   VM[side].forEach(function(sh){ var m = sh[0], v = mus[m] || 0, on = !!sel[m], w = function(x){ return sh[2] ? both(x) : x; };
-    if(on || v){ glow += w('<path d="' + sh[1] + '" fill="#14D3C2" fill-opacity="' + (on ? 1 : Math.min(.8, 0.34 + v / 26).toFixed(2)) + '"/>'); }
-    if(on) core += w('<path d="' + sh[1] + '" fill="#7FF2E6" fill-opacity=".5"/>');
+    if(on || v){ glow += w('<path d="' + sh[1] + '" fill="#14D3C2" fill-opacity="' + (on ? .8 : Math.min(.6, 0.26 + v / 30).toFixed(2)) + '"/>'); }
+    if(on) core += w('<path d="' + sh[1] + '" fill="#7FF2E6" fill-opacity=".22"/>');
     hit += w('<path data-act="bmus" data-m="' + m + '" d="' + sh[1] + '" fill="#000" fill-opacity="0" stroke="#000" stroke-opacity="0" stroke-width="26" pointer-events="all"/>'); });
   return '<div class="vit' + (side === "back" ? " back" : "") + '"><div class="vit-in"><img src="vitruvian.webp" width="1080" height="1118" alt="Leonardo da Vinci, Vitruvian Man" decoding="async" draggable="false">' +
-    '<svg viewBox="0 0 1080 1118" role="img" aria-label="' + side + ' muscles, lit by sets in the last 7 days"><defs><filter id="vg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="13"/></filter><filter id="vg2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter></defs>' +
-    '<circle class="vit-c" cx="532" cy="521" r="478" fill="none" stroke="#14D3C2" stroke-opacity=".5" stroke-width="2.2" transform="rotate(-90 532 521)"/>' +
+    '<svg viewBox="0 0 1080 1118" role="img" aria-label="' + side + ' muscles, lit by sets in the last 7 days"><defs><filter id="vg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="19"/></filter><filter id="vg2" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter></defs>' +
+    '<circle class="vit-c" cx="532" cy="521" r="478" fill="none" stroke="#14D3C2" stroke-opacity=".55" stroke-width="1.8" transform="rotate(-90 532 521)"/>' +
+    '<rect class="vit-q" x="139" y="207" width="786" height="793" fill="none" stroke="#EDE6D6" stroke-opacity=".42" stroke-width="1.6"/>' +
     '<g class="vit-g" filter="url(#vg)">' + glow + '</g><g class="vit-g" filter="url(#vg2)">' + core + '</g>' + hit + '</svg></div></div>';
 }
 /* entering: the circle is struck first, then the ink blooms outward from the navel, then the muscles light. Turning to the back turns the sheet over */
 var VITK = "";
 function vitMaybe(type){
   if(type !== "body"){ VITK = ""; return; } var k = "body:" + (UI.bside || "front"); if(k === VITK) return; var first = VITK === ""; VITK = k;
-  var box = view.querySelector(".vit-in"); if(!box || calm) return; var img = box.querySelector("img"), c = box.querySelector(".vit-c"), gs = box.querySelectorAll(".vit-g"), EZ = "cubic-bezier(.22,1,.36,1)";
+  var box = view.querySelector(".vit-in"); if(!box || calm) return; var img = box.querySelector("img"), c = box.querySelector(".vit-c"), q = box.querySelector(".vit-q"), gs = box.querySelectorAll(".vit-g"), EZ = "cubic-bezier(.22,1,.36,1)";
   if(first){
     var L = Math.ceil(2 * Math.PI * 478) + 4;
-    c.animate([{ strokeDasharray:L + "px", strokeDashoffset:L + "px", strokeOpacity:.9 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", strokeOpacity:.9, offset:.8 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", strokeOpacity:.5 }], { duration:1900, delay:200, easing:"cubic-bezier(.5,0,.15,1)", fill:"backwards" });
+    c.animate([{ strokeDasharray:L + "px", strokeDashoffset:L + "px", strokeOpacity:.9 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", strokeOpacity:.9, offset:.8 }, { strokeDasharray:L + "px", strokeDashoffset:"0px", strokeOpacity:.55 }], { duration:1900, delay:200, easing:"cubic-bezier(.5,0,.15,1)", fill:"backwards" });
+    q.animate([{ strokeDasharray:"3160px", strokeDashoffset:"3160px" }, { strokeDasharray:"3160px", strokeDashoffset:"0px" }], { duration:1900, delay:700, easing:"cubic-bezier(.5,0,.15,1)", fill:"backwards" });
     img.animate([{ clipPath:"circle(0% at 49.3% 46.6%)", opacity:0, filter:"blur(6px) brightness(1.7)" }, { opacity:1, offset:.35 }, { clipPath:"circle(78% at 49.3% 46.6%)", opacity:1, filter:"blur(0px) brightness(1)" }], { duration:2600, delay:900, easing:"cubic-bezier(.3,0,.15,1)", fill:"backwards" });
     [].forEach.call(gs, function(g){ g.animate([{ opacity:0 }, { opacity:1 }], { duration:1400, delay:2700, easing:EZ, fill:"backwards" }); });
   } else {
