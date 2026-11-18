@@ -72,10 +72,6 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
 /* the neighbouring section, laid out beside this one while you swipe */
-#app[data-s] main.peek{position:absolute;flex:none;overflow:hidden;pointer-events:none;z-index:1;will-change:transform,opacity;contain:layout paint;background:transparent;-webkit-mask-image:none;mask-image:none;padding:0}
-main.peek>.pk-in{padding:calc(var(--st) + 52px) var(--g) 26px;will-change:opacity}
-main.peek[hidden]{display:block!important;visibility:hidden}
-#app.pk-home #wm{opacity:1!important;visibility:visible}
 /* home: the name stays put; the list dissolves as it slides up under the reflection */
 #app[data-s="home"] main{-webkit-mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px));mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px))}
 .big{font:700 46px/1.02 var(--font);letter-spacing:-.052em;margin:16px 0 0;text-wrap:balance;transform-origin:0 100%;will-change:transform,opacity;view-transition-name:title}
@@ -1302,7 +1298,7 @@ function render(){
   initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ [].forEach.call(view.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); }); }); });
-  afterRender(); if(PK.prep) PK.prep();
+  afterRender();
 }
 /* every page arrives the same way: its blocks rise in reading order, list rows one by one */
 function revealList(){ var out = []; [].forEach.call(view.children, function(c){ if(c.classList.contains("hero") || !c.offsetHeight) return; if(c.classList.contains("list") && c.children.length > 1) [].forEach.call(c.children, function(k){ out.push(k); }); else out.push(c); }); return out.slice(0, 18); }
@@ -1411,97 +1407,8 @@ function goBack(){
   else if(type === "pg"){ nav(function(){ UI.pgEx = null; render(); }, "back"); }
   else if(type === "setup"){ nav(function(){ location.hash = "#today"; S.pick = true; render(); }, "back"); }
 }
-/* swipe sideways between the four sections, like turning a page: the next section is laid out beside this one and both travel
-   together under the thumb. Nothing fades. Let go and a critically damped spring carries on from the thumb's own speed */
-var TABS = ["today","history","progress","body"], PK = { prep:null };
-function tabX(n){ var tb = $("#tabs").getBoundingClientRect(), r = $("#tab-" + n).getBoundingClientRect(); return r.left - tb.left + r.width / 2; }
-(function(){
-  var mvRaf = 0, x0 = 0, y0 = 0, dx = 0, lock = 0, i0 = 0, W = 1, lx = 0, lt = 0, v = 0, dot, dy0 = "", movers = [], tx = {}, raf = 0, pk = null, pkN = "", fromHome = false;
-  var paneOK = function(){ return /^(home|history|progress|body)$/.test(app.dataset.s) && $("#hero").hidden && !EN && $("#sheet").hidden && !UI.navBusy; };
-  var mix = function(p){ return "color-mix(in srgb, var(--tx) " + (p * 100).toFixed(1) + "%, var(--mu2))"; };
-  var pageHTML = function(n){ var keep = UI.pgEx, h = "";
-    try{ if(n === "today") h = vHome(); else if(n === "history") h = vHistory(); else if(n === "progress"){ UI.pgEx = null; h = vProgress(); } else h = vBody(); } catch(e){ h = ""; } finally { UI.pgEx = keep; }
-    return h; };
-  /* the neighbouring sections are laid out ahead of time, hidden, so the first frame of a swipe has nothing to build */
-  var cache = {}, prepT = 0;
-  var build = function(n){
-    var el = document.createElement("main"); el.className = "peek" + (n === "today" ? " home" : ""); el.setAttribute("aria-hidden", "true"); el.hidden = true;
-    el.style.left = view.offsetLeft + "px"; el.style.top = view.offsetTop + "px"; el.style.width = view.offsetWidth + "px"; el.style.height = view.offsetHeight + "px";
-    var cs = getComputedStyle(view); el.innerHTML = '<div class="pk-in" style="padding:' + cs.padding + '">' + pageHTML(n) + '</div>'; view.parentNode.insertBefore(el, view.nextSibling);
-    [].forEach.call(el.querySelectorAll("i[data-on]"), function(e){ e.classList.add("on"); });
-    if(n === "today"){ var rows = el.querySelectorAll(".wrow"), lst = el.querySelector(".list");
-      if(rows.length && lst){ var rh = clamp(Math.floor((el.clientHeight - (lst.getBoundingClientRect().top - el.getBoundingClientRect().top) - 14) / rows.length), 84, 132); [].forEach.call(rows, function(e){ e.style.minHeight = rh + "px"; }); } }
-    el.style.transform = "translate3d(" + (view.offsetWidth * 2) + "px,0,0)"; el.style.transformOrigin = "50% 45%";
-    return el; };
-  var flush = function(){ for(var n in cache) cache[n].remove(); cache = {}; };
-  PK.prep = function(){ clearTimeout(prepT); flush(); if(!/^(home|history|progress|body)$/.test(app.dataset.s)) return;
-    prepT = setTimeout(function(){ if(lock === 1 || pk) return; var i = Math.max(0, TABS.indexOf(viewName()));
-      [TABS[i - 1], TABS[i + 1]].forEach(function(n){ if(n && !cache[n]) try{ cache[n] = build(n); }catch(e){} }); }, 350); };
-  var dropPeek = function(){ if(pk){ pk.hidden = true; pk.style.transform = "translate3d(" + (W * 2) + "px,0,0)"; pk = null; } pkN = ""; app.classList.remove("pk-home"); };
-  var peek = function(n){ if(pkN === n) return; dropPeek(); if(!n) return;
-    pk = cache[n] || (cache[n] = build(n)); pk.hidden = false; pkN = n;
-    if(n === "today") app.classList.add("pk-home"); };
-  /* the swipe is a dissolve the thumb holds: this section drifts the way you push and fades out, the next drifts in from the other side and settles,
-     both on the same spot, so there is never an edge or a seam. FULL is how far the thumb travels for the whole change */
-  var FULL = 0.62, ss = function(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
-  var place = function(x){
-    var j = i0 + (x < 0 ? 1 : -1), side = x < 0 ? 1 : -1, open = TABS[j] && x !== 0;
-    peek(open ? TABS[j] : "");
-    var p = open ? Math.min(1, Math.abs(x) / (W * FULL)) : 0, D = W * 0.16;
-    var oOut = 1 - ss(p / 0.72), oIn = ss((p - 0.26) / 0.74);
-    var bx = open ? -side * D * ss(p) : x, sc = 1 - 0.035 * ss(p);
-    var tr = "translate3d(" + bx.toFixed(2) + "px,0,0) scale(" + sc.toFixed(4) + ")";
-    movers.forEach(function(m){
-      if(m === wm){ m.style.transform = "translate3d(" + bx.toFixed(2) + "px," + HERO_Y + "px,0)"; m.style.opacity = (1 - ss(p / 0.45)).toFixed(3); }
-      else if(m === view){ m.style.transform = tr; m.style.opacity = oOut.toFixed(3); }
-      else { m.style.transform = "translate3d(" + bx.toFixed(2) + "px,0,0)"; m.style.opacity = (1 - ss(p / 0.45)).toFixed(3); } });
-    if(pk){ var ix = side * D * (1 - ss(p)), isc = 1.035 - 0.035 * ss(p);
-      pk.style.transform = "translate3d(" + ix.toFixed(2) + "px,0,0) scale(" + isc.toFixed(4) + ")"; pk.firstChild.style.opacity = oIn.toFixed(3);
-      if(pkN === "today"){ wm.style.transform = "translate3d(" + ix.toFixed(2) + "px," + HERO_Y + "px,0)"; wm.style.opacity = oIn.toFixed(3); } }
-    if(TABS[j] && tx[TABS[j]] != null){ var q2 = ss(p), a = tx[TABS[i0]], b = tx[TABS[j]], cx = a + (b - a) * q2, st = 1 + Math.sin(q2 * Math.PI) * 1.1;
-      dot.style.transform = dy0.replace(/translate3d\([-\d.]+px/, "translate3d(" + cx.toFixed(2) + "px") + " scale(" + st.toFixed(3) + "," + (1 / Math.sqrt(st)).toFixed(3) + ")";
-      $("#tab-" + TABS[i0]).style.color = mix(1 - q2); $("#tab-" + TABS[j]).style.color = mix(q2);
-      var q = TABS[i0 - side]; if(q) $("#tab-" + q).style.color = ""; } };
-  var clear = function(){ movers.forEach(function(m){ m.style.transition = ""; m.style.transform = m === wm ? "translate3d(0," + HERO_Y + "px,0)" : ""; m.style.opacity = ""; });
-    wm.style.transform = "translate3d(0," + HERO_Y + "px,0)"; wm.style.opacity = ""; TABS.forEach(function(n){ $("#tab-" + n).style.color = ""; }); dropPeek(); };
-  /* one spring for every release: x'' = -w^2 (x - target) - 2w x' */
-  var spring = function(x, vel, target, w, done){ var last = 0;
-    var step = function(ts){ var dt = last ? Math.min(32, ts - last) : 16; last = ts;
-      for(var n = 0, h = dt / 4; n < 4; n++){ var acc = -w * w * (x - target) - 2 * w * vel; vel += acc * h; x += vel * h; }
-      if(Math.abs(x - target) < 0.35 && Math.abs(vel) < 0.02){ place(target); done(); return; }
-      place(x); raf = requestAnimationFrame(step); };
-    raf = requestAnimationFrame(step); };
-  view.addEventListener("touchstart", function(e){ lock = 0; UI.swx = false;
-    if(e.touches.length !== 1 || !paneOK() || e.target.closest(".hw,input,textarea,select,[data-noswipe]")){ lock = -1; return; }
-    var t = e.touches[0]; x0 = lx = t.clientX; y0 = t.clientY; dx = 0; v = 0; lt = e.timeStamp; }, { passive:true });
-  view.addEventListener("touchmove", function(e){ if(lock < 0) return; var t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
-    if(!lock){ if(Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)){ lock = -1; return; } if(Math.abs(mx) < 10 || Math.abs(mx) < Math.abs(my) * 1.3) return;
-      cancelAnimationFrame(raf); lock = 1; UI.swx = true; i0 = Math.max(0, TABS.indexOf(viewName())); W = view.offsetWidth; x0 = t.clientX; lx = t.clientX; lt = e.timeStamp; v = 0;
-      tx = {}; TABS.forEach(function(n){ tx[n] = tabX(n); }); fromHome = app.dataset.s === "home"; view.style.transformOrigin = "50% " + (view.scrollTop + view.clientHeight * 0.45).toFixed(0) + "px";
-      dot = $("#tab-dot"); if(dot._a) try{ dot._a.cancel(); }catch(er){} dy0 = dot.style.transform || "translate3d(0px,0px,0)";
-      movers = [view, $("#bar")]; if(fromHome) movers.push(wm); movers.forEach(function(m){ m.getAnimations().forEach(function(q){ try{ q.cancel(); }catch(er){} }); m.style.transition = "none"; m.style.opacity = ""; }); }
-    if(e.cancelable) e.preventDefault();
-    var dt = e.timeStamp - lt; if(dt > 0){ var iv = (t.clientX - lx) / dt; v = dt > 60 ? iv : v * 0.4 + iv * 0.6; lx = t.clientX; lt = e.timeStamp; }
-    dx = t.clientX - x0; var j = i0 + (dx < 0 ? 1 : -1);
-    if(!TABS[j]){ var r = Math.abs(dx); dx = Math.sign(dx) * W * 0.12 * (1 - Math.exp(-r / (W * 0.45))); }
-    else dx = Math.max(-W * FULL, Math.min(W * FULL, dx));
-    if(!mvRaf) mvRaf = requestAnimationFrame(function(){ mvRaf = 0; if(lock === 1) place(dx); }); }, { passive:false });
-  var end = function(e){ if(lock !== 1){ lock = 0; return; } lock = 0; UI.swx = false; cancelAnimationFrame(mvRaf); mvRaf = 0;
-    if(e && e.timeStamp - lt > 90) v = 0; /* held still before letting go: no fling */
-    var j = i0 + (dx < 0 ? 1 : -1), sgn = dx < 0 ? -1 : 1, edge = !TABS[j];
-    var go = !edge && (Math.abs(dx) > W * FULL * 0.45 || (Math.abs(v) > 0.3 && Math.sign(v) === sgn && Math.abs(dx) > 24));
-    if(!go){ spring(dx, edge ? 0 : v, 0, 0.017, function(){ clear(); tabMark(viewName(), false); }); return; }
-    spring(dx, Math.sign(v) === sgn ? v : 0, sgn * W * FULL, 0.017, function(){
-      /* the page beside you is now the page: swap it in for the real one in the same frame, so nothing moves or blinks */
-      var n = TABS[j]; haptic(); UI.instant = true; UI.navDir = "back";
-      try{ if(n === "today") S.pick = true; if(n === "progress") UI.pgEx = null; history.replaceState(null, "", "#" + n); render(); } finally { UI.instant = false; UI.navDir = null; }
-      [].forEach.call(view.querySelectorAll("i[data-on]"), function(el){ el.style.transition = "none"; el.classList.add("on"); void el.offsetWidth; el.style.transition = ""; });
-      clear(); tabMark(n, false);
-      if(n === "today") [$("#bar-date"), $("#bar-r")].forEach(function(el){ el.animate([{ opacity:0 }, { opacity:1 }], { duration:500, easing:"ease-out" }); });
-    });
-  };
-  view.addEventListener("touchend", end, { passive:true }); view.addEventListener("touchcancel", end, { passive:true });
-})();
+/* sections change by tapping the tab bar only, the iOS way: no sideways swipe between them (it fought swipe-back, the calendar and scrolling) */
+var TABS = ["today","history","progress","body"];
 /* drag from the left edge: the page follows your thumb, let go to step back */
 (function(){
   var on = false, x0 = 0, y0 = 0, dx = 0, t0 = 0, lock = 0;
