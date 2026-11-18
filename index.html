@@ -71,6 +71,14 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 /* ---- the scrolling page ---- */
 main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
+/* each section's name in Greek, set huge and vertical down the right edge, far behind the page: it surfaces slowly, out of focus into focus, and drifts a little slower than you scroll */
+#view{z-index:1}
+#ghost{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.gh{position:absolute;right:-30px;top:calc(var(--st) + 208px);will-change:transform}
+.gh-w{display:block;writing-mode:vertical-rl;font:400 152px/1 "Wake Greek",serif;letter-spacing:.01em;white-space:nowrap;color:transparent;background:linear-gradient(180deg,rgba(20,211,194,.15),rgba(20,211,194,.075) 45%,rgba(20,211,194,.015) 88%);-webkit-background-clip:text;background-clip:text;will-change:transform,opacity,filter}
+.gcap{margin:64px 0 8px;font-size:13px;line-height:1.55;color:var(--mu2);max-width:17em}
+.gcap b{display:block;font-weight:300;font-size:15px;letter-spacing:.16em;color:#9AA9A6;margin-bottom:4px}
+.gcap span{font-family:"Wake Greek",serif;font-size:15px;letter-spacing:.04em;color:rgba(20,211,194,.55);margin-left:10px}
 /* the neighbouring section, laid out beside this one while you swipe */
 /* home: the name stays put; the list dissolves as it slides up under the reflection */
 #app[data-s="home"] main{-webkit-mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px));mask-image:linear-gradient(180deg,transparent calc(var(--st) + 172px),#000 calc(var(--st) + 246px))}
@@ -661,6 +669,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
     <div id="h-cue" aria-hidden="true"><b><i></i></b></div>
   </div>
   <div id="tide" hidden><i class="a"></i><i class="b"></i></div>
+  <div id="ghost" aria-hidden="true"></div>
   <main id="view"></main>
   <div id="tab-veil" aria-hidden="true"></div>
   <nav id="tabs" aria-label="Sections">
@@ -1292,7 +1301,8 @@ function render(){
   var k = screenKey(), fresh = k !== UI.key, keep = view.scrollTop, type = k.split(":")[0], a = S.active, l = "", t = "", r = "";
   UI.key = k; if(fresh) UI.th = {};
   var html = type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
-  view.innerHTML = html; view.dataset.v = type; app.dataset.s = type;
+  if(GH[type]) html += ghostCap(type);
+  view.innerHTML = html; view.dataset.v = type; app.dataset.s = type; ghostSet(UI.intro ? "" : type);
   if(type !== "ex" && UI.clock){ UI.clock = false; $("#clock").hidden = true; }
   if(type === "home") r = ib("setup-open", "Setup", IC.gear);
   else if(type === "wk"){ l = bk("to-list", "Workouts"); t = a.name; }
@@ -1326,7 +1336,8 @@ function reveal(){
 var raf = 0;
 function onScroll(){ if(!raf) raf = requestAnimationFrame(function(){ raf = 0; paint(); }); }
 function paint(){
-  var y = view.scrollTop, type = view.dataset.v, bar = $("#bar"), vh = view.clientHeight;
+  var y = view.scrollTop, type = view.dataset.v, bar = $("#bar"), vh = view.clientHeight, gh = $("#ghost").lastElementChild;
+  if(gh) gh.style.transform = "translate3d(0," + (-y * 0.22).toFixed(1) + "px,0)";
   if(type === "home"){
     /* the wordmark, its date and its reflection stay pinned; the list scrolls up beneath them and dissolves at the horizon */
     if(!UI.intro) wm.style.transform = "translate3d(0," + HERO_Y + "px,0)";
@@ -1425,6 +1436,15 @@ function goBack(){
 }
 /* sections change by tapping the tab bar only, the iOS way: no sideways swipe between them (it fought swipe-back, the calendar and scrolling) */
 var TABS = ["today","history","progress","body"];
+var GH = { progress:["προκοπή","prokopē","The Stoic word for progress: the slow, daily kind."], history:["μνήμη","mnēmē","Greek for memory."], body:["σῶμα","sōma","Greek for the body."] }, GHK = "";
+function ghostCap(type){ var g = GH[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
+function ghostSet(type){
+  if(type === GHK) return; GHK = type; var box = $("#ghost"), g = GH[type];
+  [].forEach.call(box.children, function(o){ if(calm){ o.remove(); return; } var a = o.animate([{ opacity:1 }, { opacity:0, filter:"blur(6px)" }], { duration:520, easing:"cubic-bezier(.4,0,.2,1)", fill:"forwards" }); a.onfinish = function(){ o.remove(); }; });
+  if(!g) return;
+  var el = document.createElement("div"); el.className = "gh"; el.innerHTML = '<span class="gh-w">' + g[0] + '</span>'; box.appendChild(el);
+  if(!calm) el.firstChild.animate([{ opacity:0, filter:"blur(18px)", transform:"translate3d(0,56px,0) scale(1.04)" }, { opacity:0.55, filter:"blur(6px)", offset:0.45 }, { opacity:1, filter:"blur(0px)", transform:"none" }], { duration:3200, delay:180, easing:"cubic-bezier(.16,1,.3,1)", fill:"backwards" });
+}
 /* drag from the left edge: the page follows your thumb, let go to step back */
 (function(){
   var on = false, x0 = 0, y0 = 0, dx = 0, t0 = 0, lock = 0;
