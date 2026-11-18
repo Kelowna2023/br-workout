@@ -676,7 +676,8 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 /* ---- a quiet piece behind each main page ---- */
 #deco{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .dk-tide,.dk-rings{position:absolute;opacity:0;transition:opacity .9s ease}
-#app[data-s="home"] .dk-tide,#app[data-s="history"] .dk-rings{opacity:1}
+#app[data-s="history"] .dk-rings{opacity:1}
+.dk-tide{display:none}
 .dk-tide{left:0;right:0;bottom:0;height:var(--lvl,17%);transition:opacity .9s ease,height 2.2s cubic-bezier(.22,1,.36,1)}
 .dk-tide i{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,211,194,var(--ink,.1)),rgba(20,211,194,.035))}
 .dk-tide svg{position:absolute;left:0;bottom:100%;width:200%;height:14px;margin-bottom:-1px;fill:rgba(20,211,194,.035);will-change:transform}
@@ -687,6 +688,9 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .dk-rings .rip{transform-origin:400px 400px;animation:dkrip 7s cubic-bezier(.2,.6,.3,1) infinite}
 @keyframes dkrip{from{transform:scale(1);opacity:.5}to{transform:scale(7.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.dk-tide svg,.dk-rings .rip{animation:none}.dk-rings .rip{opacity:0}}
+/* installed on an iPhone, 100% stops short of the bottom by the height of the status bar; vh is the whole screen */
+#app{height:100dvh}
+@media (display-mode:standalone){html,body,#app{height:100vh}}
 </style>
 </head>
 <body>
@@ -1122,7 +1126,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "124";
+var BUILD = "125";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
