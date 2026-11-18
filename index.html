@@ -285,11 +285,14 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .x-more button{color:var(--t);font-weight:500;font-size:15px;padding:12px 0}
 
 /* ---- tabs ---- */
-#tabs{position:relative;flex:none;display:flex;justify-content:space-around;padding:6px 6px calc(var(--sb) + 4px);border-top:.5px solid #1A1A1A;background:var(--bg);z-index:15;view-transition-name:tabs}
-#tabs a{flex:1;display:grid;justify-items:center;align-content:center;min-height:50px;padding-bottom:11px;font-size:15px;font-weight:500;letter-spacing:-.005em;color:var(--mu2);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .18s ease-out,transform .25s var(--spring)}
-#tabs a.tap{transform:scale(.95)}
+/* the tab bar: a floating capsule of smoked glass. The page runs on underneath it, softened by the blur; a glass pill slides to the section you tap */
+#tabs{position:absolute;left:16px;right:16px;bottom:calc(max(var(--sb), 12px) + 4px);display:flex;padding:5px;border-radius:30px;background:rgba(24,24,24,.58);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.4);z-index:15;view-transition-name:tabs;transform:translateZ(0)}
+#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:25px;background:rgba(255,255,255,.085);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.05);pointer-events:none;opacity:0;will-change:transform,width}
+#app[data-s="home"] main,#app[data-s="history"] main,#app[data-s="progress"] main,#app[data-s="body"] main{padding-bottom:calc(max(var(--sb), 12px) + 96px)}
+#tabs a{position:relative;z-index:1;flex:1;display:grid;justify-items:center;align-content:center;min-height:48px;padding:0;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .18s ease-out,transform .25s var(--spring)}
+#tabs a.tap{transform:scale(.94)}
 #tabs a[aria-current="page"]{color:var(--tx)}
-#tab-dot{position:absolute;left:0;top:0;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--t);pointer-events:none;opacity:0;will-change:transform}
+#tab-dot{display:none}
 #app[data-s="wk"] #tabs,#app[data-s="ex"] #tabs,#app[data-s="setup"] #tabs{display:none}
 
 /* ---- history ---- */
@@ -657,7 +660,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
     <a href="#history" id="tab-history">History</a>
     <a href="#progress" id="tab-progress">Progress</a>
     <a href="#body" id="tab-body">Body</a>
-    <i id="tab-dot" aria-hidden="true"></i>
+    <i id="tab-pill" aria-hidden="true"></i><i id="tab-dot" aria-hidden="true"></i>
   </nav>
   <div id="clock" hidden>
     <div class="ck-bg"></div>
@@ -1293,7 +1296,7 @@ function render(){
   var d = new Date(); $("#bar-date").textContent = d.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + "  ·  Week " + isoWeek(d);
   tabMark(viewName(), false);
   UI.rows = [].slice.call(view.querySelectorAll(".wrow")); UI.big = view.querySelector(".big");
-  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor((view.clientHeight - lst.offsetTop - 14) / UI.rows.length), 84, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
+  if(type === "home" && UI.rows.length){ var lst = view.querySelector(".list"), rh = clamp(Math.floor((view.clientHeight - lst.offsetTop - 14 - ($("#tabs").offsetHeight + 28)) / UI.rows.length), 84, 132); UI.rows.forEach(function(e){ e.style.minHeight = rh + "px"; }); }
   view.scrollTop = fresh ? 0 : keep;
   initWheels(); paint(); tick();
   if(fresh && !UI.intro) reveal();
@@ -1386,16 +1389,20 @@ function nav(fn, dir, src, destSel){
       if(app.dataset.s === "home") wm.animate([{ opacity:0 }, { opacity:1 }], { duration:tab ? 380 : 700, easing:IN }); } };
   outs[0].onfinish = swap; setTimeout(swap, fo.duration + 120);
 }
-/* the current tab: its word turns white at once and one teal dot glides under it */
+/* the current tab: its word turns white, and the glass pill glides under it, stretching a touch as it travels like liquid */
 function tabMark(n, glide){
   var on = null; ["today","history","progress","body"].forEach(function(k){ var el = $("#tab-" + k); if(k === n){ el.setAttribute("aria-current", "page"); on = el; } else el.removeAttribute("aria-current"); });
-  var dot = $("#tab-dot"); if(!on){ dot.style.opacity = 0; return; }
+  var pill = $("#tab-pill"); if(!on){ pill.style.opacity = 0; return; }
   var tb = $("#tabs").getBoundingClientRect(), r = on.getBoundingClientRect(); if(!r.width) return;
-  var to = "translate3d(" + (r.left - tb.left + r.width / 2).toFixed(1) + "px," + (r.top - tb.top + r.height - 12).toFixed(1) + "px,0)", from = dot.style.transform, was = dot.style.opacity === "1";
-  dot.style.transform = to; dot.style.opacity = 1;
-  if(glide && was && from && from !== to && !calm){
-    if(dot._a) try{ dot._a.cancel(); }catch(e){}
-    dot._a = dot.animate([{ transform:from + " scale(1)" }, { transform:from.replace(/translate3d\(([-\d.]+)px/, function(m, x){ return "translate3d(" + ((+x + parseFloat(to.slice(12))) / 2).toFixed(1) + "px"; }) + " scale(2.2,0.7)", offset:0.45 }, { transform:to + " scale(1)" }], { duration:420, easing:"cubic-bezier(.3,0,.1,1)" });
+  var x = r.left - tb.left, w = r.width, fx = pill._x, fw = pill._w, was = pill.style.opacity === "1";
+  pill.style.transform = "translate3d(" + x.toFixed(1) + "px,0,0)"; pill.style.width = w.toFixed(1) + "px"; pill.style.opacity = 1; pill._x = x; pill._w = w;
+  if(glide && was && fx != null && Math.abs(fx - x) > 1 && !calm){
+    if(pill._a) try{ pill._a.cancel(); }catch(e){}
+    var lo = Math.min(fx, x), span = Math.max(fx + fw, x + w) - lo;
+    pill._a = pill.animate([
+      { transform:"translate3d(" + fx.toFixed(1) + "px,0,0)", width:fw.toFixed(1) + "px" },
+      { transform:"translate3d(" + (x > fx ? fx + (x - fx) * 0.32 : x + (fx - x) * 0.68).toFixed(1) + "px,0,0)", width:(Math.max(fw, w) + span * 0.18).toFixed(1) + "px", offset:0.42 },
+      { transform:"translate3d(" + x.toFixed(1) + "px,0,0)", width:w.toFixed(1) + "px" }], { duration:520, easing:"cubic-bezier(.32,.72,0,1)" });
   }
 }
 addEventListener("resize", function(){ tabMark(viewName(), false); });
