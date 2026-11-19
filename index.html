@@ -846,6 +846,19 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .cal-h .ib,.lg-r,.acc.open>button,.acc>button svg,.pg-up,.up,.fs-r span:last-child .up,.b-info b,.grow-r[aria-pressed="true"] div span,
 .chips button[aria-pressed="true"],.e-st b.t,.wk-ac>b,.tag,.trk b{color:var(--tsoft)!important}
 .acc.open>button{color:var(--tsoft)!important}
+
+/* one button. Every button in Wake is the same piece of smoked glass with a thin line of light at its foot;
+   the only other kind is a quiet word (ghost) for the second choice. Destructive buttons keep the shape with a neutral light */
+.btn:not(.ghost){color:var(--tx)!important;font-weight:500;
+  background:radial-gradient(36% 46% at 50% 100%,rgba(20,211,194,.16),transparent 100%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))!important;
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.085),inset 0 1px 0 rgba(255,255,255,.05)!important}
+.btn:not(.ghost)::after{content:"";position:absolute;left:50%;bottom:0;width:34%;max-width:120px;height:1.5px;border-radius:2px;transform:translateX(-50%);
+  background:linear-gradient(90deg,rgba(20,211,194,0),#14D3C2 30%,#7FF2E6 50%,#14D3C2 70%,rgba(20,211,194,0));box-shadow:0 0 10px rgba(20,211,194,.55);pointer-events:none}
+.btn.danger:not(.ghost){background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))!important}
+.btn.danger:not(.ghost)::after{background:linear-gradient(90deg,transparent,rgba(245,242,236,.45),transparent);box-shadow:none}
+.btn.ghost{color:var(--mu)!important}
+.btn.ghost.danger{color:var(--mu2)!important}
+.btn:disabled::after{opacity:.3}
 </style>
 </head>
 <body>
