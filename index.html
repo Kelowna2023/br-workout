@@ -108,9 +108,13 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:0 18px;border-radius:14px;border:.5px solid var(--ln2);font-weight:500;font-size:15px;color:var(--tx);transition:transform .35s var(--spring),background .2s,opacity .2s}
 .btn.tap{transform:scale(.965)}
-.btn.go{background:var(--t);border-color:var(--t);color:#000;font-weight:500}
+/* buttons share the tab bar's material: smoked glass with a fine light rim. The main action is the lit key: a teal glow from below and a hairline of teal light */
+.btn{border:0;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.018));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.04);letter-spacing:-.01em;position:relative;overflow:hidden}
+.btn.go{color:#F5FFFD;font-weight:500;background:radial-gradient(90% 80% at 50% 125%,rgba(20,211,194,.26),rgba(20,211,194,.06) 55%,transparent 82%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));box-shadow:inset 0 0 0 .5px rgba(150,245,235,.2),inset 0 1px 0 rgba(255,255,255,.06),0 18px 40px -22px rgba(20,211,194,.45)}
+.btn.go::after{content:"";position:absolute;left:28%;right:28%;bottom:0;height:1px;transform:scaleY(.6);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.85),transparent);pointer-events:none}
+.btn.go:disabled::after{opacity:.3}
 .btn.danger{color:var(--red)}
-.btn.ghost{border-color:transparent;color:var(--mu)}
+.btn.ghost{background:none;box-shadow:none;color:var(--mu)}
 .btn:disabled{opacity:.4}
 .row{display:flex;gap:10px}.grow{flex:1}
 .stack{display:grid;gap:10px;margin-top:22px}
@@ -248,7 +252,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .xrow small.t{color:var(--t);font-weight:500}
 .xrow .ct b{color:var(--t);font-weight:600}
 .sub b{color:var(--t);font-weight:600}
-.btn.tl{border-color:var(--t);color:var(--t)}
+.btn.tl{color:#9FD9D2}
 .okc{width:22px;height:22px;border-radius:50%;background:var(--t);color:#000;display:grid;place-items:center;flex:none}
 .okc svg{width:14px;height:14px;stroke-width:2.4}
 
@@ -284,7 +288,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .rest[data-st="paused"] .rest-t i{background:var(--t)}
 .rest[data-st="go"] .rest-t b{color:var(--t)}
 .rest-b{display:flex;gap:8px}
-.rb{width:44px;height:44px;border-radius:50%;border:.5px solid var(--ln2);display:grid;place-items:center;color:var(--t);transition:transform .28s var(--spring)}
+.rb{width:44px;height:44px;border-radius:50%;border:0;background:radial-gradient(90% 80% at 50% 125%,rgba(20,211,194,.2),transparent 75%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.05);display:grid;place-items:center;color:var(--t);transition:transform .28s var(--spring)}
 .rb.tap{transform:scale(.86)}
 .rb svg{width:18px;height:18px}
 .rb.x{color:var(--mu)}
