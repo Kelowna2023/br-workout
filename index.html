@@ -115,16 +115,16 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 /* buttons share the tab bar's material: smoked glass with a fine light rim. The main action is the lit key: a teal glow from below and a hairline of teal light */
 .btn{border:0;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.018));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.04);letter-spacing:-.01em;position:relative;overflow:hidden}
 .btn.go{color:#F5FFFD;font-weight:500;background:radial-gradient(90% 80% at 50% 125%,rgba(20,211,194,.26),rgba(20,211,194,.06) 55%,transparent 82%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));box-shadow:inset 0 0 0 .5px rgba(150,245,235,.2),inset 0 1px 0 rgba(255,255,255,.06),0 18px 40px -22px rgba(20,211,194,.45)}
-.btn.go::after{content:"";position:absolute;left:28%;right:28%;bottom:0;height:1px;transform:scaleY(.6);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.85),transparent);pointer-events:none}
+.btn.go::after{content:"";position:absolute;left:30%;right:30%;bottom:0;height:1px;transform:scaleY(.6);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(170,248,240,.7),transparent);pointer-events:none}
 .btn.go:disabled::after{opacity:.3}
 /* the brand signature: a rim of the logo's teal, brightest where the light pools at the base and fading out as it climbs */
 .btn.go::before,#tab-pill::before,#clock .chips button.p::before,.rb::before,.tag::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
-  background:linear-gradient(0deg,rgba(20,211,194,.95),rgba(20,211,194,.38) 45%,rgba(20,211,194,.08) 100%);
+  background:linear-gradient(0deg,rgba(20,211,194,.5),rgba(20,211,194,.24) 14%,rgba(20,211,194,.06) 34%,rgba(255,255,255,.07) 52%,rgba(255,255,255,.09) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
-.btn.go{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 36px -16px rgba(20,211,194,.55)}
+.btn.go{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 22px -16px rgba(20,211,194,.42)}
 .btn.go:disabled::before{opacity:.35}
 .rb{position:relative}
-.tag{position:relative}.tag.q::after{background:linear-gradient(0deg,rgba(20,211,194,.6),rgba(20,211,194,.15) 60%,rgba(255,255,255,.06))}
+.tag{position:relative}.tag.q::after{background:linear-gradient(0deg,rgba(20,211,194,.5),rgba(20,211,194,.12) 30%,rgba(255,255,255,.08) 60%)}
 .btn.danger{color:var(--red)}
 .btn.ghost{background:none;box-shadow:none;color:var(--mu)}
 .btn:disabled{opacity:.4}
