@@ -946,6 +946,22 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .wrow.on .wv{color:rgba(245,242,236,.55)!important}
 .gcap b{color:var(--mu)!important}.gcap span{color:var(--mu2)!important}
 .rest[data-st="go"] .rest-t b,#mini.go b,#clock.go #ck-t{color:var(--t)!important}
+</style><style>
+/* ---- workout list: every lift carries its plan; a superset is one row block, its lifts joined by "and" ---- */
+.xrow{min-height:76px;padding:12px 0}
+.xrow small{margin-top:5px}
+.ssC{border-bottom:.5px solid var(--ln);padding:14px 0}
+.ssC .ln{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:4px 0;text-align:left}
+.ssC .ln .nm{font:500 18px/1.2 var(--font);letter-spacing:-.022em;transition:color .15s}
+.ssC .ln .nm{display:flex;align-items:baseline;min-width:0}
+.ssC .ln .nm em{flex:none;font-style:normal;color:var(--mu);font-weight:400;margin-right:8px}
+.ssC .ln .ct{font-size:15px;color:var(--mu);font-variant-numeric:tabular-nums;flex:none}
+.ssC .ln.done .nm{color:var(--mu)}
+.ssC .ln.tap .nm{color:var(--mu)}
+.ssC small{display:block;font-size:13.5px;color:var(--mu);margin-top:6px}
+/* done is a quiet grey check, not a teal disc */
+.okc{background:none!important;color:var(--mu)!important;width:auto!important}
+.okc svg{width:18px!important;height:18px!important;stroke-width:1.8!important}
 </style></head>
 <body>
 <div id="app" data-s="home">
@@ -1391,7 +1407,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "129";
+var BUILD = "130";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3138,6 +3154,35 @@ vitMaybe = function(type){
 /* no more teal rings behind History: the shoreline is its piece now */
 var _deco = deco; deco = function(type){ _deco(type); var r = document.querySelector(".dk-rings"); if(r && type === "history") r.innerHTML = ""; };
 var _ar = afterRender; afterRender = function(){ _ar(); var t = view.dataset.v; if(t === "history") shore(); if(t === "progress") horizon(); };
+})();
+
+
+(function(){
+function rng(t){ return String(t || "").replace(/-/g, "–"); }
+function lastOf(x, u){ var p = (x.sets[0] || {}).prev; return p && +p.w > 0 ? "last " + fmtW(+p.w) + " " + u : ""; }
+function nDone(x){ return x.sets.filter(function(q){ return q.done; }).length; }
+function isDone(x){ var d = nDone(x); return d > 0 && d >= x.sets.length; }
+function mark(x){ var d = nDone(x), n = x.sets.length; return isDone(x) ? '<span class="okc">' + IC.check + '</span>' : '<span class="ct">' + (d ? d + ' of ' + n : n + (n === 1 ? ' set' : ' sets')) + '</span>'; }
+/* about 45 seconds a set, and a rest after each set, except between lifts of a superset */
+function mins(ex){ var s = 0; ex.forEach(function(x){ s += x.sets.length * (45 + (x.link ? 0 : (x.rest || 150))); }); return Math.max(5, Math.round(s / 300) * 5); }
+vWorkout = function(){
+  var a = S.active, u = S.cfg.units, ex = a.exercises, dn = 0, any = false, rows = "", segs = "";
+  ex.forEach(function(x){ if(isDone(x)) dn++; if(nDone(x)) any = true; segs += '<span><i' + (isDone(x) ? ' class="on"' : '') + '></i></span>'; });
+  for(var i = 0; i < ex.length; i++){ var x = ex[i];
+    if(x.link && ex[i + 1]){ var run = [i]; while(ex[run[run.length - 1]].link && ex[run[run.length - 1] + 1]) run.push(run[run.length - 1] + 1);
+      var rounds = Math.max.apply(null, run.map(function(k){ return ex[k].sets.length; }));
+      rows += '<div class="ssC" data-rv>' + run.map(function(k, j){ var z = ex[k];
+          return '<button type="button" class="ln' + (isDone(z) ? ' done' : '') + '" data-act="ex-open" data-e="' + k + '"><span class="nm">' + (j ? '<em>and</em>' : '') + '<span>' + esc(z.name) + '</span></span>' + mark(z) + '</button>'; }).join("") +
+        '<small>Back to back, ' + rounds + (rounds === 1 ? ' round' : ' rounds') + ', rest after ' + (run.length === 2 ? 'both' : 'all ' + run.length) + '</small></div>';
+      i = run[run.length - 1]; continue; }
+    var plan = x.sets.length + ' × ' + esc(rng(x.target || "")), l = lastOf(x, u);
+    rows += '<button type="button" class="xrow' + (isDone(x) ? ' done' : '') + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span><small>' + (x.target ? plan : x.sets.length + (x.sets.length === 1 ? ' set' : ' sets')) + (l ? ', ' + l : '') + '</small></span>' + mark(x) + '</button>'; }
+  var sub = any ? '<b>' + dn + '</b> of ' + ex.length + ' lifts done' : ex.length + (ex.length === 1 ? ' lift' : ' lifts') + ', about ' + mins(ex) + ' minutes';
+  return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1><div class="sub" data-rv>' + sub + '</div>' + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs" data-rv>' + segs + '</div>' +
+    '<div class="list">' + rows + '</div>' +
+    '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
+    '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
+};
 })();
 
 render();
