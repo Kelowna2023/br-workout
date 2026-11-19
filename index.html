@@ -787,6 +787,29 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .bmap{contain:layout paint;transform:translateZ(0)}
 .gacc .acc-b>div{contain:paint}
 .gacc .acc-b{will-change:grid-template-rows}
+
+/* rest: the water, and the numbers going under */
+.ck-tide b,.ck-tide svg{display:none}
+#ck-sea{position:absolute;inset:0;width:100%;height:100%}
+#ck-t{position:relative;color:transparent}
+#ck-t .ck-a,#ck-t .ck-b{position:absolute;inset:0;pointer-events:none}
+#ck-t .ck-a{color:var(--tx)}
+#ck-t .ck-b{color:rgba(143,211,202,.6)}
+#clock.go #ck-t{color:transparent}
+#clock.go #ck-t .ck-a{color:var(--t)}
+/* finish: the name on its line, the full stop landed; everything else quiet */
+#end{padding-top:calc(var(--st) + 8px)}
+.f-stage{position:relative;height:210px;margin:0 calc(var(--g) * -1)}
+.f-stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.f-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-top:16px;font-size:14px;color:var(--mu);font-variant-numeric:tabular-nums}
+.f-meta i{width:3px;height:3px;border-radius:50%;background:var(--mu2)}
+.f-sec{display:flex;justify-content:space-between;align-items:baseline;margin:44px 0 6px;font-size:13px;color:var(--mu2)}
+.f-sec span:first-child{color:var(--mu)}
+.f-ls .fs-r{font-size:16px;min-height:50px}
+.f-ls .fs-r span:first-child{display:inline-flex;align-items:center}
+.f-best{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--t);margin-left:9px;box-shadow:0 0 8px rgba(20,211,194,.7);flex:none}
+.f-ls u{text-decoration:none;color:var(--tsoft);font-size:10px;margin-left:5px;vertical-align:1px}
+.f-act{margin-top:34px}
 </style>
 </head>
 <body>
@@ -816,7 +839,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
   <button type="button" id="mini" data-act="rest-time" aria-label="Rest timer" hidden><i></i><span id="mini-l">Rest</span><b id="mini-n">0:00</b><em><u id="mini-b"></u></em></button>
   <div id="clock" hidden>
     <div class="ck-bg"></div>
-    <div class="ck-tide"><b id="ck-tide"><svg viewBox="0 0 400 12" preserveAspectRatio="none" aria-hidden="true"><path d="M0 12V6q25-8 50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0V12Z"/></svg></b></div>
+    <div class="ck-tide"><canvas id="ck-sea" aria-hidden="true"></canvas></div>
     <button type="button" class="ck-hide" data-act="clock-hide" aria-label="Shrink timer"></button>
     <div class="ck-c">
       <div class="cl-l"><i class="breathe"></i><span id="ck-l">Rest</span></div>
@@ -1774,13 +1797,42 @@ function tick(){
     $("#mini-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; mi.classList.toggle("go", st === "go"); }
   if(UI.clock){
     if(st === "idle") closeClock();
-    else { ck.classList.toggle("go", st === "go"); $("#ck-t").textContent = st === "go" ? "Go" : fmtClock(rem); $("#ck-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest · of " + fmtClock(tot);
+    else { ck.classList.toggle("go", st === "go"); ckSet(st === "go" ? "Go" : fmtClock(rem)); $("#ck-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest · of " + fmtClock(tot);
       $("#ck-p").textContent = st === "paused" ? "Resume" : "Pause"; $("#ck-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; UI.frac = frac; tideLevel(); }
   }
 }
 /* the rest clock: opens over the whole screen with nothing else on it; drag it down to put it away */
 function clockBase(){ return app.clientHeight * 0.46; }
-function tideLevel(){ var H = app.clientHeight, vis = H - (UI.cy || 0); $("#ck-tide").style.transform = "translate3d(0," + (H - (UI.frac || 0) * vis).toFixed(1) + "px,0)"; }
+function tideLevel(){ var H = app.clientHeight, vis = H - (UI.cy || 0); UI.tideTo = H - (UI.frac || 0) * vis; }
+/* the rest clock's water: a fine line of light on the surface, a faint wash beneath it falling away to black.
+   It rises as the rest runs down; when it reaches the numbers they go under and take the colour of the water */
+var SEA = { lvl:null, w:0, h:0, d:1, cut:-1, go:null };
+function ckSet(txt){ var el = $("#ck-t"); if(el._t === txt) return; el._t = txt; el.innerHTML = esc(txt) + '<span class="ck-a" aria-hidden="true">' + esc(txt) + '</span><span class="ck-b" aria-hidden="true">' + esc(txt) + '</span>'; SEA.cut = -1; }
+function seaDraw(ts){
+  var cv = $("#ck-sea"); if(!cv) return; var W = app.clientWidth, H = app.clientHeight, d = Math.min(window.devicePixelRatio || 1, 2);
+  if(SEA.w !== W || SEA.h !== H || SEA.d !== d){ SEA.w = W; SEA.h = H; SEA.d = d; cv.width = Math.round(W * d); cv.height = Math.round(H * d); }
+  var to = UI.tideTo == null ? H : UI.tideTo; if(SEA.lvl == null) SEA.lvl = H; SEA.lvl += (to - SEA.lvl) * (calm ? 1 : 0.06);
+  var g = cv.getContext("2d"), t = ts / 1000, y0 = SEA.lvl, x, y;
+  g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, H);
+  var wave = function(x, k){ return Math.sin(x * 0.018 + t * 0.9 + k) * 3.2 + Math.sin(x * 0.041 - t * 0.6 + k * 2) * 1.6 + Math.sin(x * 0.007 + t * 0.3) * 2.4; };
+  if(y0 < H + 12){
+    g.beginPath(); g.moveTo(0, H); for(x = 0; x <= W; x += 3) g.lineTo(x, y0 + wave(x, 0)); g.lineTo(W, H); g.closePath();
+    var gr = g.createLinearGradient(0, y0 - 6, 0, Math.min(H + 340, y0 + 340)); gr.addColorStop(0, "rgba(20,211,194,.11)"); gr.addColorStop(.18, "rgba(20,211,194,.045)"); gr.addColorStop(1, "rgba(20,211,194,0)");
+    g.fillStyle = gr; g.fill();
+    var edge = function(a, mid){ var lg = g.createLinearGradient(0, 0, W, 0); lg.addColorStop(0, "rgba(20,211,194,0)"); lg.addColorStop(.25, "rgba(20,211,194," + a + ")"); lg.addColorStop(.5, mid); lg.addColorStop(.75, "rgba(20,211,194," + a + ")"); lg.addColorStop(1, "rgba(20,211,194,0)"); return lg; };
+    g.beginPath(); for(x = 0; x <= W; x += 3){ y = y0 + 7 + wave(x, 1.7) * 0.8; if(x) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.strokeStyle = edge(.08, "rgba(143,211,202,.14)"); g.lineWidth = .6; g.stroke();
+    g.beginPath(); for(x = 0; x <= W; x += 3){ y = y0 + wave(x, 0); if(x) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.strokeStyle = edge(.12, "rgba(20,211,194,.22)"); g.lineWidth = 6; g.stroke();
+    g.strokeStyle = edge(.5, "rgba(190,250,242,.82)"); g.lineWidth = 1; g.stroke();
+  }
+  /* the numbers below the surface */
+  var el = $("#ck-t"), go = $("#clock").classList.contains("go"); if(!el || !el.offsetHeight) return;
+  var r = el.getBoundingClientRect(), cr = cv.getBoundingClientRect(), sc = r.height / el.offsetHeight || 1, sy = cr.top + y0 + wave(r.left + r.width / 2 - cr.left, 0);
+  var cut = go ? el.offsetHeight : clamp((sy - r.top) / sc, 0, el.offsetHeight); cut = Math.round(cut * 2) / 2;
+  if(cut !== SEA.cut || go !== SEA.go){ SEA.cut = cut; SEA.go = go; var a = el.querySelector(".ck-a"), b = el.querySelector(".ck-b");
+    if(a) a.style.clipPath = "inset(-20px -40px " + (el.offsetHeight - cut) + "px -40px)"; if(b) b.style.clipPath = "inset(" + cut + "px -40px -20px -40px)"; }
+}
 function clockPose(y){
   var ck = $("#clock"), H = app.clientHeight, f = clamp(1 - y / clockBase(), 0, 1); UI.cy = y;
   ck.style.transform = "translate3d(0," + y.toFixed(1) + "px,0)";
@@ -1994,23 +2046,61 @@ function roll(inp, val, dir){
 /* ---------- finish ---------- */
 function endCard(s){
   var u = S.cfg.units, prev = null, i; for(i = 0; i < S.sessions.length; i++){ var q = S.sessions[i]; if(q.id !== s.id && q.routineId === s.routineId && q.startedAt < s.startedAt){ prev = q; break; } }
-  var ups = 0, lines = s.exercises.map(function(x){ var b = topOf(x.sets), px = prev ? prev.exercises.filter(function(z){ return key(z.name) === key(x.name); })[0] : null, pb = px ? topOf(px.sets) : null, tag = "";
-    if(pb && beats(b.w, b.r, pb)){ ups++; tag = ' <span class="up">▲</span>'; }
-    return '<div class="fs-r"><span>' + esc(x.name) + (x.sets.some(function(t){ return t.pr; }) ? ' <span class="tag" style="margin-left:6px">New best</span>' : '') + '</span><span>' + (b.w > 0 ? fmtW(b.w) + ' × ' : '') + b.r + tag + '</span></div>'; }).join("");
+  var ups = 0, lines = s.exercises.map(function(x){ var b = topOf(x.sets), px = prev ? prev.exercises.filter(function(z){ return key(z.name) === key(x.name); })[0] : null, pb = px ? topOf(px.sets) : null, up = !!(pb && b && beats(b.w, b.r, pb)), best = x.sets.some(function(t){ return t.pr; });
+    if(up) ups++;
+    return '<div class="fs-r"><span>' + esc(x.name) + (best ? '<em class="f-best" aria-label="New best"></em>' : '') + '</span><span>' + (b ? (b.w > 0 ? fmtW(b.w) + ' × ' : '') + b.r : '') + (up ? '<u aria-label="Up on last time">▲</u>' : '') + '</span></div>'; }).join("");
   var ws = weekStart(Date.now()), n = S.sessions.filter(function(z){ return z.startedAt >= ws; }).length, goal = Math.max(1, +S.cfg.weeklyGoal || 5);
-  var el = $("#end"), veil = $("#veil");
-  el.innerHTML = '<div class="eyebrow">' + (s.dur ? 'Workout complete · ' + fmtMin(s.dur) : 'Logged for ' + esc(fmtDate(s.startedAt))) + '</div><div class="e-t">' + esc(s.name) + '</div>' +
-    '<div class="e-st"><div><b>' + s.setCount + '</b><span>' + (s.setCount === 1 ? "set" : "sets") + '</span></div><div><b' + (s.prs.length ? ' class="t"' : '') + '>' + s.prs.length + '</b><span>new ' + (s.prs.length === 1 ? "best" : "bests") + '</span></div><div><b class="t">' + n + '</b><span>of ' + goal + ' this week</span></div></div>' +
-    '<div class="sec" style="margin-top:34px"><h2>Top sets</h2>' + (prev && ups ? '<span class="sec-v t">' + ups + ' up on last time</span>' : '') + '</div><div class="e-ls">' + lines + '</div>' +
-    '<div class="stack"><button type="button" class="btn go" data-act="end-done">Done</button><button type="button" class="btn ghost" data-act="end-undo" data-id="' + esc(s.id) + '">Not finished? Back to workout</button></div>' +
-    '';
-  var show = function(){ el.hidden = false; el.scrollTop = 0; render(); };
+  var el = $("#end"), veil = $("#veil"), meta = [s.dur ? fmtMin(s.dur) : 'Logged for ' + esc(fmtDate(s.startedAt)), s.setCount + (s.setCount === 1 ? " set" : " sets"), n + ' of ' + goal + ' this week'];
+  el.innerHTML = '<div class="f-stage" role="img" aria-label="' + esc(s.name) + ', complete"><canvas></canvas></div>' +
+    '<div class="f-meta">' + meta.join('<i></i>') + '</div>' +
+    '<div class="f-sec"><span>Top sets</span>' + (prev && ups ? '<span>' + ups + ' up on last time</span>' : '') + '</div><div class="e-ls f-ls">' + lines + '</div>' +
+    '<div class="stack f-act"><button type="button" class="btn go" data-act="end-done">Done</button><button type="button" class="btn ghost" data-act="end-undo" data-id="' + esc(s.id) + '">Not finished? Back to workout</button></div>';
+  var show = function(){ el.hidden = false; el.scrollTop = 0; render(); finStage(el.querySelector(".f-stage"), s.name); };
   if(calm){ show(); return; }
   veil.animate([{ clipPath:"inset(100% 0 0 0)" }, { clipPath:"inset(0 0 0 0)" }], { duration:620, easing:IO, fill:"forwards" }).onfinish = function(){
     show();
     veil.animate([{ clipPath:"inset(0 0 0 0)" }, { clipPath:"inset(0 0 100% 0)" }], { duration:700, easing:IO, fill:"forwards" }).onfinish = function(){ veil.getAnimations().forEach(function(z){ z.cancel(); }); };
-    [].forEach.call(el.children, function(c, k){ c.animate([{ opacity:0, transform:"translate3d(0,26px,0)" }, { opacity:1, transform:"none" }], { duration:800, delay:260 + k * 80, easing:OUT, fill:"backwards" }); });
+    [].forEach.call(el.children, function(c, k){ if(k === 0) return; c.animate([{ opacity:0, transform:"translate3d(0,18px,0)" }, { opacity:1, transform:"none" }], { duration:900, delay:1500 + k * 90, easing:OUT, fill:"backwards" }); });
   };
+}
+/* the finish: the workout's name rises onto a still horizon, then its full stop falls and lands on the line.
+   Where it lands, light gathers and a few flat rings spread across the water, fade, and everything is still */
+function finStage(st, name){
+  if(!st) return; var cv = st.querySelector("canvas"), w = st.clientWidth, h = st.clientHeight, d = Math.min(window.devicePixelRatio || 1, 3), g = cv.getContext("2d");
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  var fam = getComputedStyle(document.body).fontFamily, pad = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--g")) || 20, hz = Math.round(h * 0.8) + .5;
+  var font = function(px){ g.font = "600 " + px + "px " + fam; try{ g.letterSpacing = (-0.05 * px).toFixed(2) + "px"; }catch(e){} };
+  var fs = 96; font(100); var w100 = g.measureText(name).width; fs = Math.max(40, Math.min(96, Math.floor((w - pad * 2 - 30) / Math.max(1, w100 / 100 + 0.25))));
+  font(fs); var tw = g.measureText(name).width, dotR = Math.max(4, fs * 0.095), x0 = pad - fs * 0.04, dx = x0 + tw + fs * 0.06 + dotR, dyRest = hz - dotR - 0.5;
+  var t0 = performance.now(), T = { rise:[150, 1200], fall:[1250, 1640], ring:[1640, 3400] };
+  var ease = function(k){ return 1 - Math.pow(1 - k, 4); }, k01 = function(now, a){ return clamp((now - t0 - a[0]) / (a[1] - a[0]), 0, 1); };
+  function frame(now){
+    if(!st.isConnected) return; if(calm) now = t0 + 99999;
+    g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, w, h);
+    var kr = ease(k01(now, T.rise)), kf = k01(now, T.fall), kg = k01(now, T.ring), landed = kf >= 1;
+    /* horizon */
+    var lg = g.createLinearGradient(0, 0, w, 0); lg.addColorStop(0, "rgba(20,211,194,0)"); lg.addColorStop(.12, "rgba(190,250,242,.22)"); lg.addColorStop(.6, "rgba(190,250,242,.16)"); lg.addColorStop(1, "rgba(20,211,194,0)");
+    g.globalAlpha = Math.min(1, kr * 1.6); g.fillStyle = lg; g.fillRect(0, hz, w, .6); g.globalAlpha = 1;
+    /* the name, rising out of the line */
+    g.save(); g.beginPath(); g.rect(0, 0, w, hz); g.clip(); font(fs); g.fillStyle = "#F5F2EC"; g.globalAlpha = Math.min(1, kr * 1.4); g.fillText(name, x0, hz + (1 - kr) * fs * 0.95); g.restore(); g.globalAlpha = 1;
+    /* rings on the water, and light gathered on the line where it landed */
+    if(landed && kg < 1){
+      for(var i = 0; i < 3; i++){ var p = clamp(kg * 1.25 - i * 0.2, 0, 1); if(p <= 0 || p >= 1) continue; var rx = 10 + ease(p) * w * 0.55, a = Math.pow(1 - p, 1.5) * 0.8 * (1 - i * 0.22);
+        g.save(); g.beginPath(); g.rect(0, hz + .6, w, h); g.clip(); g.strokeStyle = "rgba(20,211,194," + a.toFixed(3) + ")"; g.lineWidth = 1 - i * .2; g.beginPath(); g.ellipse(dx, hz + 1, rx, rx * 0.14, 0, 0, Math.PI * 2); g.stroke(); g.restore(); }
+      var fl = Math.pow(1 - kg, 2), sg = g.createLinearGradient(dx - 110, 0, dx + 110, 0); sg.addColorStop(0, "rgba(20,211,194,0)"); sg.addColorStop(.5, "rgba(170,250,240," + (0.85 * fl).toFixed(3) + ")"); sg.addColorStop(1, "rgba(20,211,194,0)");
+      g.fillStyle = sg; g.fillRect(dx - 110, hz - .2, 220, 1);
+    }
+    /* the full stop: falls with gravity, lands, and rests on the line */
+    if(kf > 0){ var fy = landed ? dyRest : dyRest - (1 - kf * kf) * Math.min(150, hz - dotR - 4), glow = landed ? 6 + 14 * Math.pow(1 - kg, 2) : 6;
+      g.save(); g.shadowColor = "rgba(20,211,194,.6)"; g.shadowBlur = glow; g.fillStyle = "#14D3C2"; g.beginPath();
+      if(landed) g.arc(dx, fy, dotR, 0, Math.PI * 2); else g.ellipse(dx, fy, dotR * (1 - kf * 0.06), dotR * (1 + kf * 0.08), 0, 0, Math.PI * 2);
+      g.fill(); g.restore();
+      if(landed && !st._hit){ st._hit = 1; haptic(); } }
+    if(!calm && kg < 1) requestAnimationFrame(frame);
+  }
+  /* draw only once the wordmark's own font is ready, so the name never flashes in a fallback face */
+  var go = function(){ t0 = performance.now(); requestAnimationFrame(frame); };
+  try{ Promise.race([document.fonts.load("600 " + fs + "px " + fam.split(",")[0]), new Promise(function(r){ setTimeout(r, 600); })]).then(go, go); }catch(e){ go(); }
 }
 
 /* ---------- history ---------- */
@@ -2451,6 +2541,7 @@ function water(ts){
   requestAnimationFrame(water); if(document.hidden) return;
   var t = ts / 1000; HR.energy *= 0.955;
   if(HR.on){ sway(HR.strips, t, 2.2 + HR.energy, HR.px); wordDraw(ts); }
+  if(UI.clock) seaDraw(ts); else SEA.lvl = null;
   if(app.dataset.s === "home" && UI.refOn && WMS && (WMS.make || WMS.length)) sway(WMS, t, 1.3, HR.px);
 }
 /* entering: no wipe. The name leaves the horizon and travels to its place at the top of your workouts, reflection and all */
