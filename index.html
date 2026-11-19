@@ -1790,7 +1790,7 @@ function tick(){
     $("#rest-n").textContent = st === "go" ? "Go" : st === "idle" ? fmtClock(x ? x.rest : 150) : fmtClock(rem);
     $("#rest-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest";
     $("#rest-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; }
-  if(row) row.style.visibility = UI.clock ? "hidden" : "";
+  if(row) row.querySelector(".rest-t b").style.visibility = UI.clock || UI.closing ? "hidden" : "";
   var mi = $("#mini"), showMini = st !== "idle" && !UI.clock && !row && app.dataset.s !== "hero" && $("#hero").hidden;
   if(mi.hidden === showMini) mi.hidden = !showMini;
   if(showMini){ $("#mini-n").textContent = st === "go" ? "Go" : fmtClock(rem); $("#mini-l").textContent = st === "paused" ? "Paused" : st === "go" ? "Rest over" : "Rest";
@@ -1851,7 +1851,7 @@ function clockTween(to, then){
     ev.preventDefault(); vel = (y - yl) / Math.max(1, now - tl); yl = y; tl = now; clockPose(Math.max(0, s0 + dy)); }, { passive:false });
   function end(){ if(!on) return; on = false; if(!moved) return;
     var H = app.clientHeight, y = UI.cy;
-    if(y > H * 0.28 || (vel > 0.6 && y > 40)){ clockTween(H, function(){ UI.clock = false; ck.hidden = true; tick(); }); }
+    if(y > H * 0.28 || (vel > 0.6 && y > 40)) closeClock();
     else clockTween(0);
   }
   ck.addEventListener("touchend", end); ck.addEventListener("touchcancel", end);
@@ -1860,22 +1860,32 @@ function clockParts(){ var ck = $("#clock"); return [].slice.call(ck.querySelect
 function flipFrom(){ var n0 = $("#rest-n"), n1 = $("#ck-t"); if(!n0) return null; var r0 = n0.getBoundingClientRect(), r1 = n1.getBoundingClientRect(); if(!r1.height) return null;
   if(!r0.height){ var hr = $("#restrow .hw").getBoundingClientRect(); r0 = { left:hr.left + hr.width / 2 - 34, top:hr.top + 8, height:28 }; }
   return "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")"; }
+/* opening and closing are one motion played forwards and backwards: the numbers fly between the rest row and the middle of the screen
+   on the same long, soft curve, while the black rises from (or sinks back to) the bottom. A drag that lets go keeps going from where the thumb left it */
+var CK_E = "cubic-bezier(.65,0,.25,1)", CK_D = 820;
 function openClock(){
-  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(0); tick();
+  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; UI.closing = false; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); clockPose(0); tick();
   if(calm) return;
-  var SM = "cubic-bezier(.2,.9,.2,1)", f = flipFrom();
-  ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:900, easing:SM });
-  if(f) $("#ck-t").animate([{ transform:f }, { transform:"none" }], { duration:1050, easing:SM });
-  clockParts().forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,26px,0)" }, { opacity:1, transform:"none" }], { duration:800, delay:260 + i * 70, easing:OUT, fill:"backwards" }); });
+  var f = flipFrom();
+  ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:CK_D, easing:CK_E });
+  if(f) $("#ck-t").animate([{ transform:f }, { transform:"none" }], { duration:CK_D, easing:CK_E });
+  clockParts().forEach(function(el, i){ el.animate([{ opacity:0, transform:"translate3d(0,18px,0)" }, { opacity:1, transform:"none" }], { duration:700, delay:CK_D * 0.45 + i * 60, easing:OUT, fill:"backwards" }); });
 }
 function closeClock(){
-  var ck = $("#clock"); if(!UI.clock) return; UI.clock = false;
-  var fin = function(){ ck.hidden = true; ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); tick(); };
+  var ck = $("#clock"); if(!UI.clock) return;
+  var y = UI.cy || 0, t = $("#ck-t"), r0 = t.getBoundingClientRect(), parts = clockParts(), pr0 = parts.map(function(el){ return el.getBoundingClientRect(); });
+  UI.clock = false; UI.closing = true; UI.ctw = (UI.ctw || 0) + 1;
+  var fin = function(){ ck.hidden = true; UI.closing = false; ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); }); clockPose(0); tick();
+    var n = $("#rest-n"); if(n && !calm) n.animate([{ opacity:.6 }, { opacity:1 }], { duration:300, easing:"ease-out" }); };
   if(calm || ck.hidden || view.dataset.v !== "ex"){ fin(); return; }
-  var SM = "cubic-bezier(.5,0,.2,1)", f = flipFrom();
-  clockParts().forEach(function(el){ el.animate([{ opacity:1 }, { opacity:0 }], { duration:220, fill:"forwards" }); });
-  if(f) $("#ck-t").animate([{ transform:"none" }, { transform:f }], { duration:620, easing:SM, fill:"forwards" });
-  ck.querySelector(".ck-bg").animate([{ transform:"scaleY(1)" }, { transform:"scaleY(0)" }], { duration:620, easing:SM, fill:"forwards" }).onfinish = fin;
+  ck.getAnimations({ subtree:true }).forEach(function(q){ q.cancel(); });
+  clockPose(0); var r1 = t.getBoundingClientRect(), to = flipFrom();
+  var from = r1.height ? "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")" : "none";
+  /* everything else fades from exactly where the drag left it */
+  parts.forEach(function(el, i){ var r = el.getBoundingClientRect(), dy = (pr0[i].top - r.top).toFixed(1);
+    el.animate([{ opacity:1, transform:"translate3d(0," + dy + "px,0)" }, { opacity:0, transform:"translate3d(0," + (+dy + 14) + "px,0)" }], { duration:300, easing:"ease-out", fill:"forwards" }); });
+  if(to) t.animate([{ transform:from }, { transform:to }], { duration:CK_D, easing:CK_E, fill:"forwards" });
+  ck.querySelector(".ck-bg").animate([{ transform:"translate3d(0," + y.toFixed(1) + "px,0) scaleY(1)" }, { transform:"translate3d(0,0,0) scaleY(0)" }], { duration:CK_D, easing:CK_E, fill:"forwards" }).onfinish = fin;
 }
 
 /* ---------- sheet, confirm, toast ---------- */
