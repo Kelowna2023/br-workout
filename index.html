@@ -2135,6 +2135,27 @@ function gDrop(g, w){
   if(!h) h = '<div class="gd-e">Nothing for ' + esc(g.toLowerCase()) + ' in the last 7 days.</div>';
   return '<div class="gd"><div class="gd-in">' + h + (all.s ? '<div class="gd-f">' + fmtVol(all.r) + ' reps across ' + fmtVol(all.s) + ' sets since you started</div>' : '') + '</div></div>';
 }
+/* opening a muscle group without redrawing the page: the old ledger folds away as the new one unfolds, both on the same long, soft curve */
+var DD = "cubic-bezier(.45,.05,.15,1)", DC = "cubic-bezier(.45,0,.2,1)";
+function bodyDrop(fromMap){
+  var w = sets7(), sel = {}, side = UI.bside || "front";
+  BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); });
+  var bm = view.querySelector(".bmap"); if(bm){ bm.innerHTML = vitFig(side, w.mus, sel); [].forEach.call(bm.querySelectorAll(".vit-g"), function(q){ if(!calm) q.animate([{ opacity:.35 }, { opacity:1 }], { duration:900, easing:"ease-out" }); }); }
+  var inf = $("#b-info"); if(inf){ var n2 = UI.bsel ? (w.grp[UI.bsel] || 0) : 0; inf.innerHTML = UI.bsel ? '<b>' + esc(UI.bsel) + '</b>' + n2 + (n2 === 1 ? " set" : " sets") + ' this week' : ""; }
+  [].forEach.call(view.querySelectorAll(".gdd"), function(row){ var btn = row.querySelector(".grow-r"), g = btn.dataset.g, want = UI.bsel === g, d = row.querySelector(".gd");
+    btn.setAttribute("aria-expanded", want); row.classList.toggle("open", want);
+    if(!want && d && !d._closing){ d._closing = true; d.getAnimations().forEach(function(q){ q.cancel(); });
+      if(calm){ d.remove(); return; }
+      var h0 = d.offsetHeight; d.style.height = h0 + "px";
+      d.animate([{ height:h0 + "px", opacity:1 }, { height:"0px", opacity:0 }], { duration:620, easing:DC, fill:"forwards" }).onfinish = function(){ d.remove(); }; }
+    if(want && (!d || d._closing)){ if(d) d.remove(); row.insertAdjacentHTML("beforeend", gDrop(g, w)); d = row.querySelector(".gd"); if(calm) return;
+      var hh = d.scrollHeight; d.style.height = "0px";
+      d.animate([{ height:"0px" }, { height:hh + "px" }], { duration:900, easing:DD }).onfinish = function(){ d.style.height = ""; };
+      d.style.height = "";
+      d.querySelector(".gd-in").animate([{ opacity:0 }, { opacity:1 }], { duration:700, delay:120, easing:"ease-out", fill:"backwards" });
+      [].forEach.call(d.querySelectorAll(".gd-r,.gd-f,.gd-e"), function(r, i){ r.animate([{ opacity:0, transform:"translate3d(0,-10px,0)", filter:"blur(3px)" }, { opacity:1, transform:"none", filter:"blur(0)" }], { duration:820, delay:180 + i * 75, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
+      if(fromMap) setTimeout(function(){ row.scrollIntoView({ behavior:"smooth", block:"center" }); }, 60); } });
+}
 function vBody(){
   var w = sets7(), on = {}, rows = "", mu = measUnit(), ms = S.cfg.meas || [], sel = {}, info;
   S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ var m = mmFor(x.name); if(!m) return; var P = mmExpand(m[0]); BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })) on[g[0]] = 1; }); }); });
@@ -2626,10 +2647,7 @@ document.addEventListener("click", function(ev){
     case "wh-go": case "wh-set": (function(){ var secs = wheelValue(); if(secs < 5){ toast("Pick a time first"); return; } a.exercises[ei].rest = secs; saveActive(); closeSheet(); if(act === "wh-go") restStart(secs); else tick(); })(); break;
     /* body */
     case "bsel": case "bmus": (function(){ var g = act === "bsel" ? b.dataset.g : (BODY_GROUPS.filter(function(x){ return x[1].indexOf(b.dataset.m) >= 0; })[0] || [])[0]; if(!g) return;
-        UI.bsel = UI.bsel === g ? null : g; UI.bselNew = act === "bsel"; haptic(); var st = view.scrollTop; render(); view.scrollTop = st;
-        var d = UI.bsel && view.querySelector(".gdd.open .gd"); if(d && !calm){ var hh = d.scrollHeight; d.animate([{ height:"0px", opacity:0 }, { height:hh + "px", opacity:1 }], { duration:520, easing:"cubic-bezier(.22,1,.36,1)" });
-          [].forEach.call(d.querySelectorAll(".gd-r,.gd-f,.gd-e"), function(r, i){ r.animate([{ opacity:0, transform:"translate3d(0,-6px,0)" }, { opacity:1, transform:"none" }], { duration:480, delay:80 + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); }); }
-        if(act === "bmus" && UI.bsel){ var row = view.querySelector(".gdd.open"); if(row) row.scrollIntoView({ behavior:"smooth", block:"center" }); } })(); break;
+        UI.bsel = UI.bsel === g ? null : g; UI.bselNew = act === "bsel"; haptic(); bodyDrop(act === "bmus"); })(); break;
     case "bside": if((UI.bside || "front") !== b.dataset.v){ UI.bside = b.dataset.v; haptic(); render(); } break;
     case "meas-log": measSheet(); break;
     case "ci-open": ciSheet(); break;
