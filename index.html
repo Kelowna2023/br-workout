@@ -117,6 +117,14 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 .btn.go{color:#F5FFFD;font-weight:500;background:radial-gradient(90% 80% at 50% 125%,rgba(20,211,194,.26),rgba(20,211,194,.06) 55%,transparent 82%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));box-shadow:inset 0 0 0 .5px rgba(150,245,235,.2),inset 0 1px 0 rgba(255,255,255,.06),0 18px 40px -22px rgba(20,211,194,.45)}
 .btn.go::after{content:"";position:absolute;left:28%;right:28%;bottom:0;height:1px;transform:scaleY(.6);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.85),transparent);pointer-events:none}
 .btn.go:disabled::after{opacity:.3}
+/* the brand signature: a rim of the logo's teal, brightest where the light pools at the base and fading out as it climbs */
+.btn.go::before,#tab-pill::before,#clock .chips button.p::before,.rb::before,.tag::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(0deg,rgba(20,211,194,.95),rgba(20,211,194,.38) 45%,rgba(20,211,194,.08) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.btn.go{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 36px -16px rgba(20,211,194,.55)}
+.btn.go:disabled::before{opacity:.35}
+.rb{position:relative}
+.tag{position:relative}.tag.q::after{background:linear-gradient(0deg,rgba(20,211,194,.6),rgba(20,211,194,.15) 60%,rgba(255,255,255,.06))}
 .btn.danger{color:var(--red)}
 .btn.ghost{background:none;box-shadow:none;color:var(--mu)}
 .btn:disabled{opacity:.4}
