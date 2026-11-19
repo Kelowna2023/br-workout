@@ -755,6 +755,27 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .dn-s em{font-style:normal;font-size:12px;color:var(--mu2)}
 .dn-note{margin-top:22px;font-size:14px;line-height:1.5;color:var(--mu);font-style:italic}
 .dn-foot{text-align:center;font-size:12.5px;color:var(--mu2);margin:18px 0 6px;letter-spacing:.005em}
+
+/* muscle groups open in place: a quiet ledger of the lifts that worked them */
+.gdd .grow-r{border-bottom:0}
+.gdd{border-bottom:.5px solid var(--ln)}
+.gdd:first-child{border-top:.5px solid var(--ln)}
+.grow-r:first-child{border-top:0}
+.grow-r div span:last-child{display:inline-flex;align-items:center;gap:8px}
+.gchev{display:inline-grid;place-items:center;width:14px;height:14px;color:var(--mu2);transition:transform .45s cubic-bezier(.22,1,.36,1),color .3s}
+.gchev svg{width:13px;height:13px;transform:rotate(90deg);stroke-width:1.8}
+.gdd.open .gchev{transform:rotate(180deg);color:var(--tsoft)}
+.grow-r[aria-expanded="true"] div span:first-child{color:var(--tx)}
+.gd{overflow:hidden}
+.gd-in{padding:6px 0 20px 14px;margin-left:1px;border-left:1px solid rgba(143,211,202,.22)}
+.gd-r{padding:11px 0}
+.gd-r div{display:flex;justify-content:space-between;align-items:baseline;gap:14px;font:400 15.5px/1.25 var(--font);letter-spacing:-.01em;color:var(--tx)}
+.gd-r b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gd-r em{font-style:normal;font-size:12px;color:var(--mu2);margin-left:5px;font-weight:400}
+.gd-r small{display:block;margin-top:4px;font-size:12.5px;color:var(--mu2);font-variant-numeric:tabular-nums}
+.gd-e{padding:10px 0;font-size:14px;color:var(--mu)}
+.gd-f{margin-top:8px;padding-top:12px;border-top:.5px solid var(--ln);font-size:12.5px;color:var(--mu2);font-variant-numeric:tabular-nums}
+.b-info b{color:var(--tsoft)!important;font-weight:500!important}
 </style>
 </head>
 <body>
@@ -2047,12 +2068,14 @@ function vProgEx(){
 
 /* ---------- body: the last 7 days, so it never empties on a Monday ---------- */
 function sets7(){
-  var since = Date.now() - 7 * 864e5, mus = {}, grp = {}, ex = {}, add = function(name, n){
-    var m = mmFor(name); if(!m || !n) return; var P = mmExpand(m[0]);
+  var since = Date.now() - 7 * 864e5, mus = {}, grp = {}, ex = {}, add = function(name, sets){
+    var n = sets.length, m = mmFor(name); if(!m || !n) return; var P = mmExpand(m[0]);
     Object.keys(P).forEach(function(k){ mus[k] = (mus[k] || 0) + n; });
-    BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })){ grp[g[0]] = (grp[g[0]] || 0) + n; ex[g[0]] = ex[g[0]] || {}; ex[g[0]][name] = (ex[g[0]][name] || 0) + n; } }); };
-  S.sessions.forEach(function(s){ if(s.startedAt >= since) s.exercises.forEach(function(x){ add(x.name, x.sets.length); }); });
-  [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.startedAt >= since) w.exercises.forEach(function(x){ add(x.name, x.sets.filter(function(q){ return q.done; }).length); }); });
+    BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })){ grp[g[0]] = (grp[g[0]] || 0) + n; ex[g[0]] = ex[g[0]] || {};
+      var e = ex[g[0]][key(name)] = ex[g[0]][key(name)] || { name:name, s:0, r:0, top:null }; e.s += n;
+      sets.forEach(function(q){ var w = num(q.w), r = num(q.r); e.r += r > 0 ? r : 0; if(r > 0 && (!e.top || w > e.top.w || (w === e.top.w && r > e.top.r))) e.top = { w:w, r:r }; }); } }); };
+  S.sessions.forEach(function(s){ if(s.startedAt >= since) s.exercises.forEach(function(x){ add(x.name, x.sets); }); });
+  [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.startedAt >= since) w.exercises.forEach(function(x){ add(x.name, x.sets.filter(function(q){ return q.done; })); }); });
   return { mus:mus, grp:grp, ex:ex };
 }
 /* the body map: Leonardo's Vitruvian Man redrawn in code as clean bezier contours (left half authored, mirrored), in his square and circle.
@@ -2102,15 +2125,26 @@ function vitMaybe(type){
     [].forEach.call(gs, function(g){ g.animate([{ opacity:0 }, { opacity:0, offset:.4 }, { opacity:1 }], { duration:1400, easing:"ease-out" }); });
   }
 }
+/* inside a muscle group: every lift that worked it this week, counted in reps, with its best set; then the whole story since you started */
+function gDrop(g, w){
+  var ex = w.ex[g] || {}, ks = Object.keys(ex).sort(function(a, b){ return ex[b].r - ex[a].r; }), u = S.cfg.units, all = { r:0, s:0 }, gs = (BODY_GROUPS.filter(function(x){ return x[0] === g; })[0] || [0, []])[1];
+  S.sessions.forEach(function(s){ s.exercises.forEach(function(x){ var m = mmFor(x.name); if(!m) return; var P = mmExpand(m[0]); if(!gs.some(function(k){ return P[k]; })) return;
+    x.sets.forEach(function(q){ all.s++; all.r += num(q.r) > 0 ? num(q.r) : 0; }); }); });
+  var h = ks.map(function(k){ var e = ex[k], t = e.top;
+    return '<div class="gd-r"><div><span>' + esc(e.name) + '</span><b>' + fmtVol(e.r) + '<em>' + (e.r === 1 ? 'rep' : 'reps') + '</em></b></div><small>' + e.s + (e.s === 1 ? ' set' : ' sets') + (t ? ' · best ' + (t.w > 0 ? fmtW(t.w) + ' ' + esc(u) + ' × ' : '') + t.r : '') + '</small></div>'; }).join("");
+  if(!h) h = '<div class="gd-e">Nothing for ' + esc(g.toLowerCase()) + ' in the last 7 days.</div>';
+  return '<div class="gd"><div class="gd-in">' + h + (all.s ? '<div class="gd-f">' + fmtVol(all.r) + ' reps across ' + fmtVol(all.s) + ' sets since you started</div>' : '') + '</div></div>';
+}
 function vBody(){
   var w = sets7(), on = {}, rows = "", mu = measUnit(), ms = S.cfg.meas || [], sel = {}, info;
   S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ var m = mmFor(x.name); if(!m) return; var P = mmExpand(m[0]); BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })) on[g[0]] = 1; }); }); });
   BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); if(!on[g[0]] && !w.grp[g[0]]) return; var n = w.grp[g[0]] || 0;
-    rows += '<button type="button" class="grow-r" data-act="bsel" data-g="' + g[0] + '" aria-pressed="' + (UI.bsel === g[0]) + '" data-rv><div><span>' + g[0] + '</span><span>' + n + '</span></div><p><i style="width:' + Math.min(100, n / 20 * 100) + '%"></i></p></button>'; });
+    var open = UI.bsel === g[0];
+    rows += '<div class="gdd' + (open ? " open" : "") + '" data-rv><button type="button" class="grow-r" data-act="bsel" data-g="' + g[0] + '" aria-expanded="' + open + '"><div><span>' + g[0] + '</span><span>' + n + '<i class="gchev">' + IC.chev + '</i></span></div><p><i style="width:' + Math.min(100, n / 20 * 100) + '%"></i></p></button>' + (open ? gDrop(g[0], w) : '') + '</div>'; });
   var side = UI.bside || "front", has = function(sd){ return VM[sd].some(function(x){ return sel[x[0]]; }); };
   if(UI.bsel && UI.bselNew){ UI.bselNew = false; if(!has(side) && has(side === "back" ? "front" : "back")) side = UI.bside = side === "back" ? "front" : "back"; }
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
-    info = '<b>' + esc(UI.bsel) + ' · ' + n2 + (n2 === 1 ? " set" : " sets") + '</b>' + (ex ? Object.keys(ex).map(function(k){ return esc(k) + " · " + ex[k]; }).join("<br>") : "Nothing logged in the last 7 days"); }
+    info = '<b>' + esc(UI.bsel) + '</b>' + n2 + (n2 === 1 ? " set" : " sets") + ' this week'; }
   else info = "";
   var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets per muscle over the last 7 days. Tap one to see what worked it.</div><div class="hz" data-rv></div>' + vCheck() +
     '<div class="bmap" data-rv>' + vitFig(side, w.mus, sel) + '</div><div class="bside" data-rv role="group" aria-label="View"><button type="button" data-act="bside" data-v="front" aria-pressed="' + (side === "front") + '">Front</button><i></i><button type="button" data-act="bside" data-v="back" aria-pressed="' + (side === "back") + '">Back</button></div><div class="b-info" id="b-info" aria-live="polite">' + info + '</div>' +
@@ -2592,7 +2626,10 @@ document.addEventListener("click", function(ev){
     case "wh-go": case "wh-set": (function(){ var secs = wheelValue(); if(secs < 5){ toast("Pick a time first"); return; } a.exercises[ei].rest = secs; saveActive(); closeSheet(); if(act === "wh-go") restStart(secs); else tick(); })(); break;
     /* body */
     case "bsel": case "bmus": (function(){ var g = act === "bsel" ? b.dataset.g : (BODY_GROUPS.filter(function(x){ return x[1].indexOf(b.dataset.m) >= 0; })[0] || [])[0]; if(!g) return;
-        UI.bsel = UI.bsel === g ? null : g; UI.bselNew = act === "bsel"; haptic(); render(); if(act === "bsel" && UI.bsel) view.scrollTo({ top:0, behavior:"smooth" }); })(); break;
+        UI.bsel = UI.bsel === g ? null : g; UI.bselNew = act === "bsel"; haptic(); var st = view.scrollTop; render(); view.scrollTop = st;
+        var d = UI.bsel && view.querySelector(".gdd.open .gd"); if(d && !calm){ var hh = d.scrollHeight; d.animate([{ height:"0px", opacity:0 }, { height:hh + "px", opacity:1 }], { duration:520, easing:"cubic-bezier(.22,1,.36,1)" });
+          [].forEach.call(d.querySelectorAll(".gd-r,.gd-f,.gd-e"), function(r, i){ r.animate([{ opacity:0, transform:"translate3d(0,-6px,0)" }, { opacity:1, transform:"none" }], { duration:480, delay:80 + i * 55, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); }); }
+        if(act === "bmus" && UI.bsel){ var row = view.querySelector(".gdd.open"); if(row) row.scrollIntoView({ behavior:"smooth", block:"center" }); } })(); break;
     case "bside": if((UI.bside || "front") !== b.dataset.v){ UI.bside = b.dataset.v; haptic(); render(); } break;
     case "meas-log": measSheet(); break;
     case "ci-open": ciSheet(); break;
