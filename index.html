@@ -24,7 +24,7 @@
 @font-face{font-family:"Wake Sanskrit";src:url("fonts/wake-sanskrit.woff2") format("woff2");font-display:block}
 :root{
   --bg:#000; --tx:#F5F2EC; --mu:#8A867F; --mu2:#6B6862; --dim:#3A3834; --ln:#222; --ln2:#333; --sf:#111;
-  --t:#14D3C2; --red:#E5604D;
+  --t:#14D3C2; --tsoft:#8FD3CA; --red:#E5604D;
   --p-blue:#2F6FDE; --p-yellow:#E9C33B; --p-green:#3BA55D; --p-red:#D8483A; --p-grey:#8A867F; --chalk:#F5F2EC;
   --font:"Inter Tight",-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
   --g:20px; --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
@@ -249,7 +249,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .ck-q b{font-weight:500;color:var(--mu)}
 .foot{margin-top:22px;display:grid;gap:2px}
 .foot button{color:var(--t);font-weight:500;font-size:15px;padding:12px 0;display:flex;align-items:center;gap:10px}
-.foot button.t{color:var(--t)}
+.foot button.t{color:var(--tsoft)}
 
 /* ---- workout: the list of lifts ---- */
 .xrow{width:100%;min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:.5px solid var(--ln)}
@@ -728,6 +728,9 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 /* installed on an iPhone, 100% stops short of the bottom by the height of the status bar; vh is the whole screen */
 #app{height:100dvh}
 @media (display-mode:standalone){html,body,#app{height:100vh}}
+
+/* pastel teal for text that acts: the bright teal is kept for the logo's full stop, the light on key buttons and progress */
+.bk,.lnk,.foot button,.x-more button,.hw-u button,.hw-b,.rb,.x-beat{color:var(--tsoft)}
 </style>
 </head>
 <body>
