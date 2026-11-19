@@ -1659,7 +1659,7 @@ function tick(){
       $("#ck-p").textContent = st === "paused" ? "Resume" : "Pause"; $("#ck-b").style.transform = "scaleX(" + frac.toFixed(4) + ")"; UI.frac = frac; tideLevel(); }
   }
 }
-/* the rest panel is a sheet you hold: half the screen at rest, drag up for the whole screen, drag down to put it away */
+/* the rest clock: opens over the whole screen with nothing else on it; drag it down to put it away */
 function clockBase(){ return app.clientHeight * 0.46; }
 function tideLevel(){ var H = app.clientHeight, vis = H - (UI.cy || 0); $("#ck-tide").style.transform = "translate3d(0," + (H - (UI.frac || 0) * vis).toFixed(1) + "px,0)"; }
 function clockPose(y){
@@ -1679,10 +1679,9 @@ function clockTween(to, then){
   ck.addEventListener("touchmove", function(ev){ if(!on) return; var y = ev.touches[0].clientY, dy = y - y0, now = Date.now(); if(Math.abs(dy) > 6) moved = true; if(!moved) return;
     ev.preventDefault(); vel = (y - yl) / Math.max(1, now - tl); yl = y; tl = now; clockPose(Math.max(0, s0 + dy)); }, { passive:false });
   function end(){ if(!on) return; on = false; if(!moved) return;
-    var H = app.clientHeight, base = clockBase(), y = UI.cy, dy = y - s0;
-    if(y > base + 70 || (vel > 0.6 && y > base)){ clockTween(H, function(){ UI.clock = false; ck.hidden = true; tick(); }); }
-    else if(dy < -40 || vel < -0.5 || (s0 < base * 0.5 && dy < 60 && vel < 0.5)){ clockTween(0); haptic(); }
-    else clockTween(base);
+    var H = app.clientHeight, y = UI.cy;
+    if(y > H * 0.28 || (vel > 0.6 && y > 40)){ clockTween(H, function(){ UI.clock = false; ck.hidden = true; tick(); }); }
+    else clockTween(0);
   }
   ck.addEventListener("touchend", end); ck.addEventListener("touchcancel", end);
 })();
@@ -1691,7 +1690,7 @@ function flipFrom(){ var n0 = $("#rest-n"), n1 = $("#ck-t"); if(!n0) return null
   if(!r0.height){ var hr = $("#restrow .hw").getBoundingClientRect(); r0 = { left:hr.left + hr.width / 2 - 34, top:hr.top + 8, height:28 }; }
   return "translate3d(" + (r0.left - r1.left).toFixed(1) + "px," + (r0.top - r1.top).toFixed(1) + "px,0) scale(" + (r0.height / r1.height).toFixed(4) + ")"; }
 function openClock(){
-  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(clockBase()); tick();
+  var ck = $("#clock"); if(UI.clock) return; UI.clock = true; ck.hidden = false; UI.ctw = (UI.ctw || 0) + 1; clockPose(0); tick();
   if(calm) return;
   var SM = "cubic-bezier(.2,.9,.2,1)", f = flipFrom();
   ck.querySelector(".ck-bg").animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:900, easing:SM });
