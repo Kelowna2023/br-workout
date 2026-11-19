@@ -950,17 +950,23 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 /* ---- workout list: every lift carries its plan; a superset is one row block, its lifts joined by "and" ---- */
 .xrow{min-height:76px;padding:12px 0}
 .xrow small{margin-top:5px}
-.ssC{border-bottom:.5px solid var(--ln);padding:14px 0}
-.ssC .ln{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:6px 0;text-align:left}
-.ssC .ln .nm{font:500 18px/1.2 var(--font);letter-spacing:-.022em;transition:color .15s}
-.ssC .ln .nm{display:flex;align-items:baseline;min-width:0}
-.ssC .ln .nm em{flex:none;font-style:normal;color:var(--mu);font-weight:400;margin-right:8px}
-.ssC .ln .ct{font-size:15px;color:var(--mu);font-variant-numeric:tabular-nums;flex:none}
-.ssC .ln.done .nm{color:var(--mu)}
-.ssC .ln.tap .nm{color:var(--mu)}
-.ssC small{display:block;font-size:13.5px;font-weight:400;letter-spacing:0;line-height:1.3;color:var(--mu);margin-top:5px}
 /* done is a quiet grey check, not a teal disc */
 .okc{background:none!important;color:#8FD3CA!important;width:auto!important}
+/* tether: the workout list */
+.sx{--gw:26px}
+.sx .r{width:100%;display:grid;grid-template-columns:var(--gw) minmax(0,1fr) auto;align-items:center;gap:0;text-align:left}
+.sx .r .tx{min-width:0}
+.sx .r .nm{display:block;font:500 18px/1.2 var(--font);letter-spacing:-.022em;transition:color .15s}
+.sx .r small{display:block;font-size:13.5px;line-height:1.3;color:var(--mu);margin-top:5px;font-weight:400;letter-spacing:0}
+.sx .r .ct{font-size:15px;color:var(--mu);font-variant-numeric:tabular-nums;padding-left:12px}
+.sx .r.done .nm{color:var(--mu)}
+.sx .xrow{min-height:76px;padding:14px 0}
+.sx .ssG{border-bottom:.5px solid var(--ln);padding:8px 0}
+.sx .ssG .ln{position:relative;padding:10px 0}
+.sx .r .g{align-self:start;width:7px;height:7px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(245,242,236,.38);margin-top:7.5px}
+.sx .r.on .g{box-shadow:inset 0 0 0 1px #F5F2EC}
+.sx .r.done .g{background:#8FD3CA;box-shadow:inset 0 0 0 1px #8FD3CA}
+.sx .ssG .ln:not(:last-child)::after{content:"";position:absolute;left:3px;width:1px;top:28px;height:calc(100% - 14px);background:rgba(245,242,236,.28)}
 /* the workout's progress: a fine line of soft light, not a block of colour */
 .segs.wsg{gap:5px}
 .big+.segs.wsg,.bd+.segs.wsg{margin-top:26px}
@@ -1439,7 +1445,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "134";
+var BUILD = "135";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3190,28 +3196,30 @@ var _ar = afterRender; afterRender = function(){ _ar(); var t = view.dataset.v; 
 
 
 (function(){
+/* the workout list. Every lift is a small ring in the margin; a superset's rings are strung on one fine line.
+   A ring fills with soft light when its lift is done. The right side speaks only mid-lift: "2 of 3" */
 function rng(t){ return String(t || "").replace(/-/g, "–"); }
 function lastOf(x, u){ var p = (x.sets[0] || {}).prev; return p && +p.w > 0 ? "last " + fmtW(+p.w) + " " + u : ""; }
 function nDone(x){ return x.sets.filter(function(q){ return q.done; }).length; }
 function isDone(x){ var d = nDone(x); return d > 0 && d >= x.sets.length; }
-/* the right side says only what the subline can't: nothing before you start, "1 of 3" while you're in it, a soft tick when it's done */
-function mark(x){ var d = nDone(x), n = x.sets.length; return isDone(x) ? '<span class="okc">' + IC.check + '</span>' : d ? '<span class="ct">' + d + ' of ' + n + '</span>' : ''; }
 function plan(x, u){ var l = lastOf(x, u); return (x.target ? x.sets.length + ' × ' + esc(rng(x.target)) : x.sets.length + (x.sets.length === 1 ? ' set' : ' sets')) + (l ? ', ' + l : ''); }
+function mark(x){ var d = nDone(x); return !isDone(x) && d ? '<span class="ct">' + d + ' of ' + x.sets.length + '</span>' : ''; }
 /* about 45 seconds a set, and a rest after each set, except between lifts of a superset */
 function mins(ex){ var s = 0; ex.forEach(function(x){ s += x.sets.length * (45 + (x.link ? 0 : (x.rest || 150))); }); return Math.max(5, Math.round(s / 300) * 5); }
 vWorkout = function(){
-  var a = S.active, u = S.cfg.units, ex = a.exercises, dn = 0, any = false, rows = "", segs = "";
-  ex.forEach(function(x){ if(isDone(x)) dn++; if(nDone(x)) any = true; segs += '<span><i' + (isDone(x) ? ' class="on"' : '') + '></i></span>'; });
-  for(var i = 0; i < ex.length; i++){ var x = ex[i];
-    if(x.link && ex[i + 1]){ var run = [i]; while(ex[run[run.length - 1]].link && ex[run[run.length - 1] + 1]) run.push(run[run.length - 1] + 1);
-      rows += '<div class="ssC" data-rv>' + run.map(function(k, j){ var z = ex[k];
-          return '<button type="button" class="ln' + (isDone(z) ? ' done' : '') + '" data-act="ex-open" data-e="' + k + '"><span class="nm">' + (j ? '<em>and</em>' : '') + '<span>' + esc(z.name) + '<small>' + plan(z, u) + '</small></span></span>' + mark(z) + '</button>'; }).join("") + '</div>';
+  var a = S.active, u = S.cfg.units, ex = a.exercises, any = false, rows = "", segs = "";
+  ex.forEach(function(x){ if(nDone(x)) any = true; segs += '<span><i' + (isDone(x) ? ' class="on"' : '') + '></i></span>'; });
+  function line(cls, k, extra){ var x = ex[k], st = isDone(x) ? ' done' : nDone(x) ? ' on' : '';
+    return '<button type="button" class="' + cls + ' r' + st + '" data-act="ex-open" data-e="' + k + '"' + (extra || '') + (st === ' done' ? ' aria-label="' + esc(x.name) + ', done"' : '') + '><i class="g" aria-hidden="true"></i><span class="tx"><span class="nm">' + esc(x.name) + '</span><small>' + plan(x, u) + '</small></span>' + mark(x) + '</button>'; }
+  for(var i = 0; i < ex.length; i++){
+    if(ex[i].link && ex[i + 1]){ var run = [i]; while(ex[run[run.length - 1]].link && ex[run[run.length - 1] + 1]) run.push(run[run.length - 1] + 1);
+      rows += '<div class="ssG" data-rv>' + run.map(function(k){ return line("ln", k); }).join("") + '</div>';
       i = run[run.length - 1]; continue; }
-    rows += '<button type="button" class="xrow' + (isDone(x) ? ' done' : '') + '" data-act="ex-open" data-e="' + i + '" data-rv><span><span class="nm">' + esc(x.name) + '</span><small>' + plan(x, u) + '</small></span>' + mark(x) + '</button>'; }
+    rows += line("xrow", i, ' data-rv'); }
   /* before you start: what you're in for. Once you've started, the bar alone says how far along you are */
   var sub = any ? '' : '<div class="sub" data-rv>' + ex.length + (ex.length === 1 ? ' lift' : ' lifts') + ', about ' + mins(ex) + ' minutes</div>';
   return '<h1 class="big' + (a.name.length > 16 ? " lg" : "") + '">' + esc(a.name) + '</h1>' + sub + (a.forDay ? '<div class="bd" data-rv><span class="tag">Logging for ' + esc(fmtDate(a.forDay)) + '</span></div>' : '') + '<div class="segs wsg" data-rv>' + segs + '</div>' +
-    '<div class="list">' + rows + '</div>' +
+    '<div class="list sx">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
     '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
 };
