@@ -332,13 +332,13 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 #tab-pill::after{content:"";position:absolute;left:34%;right:34%;bottom:0;height:1px;transform:scaleY(.5);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.75),transparent)}
 /* a soft fall to black behind the bar, so the page dissolves before it reaches the glass */
 #tab-veil{position:absolute;left:0;right:0;bottom:0;height:calc(max(var(--sb), 12px) + 104px);background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.72) 34%,#000 52%);pointer-events:none;z-index:14}
-#app[data-s="home"] #tab-veil,#app[data-s="wk"] #tab-veil,#app[data-s="ex"] #tab-veil,#app[data-s="setup"] #tab-veil{display:none}
+#app[data-s="home"] #tab-veil,#app[data-s="dn"] #tab-veil,#app[data-s="wk"] #tab-veil,#app[data-s="ex"] #tab-veil,#app[data-s="setup"] #tab-veil{display:none}
 #app[data-s="home"] main,#app[data-s="history"] main,#app[data-s="progress"] main,#app[data-s="body"] main{padding-bottom:calc(max(var(--sb), 12px) + 96px)}
 #tabs a{position:relative;z-index:1;flex:1;display:grid;justify-items:center;align-content:center;min-height:48px;padding:0;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .42s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
 #tabs a.tap{transform:scale(.94)}
 #tabs a[aria-current="page"]{color:#F5FFFD}
 #tab-dot{display:none}
-#app[data-s="wk"] #tabs,#app[data-s="ex"] #tabs,#app[data-s="setup"] #tabs{display:none}
+#app[data-s="dn"] #tabs,#app[data-s="wk"] #tabs,#app[data-s="ex"] #tabs,#app[data-s="setup"] #tabs{display:none}
 
 /* ---- history ---- */
 .cal-h .ib{color:var(--t)}
@@ -741,6 +741,20 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .cd.on span{background:radial-gradient(70% 70% at 50% 110%,rgba(20,211,194,.18),transparent 75%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));box-shadow:inset 0 0 0 1px rgba(20,211,194,.55),0 0 18px -4px rgba(20,211,194,.35)}
 .cd.on::after{content:"";position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--t);box-shadow:0 0 6px rgba(20,211,194,.8)}
 .cal-h .ib{color:var(--tsoft)}
+
+/* a finished routine reads like a page from a logbook: settled, quiet, every set kept */
+.dn-segs i{background:var(--tsoft)!important;opacity:.55}
+.dn-row{padding:20px 0 19px;border-bottom:.5px solid var(--ln)}
+.dn-list .dn-row:first-child{border-top:.5px solid var(--ln)}
+.dn-h{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.dn-h .nm{font:500 19px/1.2 var(--font);letter-spacing:-.025em;color:var(--tx)}
+.dn-k{width:20px;height:20px;display:grid;place-items:center;color:var(--tsoft);opacity:.85;flex:none}
+.dn-k svg{width:15px;height:15px;stroke-width:1.8}
+.dn-s{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-top:9px;font-size:14px;color:var(--mu);font-variant-numeric:tabular-nums}
+.dn-s i{font-style:normal;color:var(--mu2);margin:0 3px;font-size:12px}
+.dn-s em{font-style:normal;font-size:12px;color:var(--mu2)}
+.dn-note{margin-top:22px;font-size:14px;line-height:1.5;color:var(--mu);font-style:italic}
+.dn-foot{text-align:center;font-size:12.5px;color:var(--mu2);margin:18px 0 6px;letter-spacing:.005em}
 </style>
 </head>
 <body>
@@ -1379,6 +1393,7 @@ function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); else haptic()
 function viewName(){ var h = (location.hash || "#today").slice(1); return /^(today|history|progress|body|setup)$/.test(h) ? h : "today"; }
 function screenKey(){
   var v = viewName(), a = S.active;
+  if(v === "today" && UI.done){ if(doneById(UI.done)) return "dn:" + UI.done; UI.done = null; }
   if(v === "today"){ if(a && !S.pick) return a.openEx != null && a.exercises[a.openEx] ? "ex:" + a.id + ":" + a.openEx : "wk:" + a.id; return "home"; }
   if(v === "progress" && UI.pgEx) return "pg:" + UI.pgEx;
   return v;
@@ -1390,12 +1405,13 @@ function render(){
   if(ensureGoal()) saveCfg();
   var k = screenKey(), fresh = k !== UI.key, keep = view.scrollTop, type = k.split(":")[0], a = S.active, l = "", t = "", r = "";
   UI.key = k; if(fresh) UI.th = {};
-  var html = type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
+  var html = type === "dn" ? vDone() : type === "home" ? vHome() : type === "wk" ? vWorkout() : type === "ex" ? vExercise() : type === "history" ? vHistory() : type === "progress" ? vProgress() : type === "pg" ? vProgEx() : type === "body" ? vBody() : vSetup();
   if(GH[type] || CAP[type]) html += ghostCap(type);
   view.innerHTML = html; view.dataset.v = type; app.dataset.s = type; ghostSet(UI.intro ? "" : type); vitMaybe(UI.intro ? "" : type);
   if(type !== "ex" && UI.clock){ UI.clock = false; $("#clock").hidden = true; }
   if(type === "home") r = ib("setup-open", "Setup", IC.gear).replace('class="ib"', 'class="ib' + (bkNeed() ? " due" : "") + '"');
   else if(type === "wk"){ l = bk("to-list", "Workouts"); t = a.name; }
+  else if(type === "dn"){ l = bk("to-list", "Workouts"); t = doneById(UI.done).name; }
   else if(type === "ex"){ l = bk("ex-close", a.name); t = a.exercises[a.openEx].name; r = ib("ex-more", "Options", IC.more, ' data-e="' + a.openEx + '"'); }
   else if(type === "pg"){ l = bk("pg-back", "Progress"); t = (histIndex()[UI.pgEx] || {}).name || ""; }
   else if(type === "setup"){ l = bk("setup-close", "Workouts"); t = "Setup"; }
@@ -1521,7 +1537,8 @@ addEventListener("resize", function(){ tabMark(viewName(), false); });
 addEventListener("resize", function(){ if(!$("#hero").hidden) cuePlace(); });
 function goBack(){
   var type = view.dataset.v, a = S.active;
-  if(type === "wk"){ var rid = a.routineId; nav(function(){ S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + rid + '"] .wn'); }
+  if(type === "dn"){ var did = (doneById(UI.done) || {}).routineId; nav(function(){ UI.done = null; S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + did + '"] .wn'); }
+  else if(type === "wk"){ var rid = a.routineId; nav(function(){ S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + rid + '"] .wn'); }
   else if(type === "ex"){ var e0 = a.openEx; nav(function(){ a.openEx = null; saveActive(); render(); }, "back", view.querySelector(".big"), '.xrow[data-e="' + e0 + '"] .nm'); }
   else if(type === "pg"){ nav(function(){ UI.pgEx = null; render(); }, "back"); }
   else if(type === "setup"){ nav(function(){ location.hash = "#today"; S.pick = true; render(); }, "back"); }
@@ -1610,7 +1627,7 @@ function ghostSet(type){
 (function(){
   var on = false, x0 = 0, y0 = 0, dx = 0, t0 = 0, lock = 0;
   view.addEventListener("touchstart", function(ev){ var t = ev.touches[0], type = view.dataset.v;
-    on = t.clientX - app.getBoundingClientRect().left < 28 && /^(wk|ex|pg|setup)$/.test(type) && $("#sheet").hidden; x0 = t.clientX; y0 = t.clientY; dx = 0; t0 = Date.now(); lock = 0; }, { passive:true });
+    on = t.clientX - app.getBoundingClientRect().left < 28 && /^(dn|wk|ex|pg|setup)$/.test(type) && $("#sheet").hidden; x0 = t.clientX; y0 = t.clientY; dx = 0; t0 = Date.now(); lock = 0; }, { passive:true });
   view.addEventListener("touchmove", function(ev){ if(!on) return; var t = ev.touches[0]; dx = Math.max(0, t.clientX - x0);
     if(!lock){ if(Math.abs(t.clientY - y0) > 14 && dx < 10){ on = false; return; } if(dx > 8) lock = 1; }
     if(lock){ ev.preventDefault(); view.style.transition = "none"; view.style.transform = "translate3d(" + dx + "px,0,0)"; view.style.opacity = (1 - dx / app.clientWidth * 0.7).toFixed(3); } }, { passive:false });
@@ -1842,6 +1859,26 @@ function vHome(){
     '<div data-rv><div class="wk"><span class="wk-s"><b>' + n + '</b> of ' + goal + ' this week</span></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     '';
+}
+
+/* ---------- a routine already done this week: its record, settled and kept ---------- */
+function doneById(id){ return S.sessions.filter(function(q){ return q.id === id; })[0]; }
+function doneThisWeek(rid){ var ws = weekStart(Date.now()), f = null; S.sessions.forEach(function(q){ if(q.routineId === rid && q.startedAt >= ws && (!f || q.startedAt > f.startedAt)) f = q; }); return f; }
+function inProgress(rid){ return [S.active].concat(S.parked || []).some(function(w){ return w && w.routineId === rid && w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done; }); }); }); }
+function vDone(){
+  var s = doneById(UI.done), u = S.cfg.units, r = rel(s.startedAt), h = new Date(s.startedAt).getHours(), segs = "", rows = "";
+  var when = r === "today" ? (h >= 17 ? "tonight" : h >= 12 ? "this afternoon" : "this morning") : r === "yesterday" ? "yesterday" : "on " + r;
+  s.exercises.forEach(function(x){ segs += '<span><i class="on"></i></span>';
+    var anyW = x.sets.some(function(q){ return num(q.w) > 0; }), best = x.sets.some(function(q){ return q.pr; });
+    rows += '<div class="dn-row" data-rv><div class="dn-h"><span class="nm">' + esc(x.name) + '</span>' + (best ? '<span class="tag">New best</span>' : '<span class="dn-k">' + IC.check + '</span>') + '</div>' +
+      '<div class="dn-s">' + x.sets.map(function(q){ return '<span>' + (num(q.w) > 0 ? fmtW(num(q.w)) + '<i>×</i>' : '') + esc(q.r) + '</span>'; }).join("") + '<em>' + (anyW ? esc(u) : 'reps') + '</em></div></div>'; });
+  return '<h1 class="big' + (s.name.length > 16 ? " lg" : "") + '">' + esc(s.name) + '</h1>' +
+    '<div class="sub" data-rv>Done ' + when + (s.dur ? ' · ' + fmtMin(s.dur) : '') + ' · ' + s.setCount + (s.setCount === 1 ? ' set' : ' sets') + '</div>' +
+    '<div class="segs dn-segs" data-rv>' + segs + '</div>' +
+    '<div class="list dn-list">' + rows + '</div>' +
+    (s.note ? '<div class="dn-note" data-rv>' + esc(s.note) + '</div>' : '') +
+    '<div class="stack" data-rv style="margin-top:34px"><button type="button" class="btn" data-act="reopen" data-id="' + esc(s.id) + '">Edit this workout</button><button type="button" class="btn ghost" data-act="start-fresh" data-id="' + esc(s.routineId) + '">Start a fresh session</button></div>' +
+    '<div class="dn-foot" data-rv>Saved. It opens fresh again next week.</div>';
 }
 
 /* ---------- workout: the list of lifts ---------- */
@@ -2469,13 +2506,15 @@ function enter(){
 document.addEventListener("click", function(ev){
   if(ev.target.id === "sheet"){ closeSheet(); return; }
   var tab = ev.target.closest("#tabs a"); if(tab){ ev.preventDefault(); var hsh = tab.getAttribute("href"); if(hsh.slice(1) === viewName() && app.dataset.s !== "pg"){ view.scrollTo({ top:0, behavior:"smooth" }); return; } UI.tabSgn = TABS.indexOf(hsh.slice(1)) >= TABS.indexOf(viewName()) ? 1 : -1; haptic(); tabMark(hsh.slice(1), true);
-    nav(function(){ if(hsh === "#today") S.pick = true; if(hsh === "#progress" && viewName() === "progress") UI.pgEx = null; if(location.hash !== hsh) history.replaceState(null, "", hsh); render(); }, "tab"); return; }
+    nav(function(){ UI.done = null; if(hsh === "#today") S.pick = true; if(hsh === "#progress" && viewName() === "progress") UI.pgEx = null; if(location.hash !== hsh) history.replaceState(null, "", hsh); render(); }, "tab"); return; }
   var hs = ev.target.closest(".hw span"); if(hs){ var he = hs.closest(".hw"), hi = [].indexOf.call(hs.parentNode.children, hs); he._live = true; he.scrollTo(he._v ? { top:hi * he._w, behavior:"smooth" } : { left:hi * he._w, behavior:"smooth" }); return; }
   var b = ev.target.closest("[data-act]"); if(!b) return;
   var act = b.dataset.act, a = S.active, ei = +b.dataset.e, si = +b.dataset.s, ri = +b.dataset.r, rs = S.cfg.routines;
   switch(act){
     /* moving around */
-    case "start": (function(r){ if(!r) return; haptic(); nav(function(){ goWorkout(r); render(); }, "fwd", b.querySelector(".wn")); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
+    case "start": (function(r){ if(!r) return; haptic(); var dn = doneThisWeek(r.id);
+      if(dn && !inProgress(r.id)){ nav(function(){ UI.done = dn.id; render(); }, "fwd", b.querySelector(".wn")); return; }
+      nav(function(){ UI.done = null; goWorkout(r); render(); }, "fwd", b.querySelector(".wn")); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
     case "to-list": case "ex-close": case "pg-back": case "setup-close": goBack(); break;
     case "ex-open": haptic(); nav(function(){ a.openEx = ei; saveActive(); render(); }, "fwd", b.querySelector(".nm")); break;
     case "setup-open": nav(function(){ history.replaceState(null, "", "#setup"); render(); }, "fwd"); break;
@@ -2573,8 +2612,9 @@ document.addEventListener("click", function(ev){
     case "ph-view": (function(){ var q = S.photos.filter(function(z){ return z.id === b.dataset.id; })[0]; if(!q) return;
         sheet('<div class="eyebrow">' + esc(fmtDate(q.at)) + '</div><img class="ph-full" src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '"><div class="row"><button class="btn danger grow" type="button" data-act="ph-del" data-id="' + esc(q.id) + '">Delete photo</button><button class="btn grow" type="button" data-act="sheet-close">Close</button></div>'); })(); break;
     case "ph-del": (function(id){ ask("Delete this photo?", "It's removed from the app. The copy in your camera roll stays.", "Delete photo", function(){ pTx("readwrite", function(st){ return st.delete(id); }).then(loadPhotos); }); })(b.dataset.id); break;
-    case "reopen": (function(id){ closeSheet(); haptic(); reopenSession(id); location.hash = "today"; render(); toast("Workout reopened"); })(b.dataset.id); break;
-    case "end-undo": (function(id){ var e = $("#end"); e.getAnimations().forEach(function(q){ q.cancel(); }); e.hidden = true; e.innerHTML = ""; e.onclick = null; haptic(); reopenSession(id); render(); })(b.dataset.id); break;
+    case "start-fresh": (function(r){ if(!r) return; ask("Start a fresh " + r.name + "?", "This week's " + r.name + " stays saved in History. A new, empty session begins.", "Start fresh", function(){ haptic(); nav(function(){ UI.done = null; goWorkout(r); render(); }, "fwd"); }, { no:"Not now" }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
+    case "reopen": (function(id){ UI.done = null; closeSheet(); haptic(); reopenSession(id); location.hash = "today"; render(); toast("Workout reopened"); })(b.dataset.id); break;
+    case "end-undo": (function(id){ UI.done = null; var e = $("#end"); e.getAnimations().forEach(function(q){ q.cancel(); }); e.hidden = true; e.innerHTML = ""; e.onclick = null; haptic(); reopenSession(id); render(); })(b.dataset.id); break;
     case "del-session": (function(id){ ask("Delete this workout?", "It will be removed from your history and bests.", "Delete", function(){
         S.sessions = S.sessions.filter(function(s){ return s.id !== id; }); ls.set("sessions", S.sessions);
         S.pend.add = S.pend.add.filter(function(i){ return i !== id; }); S.pend.del.push(id); savePend(); pushDelete(id); render(); }); })(b.dataset.id); break;
