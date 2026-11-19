@@ -782,6 +782,11 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .gacc>button .gv .in{color:var(--mu)}
 .gacc.open>button .gv{color:var(--mu)}
 .gacc .acc-b .gd-in{margin:2px 0 6px}
+
+/* keep the figure out of the list's way: its own layer, never re-laid out or repainted while rows fold below it */
+.bmap{contain:layout paint;transform:translateZ(0)}
+.gacc .acc-b>div{contain:paint}
+.gacc .acc-b{will-change:grid-template-rows}
 </style>
 </head>
 <body>
@@ -2146,7 +2151,10 @@ function bodyDrop(fromMap){
   var w = sets7(), sel = {}, side = UI.bside || "front";
   BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); });
   [].forEach.call(view.querySelectorAll(".gacc"), function(el){ var bt = el.firstChild, on = bt.dataset.g === UI.bsel; el.classList.toggle("open", on); bt.setAttribute("aria-expanded", on); });
-  var bm = view.querySelector(".bmap"); if(bm){ bm.innerHTML = vitFig(side, w.mus, sel); if(!calm) [].forEach.call(bm.querySelectorAll(".vit-g"), function(q){ q.animate([{ opacity:.35 }, { opacity:1 }], { duration:900, easing:"ease-out" }); }); }
+  /* the heavy, blurred figure is only touched after the fold has finished, so nothing competes with it */
+  clearTimeout(UI.bfT); var want = UI.bsel;
+  UI.bfT = setTimeout(function(){ var bm = view.querySelector(".bmap"); if(!bm || UI.bsel !== want || view.dataset.v !== "body") return; bm.innerHTML = vitFig(UI.bside || "front", w.mus, sel);
+    if(!calm) [].forEach.call(bm.querySelectorAll(".vit-g"), function(q){ q.animate([{ opacity:0 }, { opacity:1 }], { duration:1100, easing:"ease-out" }); }); }, calm ? 0 : 820);
   if(fromMap && UI.bsel){ var row = view.querySelector(".gacc.open"); if(row) setTimeout(function(){ row.scrollIntoView({ behavior:"smooth", block:"start" }); }, 80); }
 }
 function vBody(){
