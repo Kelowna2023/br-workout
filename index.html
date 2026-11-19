@@ -461,9 +461,11 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 #clock.go #ck-t{color:var(--t)}
 .ck-bar{width:100%;height:4px;background:#1A1A1A;border-radius:2px;overflow:hidden}
 .ck-bar i{display:block;height:100%;background:var(--t);transform-origin:0 50%;transition:transform .3s linear}
-#clock .chips{justify-content:center;margin-top:8px;flex-wrap:nowrap;gap:8px}
-#clock .chips button{padding:0 14px;min-height:48px}
-#clock .chips button.p{background:var(--t);border-color:var(--t);color:#000;font-weight:600}
+/* the rest controls: one smoked-glass bar like the tab bar; Pause is the lit key in the middle */
+#clock .chips{display:flex;justify-content:center;flex-wrap:nowrap;gap:0;margin:14px auto 0;padding:5px;width:max-content;max-width:calc(100% - 32px);border-radius:20px;background:rgba(18,22,22,.6);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.55)}
+#clock .chips button{position:relative;min-height:48px;padding:0 17px;border:0;border-radius:15px;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;font-variant-numeric:tabular-nums;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;transition:color .42s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
+#clock .chips button.p{min-width:96px;color:#F5FFFD;background:radial-gradient(90% 70% at 50% 118%,rgba(20,211,194,.2),rgba(20,211,194,.05) 55%,transparent 80%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.075),inset 0 1px 0 rgba(255,255,255,.05)}
+#clock .chips button.p::after{content:"";position:absolute;left:30%;right:30%;bottom:0;height:1px;transform:scaleY(.5);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.8),transparent)}
 .wheel.one{font-size:34px;letter-spacing:-.03em}
 .wheel.one>div{width:150px}
 
