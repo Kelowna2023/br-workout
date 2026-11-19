@@ -610,6 +610,17 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 ::view-transition-old(title),::view-transition-new(title){height:100%;width:auto;object-fit:contain;object-position:left center;animation-duration:.5s}
 @media (prefers-reduced-motion: reduce){*,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}}
 .tap,.tap *{transition-duration:0s!important}
+.bk-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:82px;border-bottom:.5px solid var(--ln);background:none;color:var(--tx);text-align:left;padding:0;font:inherit;cursor:pointer}
+.bk-row b{display:block;font-size:18px;font-weight:500;letter-spacing:-.022em}
+.bk-row small{display:block;font-size:13.5px;color:var(--mu);margin-top:6px}
+.bk-row svg{width:20px;height:20px;color:var(--mu);flex:none}
+.bk-q{margin-top:6px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bk-q label{padding:14px 0;font:400 15px/1 var(--font);color:var(--mu);cursor:pointer}
+.bk-q span{font-size:13.5px;color:var(--mu2)}
+.bk-n{margin-top:34px;padding-top:22px;border-top:.5px solid var(--ln);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bk-n p{margin:0;font-size:13.5px;line-height:1.45;color:var(--mu)}
+.bk-n p b{display:block;font-size:15px;font-weight:500;color:var(--tx);letter-spacing:-.01em;margin-bottom:2px}
+.bk-n button{flex:none;font:500 15px/1 var(--font);color:#8FD3CA;background:none;border:0;padding:12px 0 12px 12px;cursor:pointer}
 .bk-st{color:var(--mu);font-size:14px;line-height:1.5}.bk-st b{color:var(--tx)}
 /* the year's weeks: a teal gradient that builds toward this week, and fades out ahead */
 .tg i{width:2px;border-radius:2px 2px 0 0;background:linear-gradient(to top,rgba(255,255,255,var(--a,.2)),rgba(255,255,255,0) 115%)}
@@ -1292,24 +1303,33 @@ var BODY_GROUPS = [["Chest",["chest"]],["Back",["lats","upperback","lowerback","
 function measUnit(){ return S.cfg.units === "kg" ? "cm" : "in"; }
 var MEAS = [["arms","Arms"],["chest","Chest"],["shoulders","Shoulders"],["waist","Waist"],["thighs","Thighs"]];
 
-/* ---- backup: everything in one file, photos included ---- */
-var BK = null;
+/* ---- backup: everything in one file, photos included.
+   The file is built ahead of time, so one tap goes straight to the share sheet (iOS only shares from a fresh tap) ---- */
+var BK = null, BKP = null, BK_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3.5M8 7.5l4-4 4 4"/><path d="M6.5 11H5.5v9.5h13V11h-1"/></svg>';
 function bkInfo(){ return ls.get("bk"); }
 function bkNeed(){ var k = bkInfo(), n = S.sessions.length; if(!STANDALONE || !n) return 0; if(!k) return n; var fresh = n - (k.n || 0); return fresh >= 3 || (fresh > 0 && Date.now() - k.at > 7 * 864e5) ? fresh : 0; }
-function bkSheet(){
-  var k = bkInfo(); BK = null;
-  sheet('<div><div class="eyebrow">Backup</div><h2>Keep your history safe</h2></div>' +
-    '<p class="bk-st">Your workouts and photos are stored on this phone only. A backup is one file with everything in it. Pick <b>Save to Files</b> and it lives in iCloud Drive.</p>' +
-    '<p class="bk-st" id="bk-st">' + (k ? 'Last backup: <b>' + fmtShort(k.at) + '</b>, ' + (k.n || 0) + ' workouts.' : 'No backup saved yet.') + '</p>' +
-    '<button class="btn go" type="button" data-act="backup-go" id="bk-go" disabled>Preparing…</button>' +
-    '<label class="btn ghost" style="display:grid;place-items:center;cursor:pointer" for="restore-file2">Restore from a backup file</label><input id="restore-file2" type="file" accept="application/json,.json" style="position:absolute;opacity:0;width:1px;height:1px">');
-  var ready = function(photos){ var data = JSON.stringify({ app:"wake", v:2, at:Date.now(), cfg:S.cfg, sessions:S.sessions, active:S.active, parked:S.parked, photos:photos }), name = "wake-backup-" + new Date().toISOString().slice(0,10) + ".json";
-    BK = { data:data, name:name, n:photos.length }; var bt = $("#bk-go"); if(bt){ bt.disabled = false; bt.textContent = "Save backup file"; }
-    var s2 = $("#bk-st"); if(s2) s2.innerHTML += ' This one holds <b>' + S.sessions.length + (S.sessions.length === 1 ? ' workout' : ' workouts') + '</b>' + (photos.length ? ' and <b>' + photos.length + (photos.length === 1 ? ' photo' : ' photos') + '</b>' : '') + '.'; };
-  pTx("readonly", function(st){ return st.getAll(); }).then(function(list){ return Promise.all((list || []).map(function(p){ return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res({ id:p.id, at:p.at, wid:p.wid || "", data:fr.result }); }; fr.onerror = function(){ res(null); }; fr.readAsDataURL(p.blob); }); })); })
-    .then(function(ph){ ready(ph.filter(Boolean)); }).catch(function(){ ready([]); });
+function bkKey(){ return [S.sessions.length, S.sessions[0] ? S.sessions[0].id : "", S.cfg.updatedAt || 0, S.photos.length, S.active ? S.active.id : "", (S.parked || []).length].join("|"); }
+function bkPrep(){ var key = bkKey(); if(BK && BK.key === key) return Promise.resolve(BK); if(BKP && BKP.key === key) return BKP.p;
+  var p = pTx("readonly", function(st){ return st.getAll(); }).then(function(list){ return Promise.all((list || []).map(function(q){ return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res({ id:q.id, at:q.at, wid:q.wid || "", data:fr.result }); }; fr.onerror = function(){ res(null); }; fr.readAsDataURL(q.blob); }); })); })
+    .then(function(ph){ return ph.filter(Boolean); }, function(){ return []; })
+    .then(function(photos){ var data = JSON.stringify({ app:"wake", v:2, at:Date.now(), cfg:S.cfg, sessions:S.sessions, active:S.active, parked:S.parked, photos:photos });
+      BK = { key:key, data:data, name:"wake-backup-" + new Date().toISOString().slice(0,10) + ".json", n:S.sessions.length, ph:photos.length }; BKP = null; return BK; });
+  BKP = { key:key, p:p }; return p; }
+function bkFile(bk){ return new File([bk.data], bk.name, { type:"application/json" }); }
+function bkGo(){
+  var bk = BK && BK.key === bkKey() ? BK : null;
+  if(!bk){ toast("Getting your backup ready. Tap again in a moment."); bkPrep(); return; }
+  try{ var f = bkFile(bk);
+    if(navigator.canShare && navigator.canShare({ files:[f] })){ navigator.share({ files:[f], title:"Wake backup" }).then(function(){ bkDone(bk); }).catch(function(){}); return; } }catch(e){}
+  try{ var u = URL.createObjectURL(new Blob([bk.data], { type:"application/json" })), l = document.createElement("a"); l.href = u; l.download = bk.name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); bkDone(bk); }catch(e){ toast("Could not save a backup on this device"); }
 }
-function bkDone(){ ls.set("bk", { at:Date.now(), n:S.sessions.length }); closeSheet(); toast("Backup saved"); render(); }
+function bkDone(bk){ ls.set("bk", { at:Date.now(), n:bk.n }); toast("Backup saved");
+  var e = $("#end .bk-n"); if(e){ e.innerHTML = '<p><b>Backed up</b>' + bkCount(bk.n, bk.ph) + ' saved</p>'; } render(); }
+function bkCount(n, ph){ return (n === 1 ? "1 workout" : "All " + n + " workouts") + (ph ? " and " + ph + (ph === 1 ? " photo" : " photos") : ""); }
+function bkSub(){ var k = bkInfo(), n = S.sessions.length, fresh = k ? n - (k.n || 0) : n;
+  if(!k) return n ? "Not backed up yet. " + (n === 1 ? "1 workout" : n + " workouts") + " only on this phone." : "Not backed up yet.";
+  var when = dayStart(k.at) === dayStart(Date.now()) ? "Saved today." : "Last saved " + fmtShort(k.at) + ".";
+  return when + " " + (fresh > 0 ? (fresh === 1 ? "1 workout since." : fresh + " workouts since.") : bkCount(n, S.photos.length) + "."); }
 function bkRestore(file){ var fr = new FileReader();
   fr.onload = function(){ try{ var d = JSON.parse(fr.result); if(!d || !d.cfg || !Array.isArray(d.sessions)) throw 0;
       ask("Restore this backup?", "It replaces the workouts on this phone (" + S.sessions.length + ") with the " + d.sessions.length + " in the file" + (d.photos && d.photos.length ? ", and adds its " + d.photos.length + " photos" : "") + ".", "Restore", function(){
@@ -1324,7 +1344,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "125";
+var BUILD = "126";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -2140,7 +2160,9 @@ function endCard(s){
   el.innerHTML = '<div class="f-stage" role="img" aria-label="' + esc(s.name) + ', complete"><canvas></canvas></div>' +
     '<div class="f-meta">' + meta.join('<i></i>') + '</div>' +
     '<div class="f-sec"><span>Top sets</span>' + (prev && ups ? '<span>' + ups + ' up on last time</span>' : '') + '</div><div class="e-ls f-ls">' + lines + '</div>' +
-    '<div class="stack f-act"><button type="button" class="btn go" data-act="end-done">Done</button><button type="button" class="btn ghost" data-act="end-undo" data-id="' + esc(s.id) + '">Not finished? Back to workout</button></div>';
+    '<div class="stack f-act"><button type="button" class="btn go" data-act="end-done">Done</button><button type="button" class="btn ghost" data-act="end-undo" data-id="' + esc(s.id) + '">Not finished? Back to workout</button></div>' +
+    (bkNeed() ? '<div class="bk-n"><p><b>Only on this phone</b>' + (function(f){ return f === 1 ? "1 workout" : f + " workouts"; })(bkNeed()) + ' since your last backup</p><button type="button" data-act="backup-go">Back up</button></div>' : '');
+  if(bkNeed()) bkPrep();
   var show = function(){ el.hidden = false; el.scrollTop = 0; render(); finStage(el.querySelector(".f-stage"), s.name); };
   if(calm){ show(); return; }
   veil.animate([{ clipPath:"inset(100% 0 0 0)" }, { clipPath:"inset(0 0 0 0)" }], { duration:620, easing:IO, fill:"forwards" }).onfinish = function(){
@@ -2381,7 +2403,7 @@ function measSheet(){
 
 /* ---------- setup ---------- */
 function vSetup(){
-  var k = bkInfo(), h = '<h1 class="big">Setup</h1><div class="sub" data-rv>Your split and how Wake counts your week</div><div class="hz" data-rv></div><div class="sec"><h2>Workouts</h2></div><div class="list">';
+  bkPrep(); var h = '<h1 class="big">Setup</h1><div class="sub" data-rv>Your split and how Wake counts your week</div><div class="hz" data-rv></div><div class="sec"><h2>Workouts</h2></div><div class="list">';
   S.cfg.routines.forEach(function(r, ri){
     h += '<details class="rt" data-rid="' + esc(r.id) + '"' + (S.openRoutine === r.id ? " open" : "") + '><summary><span>' + esc(r.name || "Workout") + '</span><small>' + r.exercises.length + ' lifts</small></summary><div class="rt-b">' +
       '<input class="field" data-r="' + ri + '" data-k="name" value="' + esc(r.name) + '" placeholder="Workout name" aria-label="Workout name">' +
@@ -2397,8 +2419,8 @@ function vSetup(){
     '<div class="sec"><h2>The goal</h2></div><div class="list">' +
     '<div class="opt"><span>Goal bodyweight (' + esc(S.cfg.units) + ')</span><input class="field num" id="goal-w" inputmode="decimal" style="width:92px;text-align:center" value="' + esc(S.cfg.goal.w) + '" aria-label="Goal bodyweight"></div>' +
     '<div class="opt"><span>The date</span><input class="field" id="goal-d" type="date" style="width:170px" value="' + esc(S.cfg.goal.date) + '" aria-label="Goal date"></div></div>' +
-    '<div class="sec"><h2>Backup</h2></div><div class="muted">' + (k ? "Last backup " + esc(fmtShort(k.at)) + ", " + (k.n || 0) + " workouts." : "No backup saved yet.") + (bkNeed() ? ' <b style="color:var(--tx);font-weight:500">' + bkNeed() + (bkNeed() === 1 ? " new workout" : " new workouts") + ' since.</b>' : '') + ' Your workouts live on this phone only.</div>' +
-    '<div class="stack" style="margin-top:14px"><button type="button" class="btn" data-act="backup">Back up or restore</button></div>' +
+    '<div class="sec"><h2>Backup</h2></div><div class="list bk-l"><button type="button" class="bk-row" data-act="backup-go"><span><b>Back up now</b><small>' + esc(bkSub()) + '</small></span>' + BK_IC + '</button></div>' +
+    '<div class="bk-q"><label for="restore-file2">Restore from a file</label><input id="restore-file2" type="file" accept="application/json,.json" class="vh"><span>Saves to iCloud Drive</span></div>' +
     '<div class="ver">Wake · build ' + BUILD + '</div>';
   return h;
 }
@@ -2876,12 +2898,7 @@ document.addEventListener("click", function(ev){
     case "r-add-ex": rs[ri].exercises.push({ name:"", sets:3, reps:"8-12", rest:150 }); S.openRoutine = rs[ri].id; saveCfg(); render(); break;
     case "r-del-ex": rs[ri].exercises.splice(+b.dataset.x, 1); S.openRoutine = rs[ri].id; saveCfg(); render(); break;
     case "r-del": ask("Delete " + (rs[ri].name || "this workout") + "?", "Past sessions stay in your history.", "Delete workout", function(){ rs.splice(ri, 1); saveCfg(); render(); }); break;
-    case "backup": bkSheet(); break;
-    case "backup-go": (function(){ if(!BK) return;
-        try{ var f = new File([BK.data], BK.name, { type:"application/json" });
-          if(navigator.canShare && navigator.canShare({ files:[f] })){ navigator.share({ files:[f], title:"Wake backup" }).then(bkDone).catch(function(){}); return; } }catch(e){}
-        try{ var u = URL.createObjectURL(new Blob([BK.data], { type:"application/json" })), l = document.createElement("a"); l.href = u; l.download = BK.name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); bkDone(); }catch(e){ toast("Could not save a backup on this device"); }
-      })(); break;
+    case "backup-go": bkGo(); break;
     case "enter": enter(); break;
     case "sheet-close": closeSheet(); break;
     case "confirm-yes": (function(){ var fn = confirmFn; closeSheet(); if(fn) fn(); })(); break;
