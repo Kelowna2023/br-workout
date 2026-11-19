@@ -1434,7 +1434,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "131";
+var BUILD = "132";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1782,7 +1782,7 @@ function goBack(){
   var type = view.dataset.v, a = S.active;
   if(type === "dn"){ var did = (doneById(UI.done) || {}).routineId; nav(function(){ UI.done = null; S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + did + '"] .wn'); }
   else if(type === "wk"){ var rid = a.routineId; nav(function(){ S.pick = true; render(); }, "back", view.querySelector(".big"), '.wrow[data-id="' + rid + '"] .wn'); }
-  else if(type === "ex"){ var e0 = a.openEx; nav(function(){ a.openEx = null; saveActive(); render(); }, "back", view.querySelector(".big"), '.xrow[data-e="' + e0 + '"] .nm'); }
+  else if(type === "ex"){ var e0 = a.openEx; nav(function(){ a.openEx = null; saveActive(); render(); }, "back", view.querySelector(".big"), '[data-e="' + e0 + '"] .nm'); }
   else if(type === "pg"){ nav(function(){ UI.pgEx = null; render(); }, "back"); }
   else if(type === "setup"){ nav(function(){ location.hash = "#today"; S.pick = true; render(); }, "back"); }
 }
@@ -3225,6 +3225,24 @@ vExercise = function(){
   var grp = groupOf(a, ei);
   if(grp.length > 1) o = o.replace(/(<div class="x-of" data-rv>Lift \d+ of \d+)<\/div>/, '$1<span class="x-ss">Superset ' + (grp.indexOf(ei) + 1) + '/' + grp.length + '</span></div>');
   return o;
+};
+})();
+
+/* a superset flows on its own: Complete set on one lift carries you to the next lift of the pair;
+   on the last, it brings you back to the list. The set lands first, then the page moves */
+(function(){
+var _cs = completeSet;
+completeSet = function(ei, si){
+  var a = S.active, x = a && a.exercises[ei]; if(!x) return _cs(ei, si);
+  var was = x.sets[si] && x.sets[si].done; _cs(ei, si);
+  if(!S.active || was || !(x.sets[si] && x.sets[si].done)) return;
+  var grp = groupOf(a, ei); if(grp.length < 2) return;
+  var k = grp.indexOf(ei), nx = k < grp.length - 1 ? grp[k + 1] : -1;
+  if(nx >= 0 && curIdx(a.exercises[nx]) < 0) nx = -1;
+  clearTimeout(UI.ssT);
+  UI.ssT = setTimeout(function(){ if(S.active !== a || a.openEx !== ei || view.dataset.v !== "ex") return;
+    if(nx >= 0) nav(function(){ a.openEx = nx; saveActive(); render(); }, "fwd");
+    else goBack(); }, calm ? 0 : 700);
 };
 })();
 
