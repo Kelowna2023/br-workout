@@ -901,8 +901,10 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 </style>
 <style>
 /* ---- History: the shoreline ---- */
-.shr{position:relative;height:150px;margin:34px calc(var(--g) * -1) 0;touch-action:pan-y;cursor:ew-resize;-webkit-user-select:none;user-select:none}
-.shr svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.shr{position:relative;height:150px;margin:34px calc(var(--g) * -1) 0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-user-select:none;user-select:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+.shr::-webkit-scrollbar{display:none}
+.shr svg{display:block;overflow:visible}
+.shr .td{stroke:rgba(245,242,236,.55);stroke-width:1}
 .shr .p{stroke:rgba(245,242,236,.24);stroke-width:1;transition:stroke .7s cubic-bezier(.22,1,.36,1)}
 .shr .p.on{stroke:#F5F2EC}
 .shr .hl{stroke:rgba(245,242,236,.22);stroke-width:1}
@@ -1445,7 +1447,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "135";
+var BUILD = "136";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3079,19 +3081,26 @@ vHistory = function(){
 };
 function shore(){
   var box = $("#shr"); if(!box) return;
-  var W = box.clientWidth, H = 150, base = 112, pad = 20, now = Date.now(), span = 84 * 864e5, t0 = dayStart(now) - span + 864e5;
-  var ss = S.sessions.filter(function(s){ return s.startedAt >= t0; }).slice().sort(function(a, b){ return a.startedAt - b.startedAt; });
-  if(!ss.length){ box.style.display = "none"; return; }
+  /* today sits in the middle: the open horizon of the coming weeks to its right, the past a sideways scroll to its left.
+     About 12 weeks fill the width, so 6 weeks of future are always in view */
+  var W = box.clientWidth, H = 150, base = 112, now = Date.now(), today = dayStart(now), px = W / 84;
+  var all = S.sessions.slice().sort(function(a, b){ return a.startedAt - b.startedAt; });
+  if(!all.length){ box.style.display = "none"; return; }
+  var t0 = Math.max(today - 730 * 864e5, Math.min(dayStart(all[0].startedAt) - 14 * 864e5, today - 84 * 864e5));
+  var ss = all.filter(function(s){ return s.startedAt >= t0; });
+  var t1 = today + 42 * 864e5 + 432e5, TW = Math.round((t1 - t0) / 864e5 * px);
   var mx = Math.max.apply(null, ss.map(function(s){ return s.volume || s.setCount * 100; }));
-  var X = function(t){ return pad + (t - t0) / (dayStart(now) + 864e5 - t0) * (W - pad * 2); };
-  var g = '<line class="hl" x1="0" x2="' + W + '" y1="' + base + '" y2="' + base + '"/>';
-  for(var m = new Date(t0); m.getTime() < now; m.setMonth(m.getMonth() + 1, 1)){ var mt = new Date(m.getFullYear(), m.getMonth(), 1).getTime(); if(mt < t0) continue;
-    g += '<text class="mo" x="' + (X(mt) + 2) + '" y="' + (base + 24) + '">' + new Date(mt).toLocaleDateString("en-US", { month:"short" }) + '</text><line class="hl" x1="' + X(mt) + '" x2="' + X(mt) + '" y1="' + base + '" y2="' + (base + 6) + '"/>'; }
+  var X = function(t){ return (t - t0) / 864e5 * px; }, xt = X(today + 432e5);
+  var g = '<line class="hl" x1="0" x2="' + TW + '" y1="' + base + '" y2="' + base + '"/>';
+  for(var m = new Date(t0); m.getTime() < t1; m.setMonth(m.getMonth() + 1, 1)){ var mt = new Date(m.getFullYear(), m.getMonth(), 1).getTime(); if(mt < t0) continue;
+    g += '<text class="mo" x="' + (X(mt) + 2).toFixed(1) + '" y="' + (base + 24) + '">' + new Date(mt).toLocaleDateString("en-US", { month:"short" }) + (new Date(mt).getMonth() === 0 ? " " + new Date(mt).getFullYear() : "") + '</text><line class="hl" x1="' + X(mt).toFixed(1) + '" x2="' + X(mt).toFixed(1) + '" y1="' + base + '" y2="' + (base + 6) + '"/>'; }
+  /* today: one fine mark under the line, so the empty water to its right reads as weeks still to come */
+  g += '<line class="td" x1="' + xt.toFixed(1) + '" x2="' + xt.toFixed(1) + '" y1="' + base + '" y2="' + (base + 10) + '"/>';
   ss.forEach(function(s, i){ var x = X(s.startedAt + 432e5), hh = 22 + 66 * ((s.volume || s.setCount * 100) / mx);
     g += '<line class="p" data-i="' + i + '" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + (base - hh).toFixed(1) + '" y2="' + base + '"/>'; });
   g += '<circle class="pt" r="2.5" cx="0" cy="0"/>';
-  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-label="Your last 12 weeks. Slide along it to read each workout.">' + g + '</svg>';
-  var posts = [].slice.call(box.querySelectorAll(".p")), pt = box.querySelector(".pt"), cur = -1, sel = $("#shr-sel");
+  box.innerHTML = '<svg width="' + TW + '" height="' + H + '" viewBox="0 0 ' + TW + ' ' + H + '" aria-label="Your workouts on a timeline, today in the middle. Scroll sideways to go back in time.">' + g + '</svg>';
+  var posts = [].slice.call(box.querySelectorAll(".p")), xs = posts.map(function(p){ return +p.getAttribute("x1"); }), pt = box.querySelector(".pt"), cur = -1, sel = $("#shr-sel");
   function pick(i, quiet){
     if(i === cur) return; if(cur >= 0) posts[cur].classList.remove("on"); cur = i; var p = posts[i]; p.classList.add("on");
     pt.style.transform = "translate(" + p.getAttribute("x1") + "px," + p.getAttribute("y1") + "px)";
@@ -3099,18 +3108,26 @@ function shore(){
     var row = '<div><button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '"><span><b>' + esc(s.name) + '<i></i></b><small>' + esc(meta) + '</small></span><span class="r">' + (s.prs && s.prs.length ? '<span style="color:var(--tx)">' + s.prs.length + (s.prs.length === 1 ? " new best" : " new bests") + '</span>' : fmtVol(s.volume) + " " + esc(S.cfg.units)) + '</span></button></div>';
     sel.innerHTML = row; if(!quiet && !calm) sel.firstChild.animate([{ opacity:.35 }, { opacity:1 }], { duration:420, easing:INOUT });
   }
-  function at(cx){ var r = box.getBoundingClientRect(), x = cx - r.left, best = 0, bd = 1e9; posts.forEach(function(p, i){ var d = Math.abs(+p.getAttribute("x1") - x); if(d < bd){ bd = d; best = i; } }); return best; }
-  /* a sideways slide reads the shoreline; an upward swipe still scrolls the page, so nothing changes until the finger clearly moves sideways */
+  function near(x){ var best = posts.length - 1, bd = 1e9; xs.forEach(function(v, i){ var d = Math.abs(v - x); if(d < bd){ bd = d; best = i; } }); return { i:best, d:bd }; }
+  /* the line rests with today in the middle */
+  box.scrollLeft = Math.max(0, xt - W / 2);
+  pick(near(xt).i, true);
+  /* as you scroll back, the workout nearest the middle is the one you read; the scroll itself is the phone's own, with its momentum */
+  var raf = 0, live = false;
+  box.addEventListener("scroll", function(){ if(!live || raf) return; raf = requestAnimationFrame(function(){ raf = 0; var n = near(box.scrollLeft + W / 2); if(n.d < W * .4) pick(n.i); }); }, { passive:true });
+  setTimeout(function(){ live = true; }, 60);
+  /* a tap on a post reads it and brings it to the middle */
   var g0 = null;
-  box.addEventListener("pointerdown", function(e){ g0 = { x:e.clientX, y:e.clientY, on:e.pointerType === "mouse" }; if(g0.on) pick(at(e.clientX)); });
-  box.addEventListener("pointermove", function(e){ if(!g0) return; if(!g0.on && Math.abs(e.clientX - g0.x) > 6 && Math.abs(e.clientX - g0.x) > Math.abs(e.clientY - g0.y)) g0.on = true; if(g0.on) pick(at(e.clientX)); });
-  box.addEventListener("pointerup", function(e){ if(g0 && Math.abs(e.clientX - g0.x) < 6 && Math.abs(e.clientY - g0.y) < 6) pick(at(e.clientX)); g0 = null; });
+  box.addEventListener("pointerdown", function(e){ g0 = { x:e.clientX, y:e.clientY }; });
+  box.addEventListener("pointerup", function(e){ if(!g0 || Math.abs(e.clientX - g0.x) > 6 || Math.abs(e.clientY - g0.y) > 6){ g0 = null; return; } g0 = null;
+    var r = box.getBoundingClientRect(), n = near(e.clientX - r.left + box.scrollLeft); if(n.d > 28) return;
+    pick(n.i); box.scrollTo({ left:Math.max(0, xs[n.i] - W / 2), behavior:calm ? "auto" : "smooth" }); });
   box.addEventListener("pointercancel", function(){ g0 = null; });
-  pick(posts.length - 1, true);
   window._shorePick = function(i){ pick(i); }; window._shoreN = posts.length;
-  /* arriving: the posts rise out of the horizon, oldest first, like a tide coming in */
-  if(!calm) posts.forEach(function(p, i){ p.animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:1100, delay:300 + i * 26, easing:EZO, fill:"backwards" }); p.style.transformOrigin = "0 " + base + "px"; p.style.transformBox = "view-box"; });
-  if(!calm) pt.animate([{ opacity:0 }, { opacity:1 }], { duration:900, delay:300 + posts.length * 26 + 500, fill:"backwards" });
+  /* arriving: the posts in view rise out of the horizon, oldest first, like a tide coming in */
+  if(!calm){ var k = 0, lo = box.scrollLeft;
+    posts.forEach(function(p, i){ if(xs[i] < lo - 4) return; p.style.transformOrigin = "0 " + base + "px"; p.style.transformBox = "view-box"; p.animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:1100, delay:300 + k++ * 26, easing:EZO, fill:"backwards" }); });
+    pt.animate([{ opacity:0 }, { opacity:1 }], { duration:900, delay:300 + k * 26 + 500, fill:"backwards" }); }
 }
 
 /* ================= PROGRESS ================= */
