@@ -880,6 +880,13 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .wn,.list.tight .wn,.list.tighter .wn,.xrow .nm,.acc>button,.hrow b,details.rt summary,.dn-h .nm,.grow-r div,.sc b{font-size:18px!important;font-weight:500!important;letter-spacing:-.022em!important}
 .wrow small,.list.tight .wrow small,.list.tighter .wrow small,.xrow small,.hrow small{font-size:13.5px!important}
 .acc>button,.wrow,.xrow{min-height:64px}
+
+/* Train is titled like every other page; "Wake." and its reflection belong to the opening alone */
+#app[data-s="home"] #wm,#app[data-s="home"] #bar-date{opacity:0!important;visibility:hidden!important}
+#app[data-s="home"] #bar{height:calc(var(--st) + 74px);padding-top:calc(var(--st) + 22px)}
+#app[data-s="home"] main{padding-top:calc(var(--st) + 74px)!important;-webkit-mask-image:none!important;mask-image:none!important}
+#app[data-s="home"] #bar::before{bottom:0;height:auto}
+#app[data-s="home"] .big+*{margin-top:12px}
 </style>
 </head>
 <body>
@@ -1534,6 +1541,7 @@ function render(){
   if(GH[type] || CAP[type]) html += ghostCap(type);
   view.innerHTML = html; view.dataset.v = type; app.dataset.s = type; ghostSet(UI.intro ? "" : type); vitMaybe(UI.intro ? "" : type);
   if(type !== "ex" && UI.clock){ UI.clock = false; $("#clock").hidden = true; }
+  if(type === "home") t = "Train";
   if(type === "home") r = ib("setup-open", "Setup", IC.gear).replace('class="ib"', 'class="ib' + (bkNeed() ? " due" : "") + '"');
   else if(type === "wk"){ l = bk("to-list", "Workouts"); t = a.name; }
   else if(type === "dn"){ l = bk("to-list", "Workouts"); t = doneById(UI.done).name; }
@@ -1571,7 +1579,7 @@ function onScroll(){ if(!raf) raf = requestAnimationFrame(function(){ raf = 0; p
 function paint(){
   var y = view.scrollTop, type = view.dataset.v, bar = $("#bar"), vh = view.clientHeight, gh = $("#ghost").lastElementChild;
   if(gh) gh.style.transform = "translate3d(0," + (-y * (gh.classList.contains("gh-body") ? 1 : 0.22)).toFixed(1) + "px,0)";
-  if(type === "home"){
+  if(false){
     /* the wordmark, its date and its reflection stay pinned; the list scrolls up beneath them and dissolves at the horizon */
     if(!UI.intro) wm.style.transform = "translate3d(0," + HERO_Y + "px,0)";
     $("#wm-ref").style.opacity = 1; $("#wm-hz").style.opacity = 1; UI.refOn = true;
@@ -2016,7 +2024,8 @@ function vHome(){
   S.cfg.routines.forEach(function(r){ var c = r.exercises.filter(function(x){ return key(x.name); }).length;
     rows += '<button type="button" class="wrow' + (done[r.id] || prog[r.id] ? " on" : "") + '" data-act="start" data-id="' + esc(r.id) + '" data-rv><span><b class="wn">' + esc(r.name || "Workout") + (done[r.id] && !prog[r.id] ? '<i class="fs" aria-label="done this week"></i>' : '') + '</b><small>' + c + (c === 1 ? " lift" : " lifts") + (last[r.id] ? " · Last " + esc(rel(last[r.id])) : "") + '</small></span>' +
       '<span class="wr">' + (prog[r.id] ? '<span class="wr-q">In progress</span>' : '') + '</span></button>'; });
-  return '<div class="hero"></div>' +
+  var dd = new Date();
+  return '<div class="x-of">' + dd.toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short" }) + ' · Week ' + isoWeek(dd) + '</div><h1 class="big">Train</h1>' +
     '<div data-rv><div class="wk"><span class="wk-s"><b>' + n + '</b> of ' + goal + ' this week</span></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
     '';
@@ -2647,7 +2656,7 @@ function leave(){
   $("#h-ref").animate([{ opacity:0.6 }, { opacity:1 }], { duration:1100 });
   [[".h-top", 700, 0]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:q[1], easing:SLOW, fill:"backwards" }); });
-  sea.animate([{ transform:"translate3d(" + (tr.left - sl).toFixed(1) + "px," + (tr.top - rise.top).toFixed(1) + "px,0) scale(" + sc.toFixed(4) + ")" }, { transform:"none" }], { duration:1250, easing:EASE }).onfinish = function(){ sea.style.transformOrigin = ""; HR.busy = false; };
+  sea.animate([{ transform:"translate3d(0," + (-Math.round(innerHeight * 0.12)) + "px,0) scale(.94)", opacity:0 }, { transform:"none", opacity:1 }], { duration:1250, easing:EASE }).onfinish = function(){ sea.style.transformOrigin = ""; HR.busy = false; };
 }
 /* the way back is the same timeline, held by the finger in reverse: pull down from the top of your workouts and the name sinks back to the horizon exactly as far as you pull */
 function backBuild(){
@@ -2690,7 +2699,7 @@ function enterBuild(){
   add(el.querySelector(".h-glow"), [{ opacity:0.28 }, { opacity:0 }], { duration:500 });
   add($("#h-ref"), [{ opacity:1 }, { opacity:0.6 }], { duration:1200, delay:150 });
   add(el.querySelector(".h-bg"), [{ opacity:1 }, { opacity:0 }], { duration:900, delay:500, easing:"ease-in-out" });
-  add(sea, [{ transform:"none" }, { transform:"translate3d(" + (tr.left - sl).toFixed(1) + "px," + (tr.top - rise.top).toFixed(1) + "px,0) scale(" + sc.toFixed(4) + ")" }], { duration:1300, delay:100, easing:EASE });
+  add(sea, [{ transform:"none", opacity:1 }, { transform:"translate3d(0," + (-Math.round(innerHeight * 0.12)) + "px,0) scale(.94)", opacity:0 }], { duration:1100, delay:60, easing:EASE });
   revealList().forEach(function(r, k){ add(r, [{ opacity:0, transform:"translate3d(0,40px,0)" }, { opacity:1, transform:"none" }], { duration:1100, delay:700 + k * 60, easing:OUT }, LIST); });
   EN = { A:A, LIST:LIST, T:1400, t:0, raf:0, drag:false }; return true;
 }
