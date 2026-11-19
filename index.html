@@ -901,14 +901,16 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 </style>
 <style>
 /* ---- History: the shoreline ---- */
-.shr{position:relative;height:150px;margin:30px calc(var(--g) * -1) 0;touch-action:none;-webkit-user-select:none;user-select:none}
+.shr{position:relative;height:150px;margin:34px calc(var(--g) * -1) 0;touch-action:pan-y;cursor:ew-resize;-webkit-user-select:none;user-select:none}
 .shr svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .shr .p{stroke:rgba(245,242,236,.24);stroke-width:1;transition:stroke .7s cubic-bezier(.22,1,.36,1)}
 .shr .p.on{stroke:#F5F2EC}
 .shr .hl{stroke:rgba(245,242,236,.22);stroke-width:1}
 .shr .mo{fill:var(--mu);font:400 11px var(--font)}
 .shr .pt{fill:var(--t);transition:transform .7s cubic-bezier(.22,1,.36,1)}
-.shr-sel{margin-top:6px;margin-bottom:26px}
+.shr-sel{margin-top:14px;margin-bottom:44px}
+.shr-sel .hrow{min-height:72px;padding:14px 0}
+.shr-sel .hrow small{margin-top:5px}
 .shr-sel .hrow{border-top:.5px solid var(--ln)}
 .shr-sel .hrow b{font-size:18px!important}
 .shr-sel .hrow small{font-size:13.5px!important}
@@ -918,15 +920,16 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .cd.on span{background:none!important;box-shadow:inset 0 0 0 .5px rgba(245,242,236,.4)!important}
 .cd.on::after{box-shadow:none!important;width:3px!important;height:3px!important;margin-left:-1.5px!important}
 /* ---- Progress: the horizon ---- */
-.phz{position:relative;height:120px;margin:30px calc(var(--g) * -1) 0}
+.phz{position:relative;height:104px;margin:38px calc(var(--g) * -1) 0}
 .phz svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .phz .ln{fill:none;stroke:#F5F2EC;stroke-opacity:.7;stroke-width:1.2}
 .phz .bs{stroke:rgba(245,242,236,.14);stroke-width:1;stroke-dasharray:2 5}
-.phz-c{display:flex;justify-content:space-between;font-size:13.5px;color:var(--mu);margin-top:10px}
+.phz-c{display:flex;justify-content:space-between;font-size:13.5px;color:var(--mu);margin-top:14px}
 .phz-c b{color:#8FD3CA;font-weight:400}
 .pg-n{display:block;text-align:left}
 .pg-n small{display:block;font:400 13.5px/1.3 var(--font);letter-spacing:0;color:var(--mu);margin-top:4px}
 .acc>button .pg-n{font-size:18px}
+#app[data-s="progress"] .acc>button{min-height:78px;padding:14px 0}
 .prow .tr{display:inline-block;width:46px;height:14px;margin-right:12px;vertical-align:middle;overflow:visible}
 .prow .tr path{fill:none;stroke:rgba(245,242,236,.35);stroke-width:1}
 .prow .tr circle{fill:var(--t)}
@@ -1375,7 +1378,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "127";
+var BUILD = "128";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -2301,7 +2304,7 @@ function vProgress(){
   S.cfg.routines.forEach(function(r){ var rows = r.exercises.filter(function(x){ return key(x.name); }).map(function(x){ return rowFor(x.name); }).join(""), open = UI.pgGrp === r.id;
     h += '<div class="acc' + (open ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="' + esc(r.id) + '" aria-expanded="' + open + '">' + esc(r.name) + IC.chev + '</button><div class="acc-b"><div>' + rows + '</div></div></div>'; });
   var other = Object.keys(idx).filter(function(k){ return !seen[k]; });
-  if(other.length) h += '<div class="acc' + (UI.pgGrp === "_o" ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="_o">Other lifts' + IC.chev + '</button><div class="acc-b"><div>' + other.map(function(k){ return rowFor(idx[k].name); }).join("") + '</div></div></div>';
+  if(other.length) h += '<div class="acc' + (UI.pgGrp === "_o" ? " open" : "") + '" data-rv><button type="button" data-act="pg-grp" data-g="_o"><span class="pg-n">Other lifts<small>' + other.length + (other.length === 1 ? ' lift' : ' lifts') + ' outside your routines</small></span>' + IC.chev + '</button><div class="acc-b"><div>' + other.map(function(k){ return rowFor(idx[k].name); }).join("") + '</div></div></div>';
   var line = ups ? '<b>' + ups + (ups === 1 ? ' lift' : ' lifts') + '</b> up since you started' : logged ? 'Log a lift twice to see it move' : 'Your lifts show here once you log them';
   return '<h1 class="big">Progress</h1><div class="sub" data-rv>' + line + '</div><div class="hz" data-rv></div><div class="list" style="margin-top:28px">' + h + '</div>';
 }
@@ -3030,9 +3033,12 @@ function shore(){
     sel.innerHTML = row; if(!quiet && !calm) sel.firstChild.animate([{ opacity:.35 }, { opacity:1 }], { duration:420, easing:INOUT });
   }
   function at(cx){ var r = box.getBoundingClientRect(), x = cx - r.left, best = 0, bd = 1e9; posts.forEach(function(p, i){ var d = Math.abs(+p.getAttribute("x1") - x); if(d < bd){ bd = d; best = i; } }); return best; }
-  box.addEventListener("pointerdown", function(e){ box.setPointerCapture(e.pointerId); box._d = 1; pick(at(e.clientX)); });
-  box.addEventListener("pointermove", function(e){ if(box._d) pick(at(e.clientX)); });
-  box.addEventListener("pointerup", function(){ box._d = 0; });
+  /* a sideways slide reads the shoreline; an upward swipe still scrolls the page, so nothing changes until the finger clearly moves sideways */
+  var g0 = null;
+  box.addEventListener("pointerdown", function(e){ g0 = { x:e.clientX, y:e.clientY, on:e.pointerType === "mouse" }; if(g0.on) pick(at(e.clientX)); });
+  box.addEventListener("pointermove", function(e){ if(!g0) return; if(!g0.on && Math.abs(e.clientX - g0.x) > 6 && Math.abs(e.clientX - g0.x) > Math.abs(e.clientY - g0.y)) g0.on = true; if(g0.on) pick(at(e.clientX)); });
+  box.addEventListener("pointerup", function(e){ if(g0 && Math.abs(e.clientX - g0.x) < 6 && Math.abs(e.clientY - g0.y) < 6) pick(at(e.clientX)); g0 = null; });
+  box.addEventListener("pointercancel", function(){ g0 = null; });
   pick(posts.length - 1, true);
   window._shorePick = function(i){ pick(i); }; window._shoreN = posts.length;
   /* arriving: the posts rise out of the horizon, oldest first, like a tide coming in */
@@ -3069,7 +3075,7 @@ vProgress = function(){
 };
 function horizon(){
   var box = $("#phz"); if(!box) return; var p = (box.dataset.p || "").split(",").filter(Boolean).map(Number); if(p.length < 2){ box.style.display = "none"; return; }
-  var W = box.clientWidth, H = 120, pad = 20, mx = Math.max(1, Math.max.apply(null, p)), mn = Math.min(0, Math.min.apply(null, p)), Y = function(v){ return 96 - (v - mn) / (mx - mn) * 78; };
+  var W = box.clientWidth, H = 104, pad = 20, mx = Math.max(1, Math.max.apply(null, p)), mn = Math.min(0, Math.min.apply(null, p)), Y = function(v){ return 96 - (v - mn) / (mx - mn) * 78; };
   var d = p.map(function(v, i){ return (i ? "L" : "M") + (pad + i / (p.length - 1) * (W - pad * 2)).toFixed(1) + " " + Y(v).toFixed(1); }).join(" ");
   box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-label="Average strength across your lifts, week by week"><line class="bs" x1="0" x2="' + W + '" y1="' + Y(0) + '" y2="' + Y(0) + '"/><path class="ln" pathLength="1" d="' + d + '"/><circle r="3" fill="#14D3C2" cx="' + (W - pad) + '" cy="' + Y(p[p.length - 1]).toFixed(1) + '"/></svg>';
   if(calm) return; var ln = box.querySelector(".ln"), c = box.querySelector("circle");
