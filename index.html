@@ -841,6 +841,7 @@ if(migrated && S.active && !hasWork(S.active)){ S.active = null; ls.set("active"
 if(!ls.get("r150")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ x.rest = 150; }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("r150", 1); }
 if(!ls.get("s3")){ [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.exercises) w.exercises.forEach(function(x){ var dn = x.sets.filter(function(q){ return q.done; }).length; x.plan = Math.max(3, dn);
   while(x.sets.length < 3){ var l = x.sets[x.sets.length - 1]; x.sets.push({ w: l ? l.w : "", r: l ? l.r : "", pl: l && l.pl ? l.pl.slice() : [], bar: l ? l.bar : undefined, done:false, prev:null }); } }); }); ls.set("active", S.active); ls.set("parked", S.parked); ls.set("s3", 1); }
+if(!ls.get("g3")){ S.cfg.gear = S.cfg.gear || {}; if(S.cfg.gear["incline press"] !== "bar"){ S.cfg.gear["incline press"] = "bar"; ls.set("cfg", S.cfg); } ls.set("g3", 1); }
 if(!ls.get("g2")){ S.cfg.gear = S.cfg.gear || {}; Object.keys(S.cfg.gear).forEach(function(k){ if(/smith/.test(k) || S.cfg.gear[k] === "bar") delete S.cfg.gear[k]; }); ls.set("cfg", S.cfg); ls.set("g2", 1); }
 var STANDALONE = !(window.claude && typeof window.claude.use === "function");
 var db = null, chains = {}, timers = {}, confirmFn = null, restFlash = 0, actx = null, restMin = true;
@@ -991,7 +992,7 @@ function gearOf(name){
   var o = S.cfg.gear && S.cfg.gear[key(name)]; if(o && GEAR[o]) return o;
   var n = String(name || "").toLowerCase();
   if(/cable|pulldown|pushdown|face ?pull|crossover|pull-?through/.test(n)) return "cable";
-  if(/smith/.test(n)) return "bar";
+  if(/smith|incline press/.test(n)) return "bar";
   if(/goblet|dumbbell|\bdb\b|\brdl\b|romanian|arnold|lateral raise|rear delt|hammer|farmer|carry|kettlebell/.test(n)) return "db";
   if(/machine|leg press|leg curl|hamstring curl|leg extension|pec deck|hack squat|seated calf/.test(n)) return "machine";
   if(/pull-?up|chin-?up|\bdips?\b|push-?up|plank|hanging|sit-?up/.test(n)) return "body";
