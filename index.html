@@ -962,6 +962,33 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 /* done is a quiet grey check, not a teal disc */
 .okc{background:none!important;color:var(--mu)!important;width:auto!important}
 .okc svg{width:18px!important;height:18px!important;stroke-width:1.8!important}
+</style><style>
+/* ---- the set screen, rebalanced: the two numbers lead; everything else steps back and sits on one rhythm ---- */
+#app[data-s="ex"] .x-of{font-size:13.5px;color:var(--mu)}
+#app[data-s="ex"] .big{font-size:34px!important;letter-spacing:-.045em!important;margin-top:6px}
+#app[data-s="ex"] .x-beat{margin-top:10px;font-size:15px;font-weight:400}
+#app[data-s="ex"] .x-beat span{color:var(--tx)}
+#app[data-s="ex"] .x-segs{margin-top:28px;gap:6px}
+#app[data-s="ex"] .x-segs span{height:2px}
+#app[data-s="ex"] .x-cur{margin-top:36px}
+#app[data-s="ex"] .x-cur .lab{font-size:13.5px;font-weight:400;color:var(--mu);text-align:center;letter-spacing:0}
+#app[data-s="ex"] .x-cur .lab span{color:var(--mu)}
+#app[data-s="ex"] .x-cur .lab b{color:var(--tx);font-weight:500}
+#app[data-s="ex"] .hwx{margin-top:10px}
+#app[data-s="ex"] .hwx+.hw-u{margin-top:-6px;margin-bottom:0}
+#app[data-s="ex"] .hw-u+.hwx{margin-top:26px}
+#app[data-s="ex"] .hw.v{height:100px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(180deg,transparent,#000 22%,#000 78%,transparent)}
+#app[data-s="ex"] .hw.v .hw-t{padding:18px 0}
+#app[data-s="ex"] .hw.v span{font-weight:500;font-size:64px;letter-spacing:-.05em}
+#app[data-s="ex"] .hw-b{width:56px;height:56px;margin-top:-28px}
+#app[data-s="ex"] .hw-b svg{width:20px;height:20px;stroke-width:1.4}
+#app[data-s="ex"] .hw-b.m{left:calc(50% - 150px)}#app[data-s="ex"] .hw-b.p{left:calc(50% + 94px)}
+#app[data-s="ex"] .hw-u{font-size:13.5px;color:var(--mu)}
+#app[data-s="ex"] .x-go{margin-top:36px}
+#app[data-s="ex"] .x-of{display:flex;justify-content:space-between;align-items:baseline}
+#app[data-s="ex"] .x-ss{font-size:13.5px;color:var(--mu);font-variant-numeric:tabular-nums}
+#app[data-s="ex"] .rest{margin-top:28px;padding-top:14px;border-top:.5px solid var(--ln)}
+#app[data-s="ex"] .x-cur .stack{margin-top:18px!important}
 </style></head>
 <body>
 <div id="app" data-s="home">
@@ -1407,7 +1434,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "130";
+var BUILD = "131";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3182,6 +3209,22 @@ vWorkout = function(){
     '<div class="list">' + rows + '</div>' +
     '<div class="foot" data-rv><button type="button" data-act="add-ex-open">+ Add a lift</button></div>' +
     '<div class="stack" data-rv><button type="button" class="btn ' + (any ? "go" : "tl") + '" data-act="finish">Finish workout</button><button type="button" class="btn ghost" data-act="cancel">Cancel workout</button></div>';
+};
+})();
+
+
+(function(){
+var _vE = vExercise;
+vExercise = function(){
+  var o = _vE(), a = S.active, ei = a.openEx;
+  /* the set label: "Set 1 of 3", the count quiet */
+  o = o.replace(/<div class="lab">Set (\d+) <span>of (\d+)<\/span><\/div>/, '<div class="lab"><b>Set $1</b> of $2</div>');
+  o = o.replace(' · aim ', ', aim ').replace(/aim (\d+)-(\d+)/, 'aim $1–$2');
+  /* a superset is marked, not driven from here: a quiet 1/2 beside the lift count, and no second button */
+  o = o.replace(/<button type="button" class="btn x-sup"[^>]*>[^<]*<\/button>/, '');
+  var grp = groupOf(a, ei);
+  if(grp.length > 1) o = o.replace(/(<div class="x-of" data-rv>Lift \d+ of \d+)<\/div>/, '$1<span class="x-ss">Superset ' + (grp.indexOf(ei) + 1) + '/' + grp.length + '</span></div>');
+  return o;
 };
 })();
 
