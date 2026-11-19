@@ -46,8 +46,9 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 #app{height:100%;max-width:560px;margin:0 auto;position:relative;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
 
 /* ---- top bar: fades in as the big title scrolls away ---- */
-#bar{position:absolute;z-index:20;top:0;left:0;right:0;height:calc(var(--st) + 52px);padding:var(--st) 8px 0;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+#bar{position:absolute;z-index:20;top:0;left:0;right:0;height:calc(var(--st) + 74px);padding:calc(var(--st) + 22px) 8px 0;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
 #app[data-s="home"] #bar{height:calc(var(--st) + 82px);padding-top:calc(var(--st) + 30px)}
+#app[data-s="home"] main{padding-top:calc(var(--st) + 52px)}
 #bar::before{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--bp,0);border-bottom:.5px solid var(--ln)}
 #bar>*{position:relative;pointer-events:auto}
 #app[data-s="home"] #bar::before{bottom:auto;height:calc(var(--st) + 14px);border:0;background:linear-gradient(var(--bg) 62%,rgba(0,0,0,0))}
@@ -55,7 +56,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 .bk span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .bk.tap{transform:scale(.94);opacity:.6}
 .bk svg{width:20px;height:20px}
-#bar-t{position:absolute;left:50%;top:var(--st);height:52px;display:flex;align-items:center;transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:-.02em;opacity:var(--tp,0);max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+#bar-t{position:absolute;left:50%;top:calc(var(--st) + 22px);height:52px;display:flex;align-items:center;transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:-.02em;opacity:var(--tp,0);max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .ib{width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:50%;transition:transform .3s var(--spring),color .2s}
 .ib.due,#tabs a.due{position:relative}
 .ib.due::after{content:"";position:absolute;top:10px;right:9px;width:5px;height:5px;border-radius:50%;background:var(--t);box-shadow:0 0 0 2px var(--bg),0 0 8px rgba(20,211,194,.55)}
@@ -72,7 +73,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 .breathe{animation:breathe 2.8s cubic-bezier(.45,0,.55,1) infinite}
 
 /* ---- the scrolling page ---- */
-main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 52px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
+main{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 74px) var(--g) 26px;touch-action:pan-y;overscroll-behavior-x:none;will-change:transform}
 main::-webkit-scrollbar{display:none}
 /* each section's name in Greek, set huge and vertical down the right edge, far behind the page: it surfaces slowly, out of focus into focus, and drifts a little slower than you scroll */
 #view{z-index:1}
@@ -470,7 +471,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 
 /* ---- rest, grown: press play and the timer swells into the lower half of the screen ---- */
 /* while a rest runs, it follows you: a small glass capsule under the status bar on every other page. Tap it for the full clock */
-#mini{position:absolute;z-index:25;top:calc(var(--st) + 6px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:9px;height:36px;padding:0 14px 0 12px;border-radius:18px;background:rgba(18,22,22,.62);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 12px 30px rgba(0,0,0,.55);overflow:hidden;font-size:13px;color:var(--mu);transition:opacity .45s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
+#mini{position:absolute;z-index:25;top:calc(var(--st) + 26px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:9px;height:36px;padding:0 14px 0 12px;border-radius:18px;background:rgba(18,22,22,.62);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 12px 30px rgba(0,0,0,.55);overflow:hidden;font-size:13px;color:var(--mu);transition:opacity .45s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
 #mini[hidden]{display:flex!important;opacity:0;pointer-events:none;transform:translate(-50%,-14px) scale(.94)}
 #mini i{width:6px;height:6px;border-radius:50%;background:var(--t);box-shadow:0 0 8px rgba(20,211,194,.7);animation:tagb 2.8s ease-in-out infinite}
 #mini b{font:500 15px/1 var(--font);color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
