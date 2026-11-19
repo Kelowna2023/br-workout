@@ -1673,12 +1673,10 @@ function ghostArt(type){
     var P = ridge(1.3, H * 0.6, H * 0.94, 11), B = ridge(4.1, H * 0.67, H * 0.97, 8), path = function(a){ return "M" + a.map(function(p){ return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" L"); };
     var k = Math.round(f * (P.length - 1)), lit = P.slice(0, k + 1), me = P[k];
     return sv('<defs><linearGradient id="gp" x1="0" x2="1"><stop offset="0" stop-color="#14D3C2" stop-opacity=".05"/><stop offset="1" stop-color="#14D3C2" stop-opacity=".5"/></linearGradient>' +
-      '<linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14D3C2" stop-opacity=".07"/><stop offset="1" stop-color="#14D3C2" stop-opacity="0"/></linearGradient></defs>' +
+      '</defs>' +
       '<path class="gd" d="' + path(B) + '" stroke="#fff" stroke-opacity=".05" stroke-width=".6"/>' +
-      '<path d="' + path(P) + ' L' + (W + 20) + ' ' + H + ' L-20 ' + H + 'Z" fill="url(#gf)" class="gfade"/>' +
-      '<path class="gd" d="' + path(P) + '" stroke="#fff" stroke-opacity=".09" stroke-width=".7"/>' +
-      '<path class="gd gd2" d="' + path(lit) + '" stroke="url(#gp)" stroke-width="1.1"/>' +
-      '<circle class="gme" cx="' + me[0].toFixed(1) + '" cy="' + me[1].toFixed(1) + '" r="2.2" fill="#9FF5EA"/><circle class="gme" cx="' + me[0].toFixed(1) + '" cy="' + me[1].toFixed(1) + '" r="9" fill="#14D3C2" fill-opacity=".14"/>');
+      '<path class="gd" d="' + path(P) + '" stroke="#fff" stroke-opacity=".06" stroke-width=".6"/>' +
+      '<path class="gd gd2" d="' + path(lit) + '" stroke="#14D3C2" stroke-opacity=".22" stroke-width=".7"/>');
   }
   if(type === "history"){
     /* rings: one for every week of the year, rippling in from the edge; the weeks you trained hold a little teal */
