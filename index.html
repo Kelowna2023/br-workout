@@ -867,6 +867,14 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
   box-shadow:inset 0 0 0 1px rgba(20,211,194,.36),inset 0 1px 0 rgba(255,255,255,.08)!important}
 .btn:not(.ghost)::after{display:none!important}
 .btn.danger:not(.ghost){box-shadow:inset 0 0 0 1px rgba(245,242,236,.22),inset 0 1px 0 rgba(255,255,255,.08)!important}
+
+/* no glows. Crisp glass, hairlines, and small points of colour only */
+.wn .fs{display:inline-block;width:.19em;height:.19em;border-radius:50%;background:var(--t);margin-left:.06em}
+.wr-q{font-size:13px;color:var(--mu)}
+#tab-pill,.btn.go,#clock .chips button.p{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025))!important;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.07)!important}
+#tab-pill::after,#clock .chips button.p::after{display:none!important}
+.tag{box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1)!important}
+.tag.q::before,.f-best,.best{box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -1878,7 +1886,6 @@ function seaDraw(ts){
     g.beginPath(); for(x = 0; x <= W; x += 3){ y = y0 + 7 + wave(x, 1.7) * 0.8; if(x) g.lineTo(x, y); else g.moveTo(x, y); }
     g.strokeStyle = edge(.08, "rgba(143,211,202,.14)"); g.lineWidth = .6; g.stroke();
     g.beginPath(); for(x = 0; x <= W; x += 3){ y = y0 + wave(x, 0); if(x) g.lineTo(x, y); else g.moveTo(x, y); }
-    g.strokeStyle = edge(.12, "rgba(20,211,194,.22)"); g.lineWidth = 6; g.stroke();
     g.strokeStyle = edge(.5, "rgba(190,250,242,.82)"); g.lineWidth = 1; g.stroke();
   }
   /* the numbers below the surface */
@@ -2002,8 +2009,8 @@ function vHome(){
   [S.active].concat(S.parked || []).forEach(function(w){ if(w && w.routineId && w.exercises.some(function(x){ return x.sets.some(function(q){ return q.done; }); })) prog[w.routineId] = 1; });
   for(var i = 0; i < goal; i++) segs += '<span><i' + (i < n ? ' data-on style="transition-delay:' + (i * 90) + 'ms"' : '') + '></i></span>';
   S.cfg.routines.forEach(function(r){ var c = r.exercises.filter(function(x){ return key(x.name); }).length;
-    rows += '<button type="button" class="wrow' + (done[r.id] || prog[r.id] ? " on" : "") + '" data-act="start" data-id="' + esc(r.id) + '" data-rv><span><b class="wn">' + esc(r.name || "Workout") + '</b><small>' + c + (c === 1 ? " lift" : " lifts") + (last[r.id] ? " · Last " + esc(rel(last[r.id])) : "") + '</small></span>' +
-      '<span class="wr">' + (prog[r.id] ? '<span class="tag q">In progress</span>' : done[r.id] ? '<span class="tag">Complete</span>' : '') + '</span></button>'; });
+    rows += '<button type="button" class="wrow' + (done[r.id] || prog[r.id] ? " on" : "") + '" data-act="start" data-id="' + esc(r.id) + '" data-rv><span><b class="wn">' + esc(r.name || "Workout") + (done[r.id] && !prog[r.id] ? '<i class="fs" aria-label="done this week"></i>' : '') + '</b><small>' + c + (c === 1 ? " lift" : " lifts") + (last[r.id] ? " · Last " + esc(rel(last[r.id])) : "") + '</small></span>' +
+      '<span class="wr">' + (prog[r.id] ? '<span class="wr-q">In progress</span>' : '') + '</span></button>'; });
   return '<div class="hero"></div>' +
     '<div data-rv><div class="wk"><span class="wk-s"><b>' + n + '</b> of ' + goal + ' this week</span></div><div class="segs">' + segs + '</div></div>' +
     '<div class="list">' + (rows || '<div class="empty">No workouts yet. Add one in Setup.</div>') + '</div>' +
@@ -2157,7 +2164,7 @@ function finStage(st, name){
     }
     /* the full stop: falls with gravity, lands, and rests on the line */
     if(kf > 0){ var fy = landed ? dyRest : dyRest - (1 - kf * kf) * Math.min(150, hz - dotR - 4), glow = landed ? 6 + 14 * Math.pow(1 - kg, 2) : 6;
-      g.save(); g.shadowColor = "rgba(20,211,194,.6)"; g.shadowBlur = glow; g.fillStyle = "#14D3C2"; g.beginPath();
+      g.save(); g.fillStyle = "#14D3C2"; g.beginPath();
       if(landed) g.arc(dx, fy, dotR, 0, Math.PI * 2); else g.ellipse(dx, fy, dotR * (1 - kf * 0.06), dotR * (1 + kf * 0.08), 0, 0, Math.PI * 2);
       g.fill(); g.restore();
       if(landed && !st._hit){ st._hit = 1; haptic(); } }
