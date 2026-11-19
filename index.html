@@ -776,6 +776,12 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .gd-e{padding:10px 0;font-size:14px;color:var(--mu)}
 .gd-f{margin-top:8px;padding-top:12px;border-top:.5px solid var(--ln);font-size:12.5px;color:var(--mu2);font-variant-numeric:tabular-nums}
 .b-info b{color:var(--tsoft)!important;font-weight:500!important}
+
+/* muscle groups wear the Progress accordion: name, a quiet count, the turning chevron. No bars */
+.gacc>button .gv{display:inline-flex;align-items:center;gap:12px;font:400 14px/1 var(--font);letter-spacing:0;color:var(--mu2);font-variant-numeric:tabular-nums}
+.gacc>button .gv .in{color:var(--mu)}
+.gacc.open>button .gv{color:var(--mu)}
+.gacc .acc-b .gd-in{margin:2px 0 6px}
 </style>
 </head>
 <body>
@@ -2133,35 +2139,23 @@ function gDrop(g, w){
   var h = ks.map(function(k){ var e = ex[k], t = e.top;
     return '<div class="gd-r"><div><span>' + esc(e.name) + '</span><b>' + fmtVol(e.r) + '<em>' + (e.r === 1 ? 'rep' : 'reps') + '</em></b></div><small>' + e.s + (e.s === 1 ? ' set' : ' sets') + (t ? ' · best ' + (t.w > 0 ? fmtW(t.w) + ' ' + esc(u) + ' × ' : '') + t.r : '') + '</small></div>'; }).join("");
   if(!h) h = '<div class="gd-e">Nothing for ' + esc(g.toLowerCase()) + ' in the last 7 days.</div>';
-  return '<div class="gd"><div class="gd-in">' + h + (all.s ? '<div class="gd-f">' + fmtVol(all.r) + ' reps across ' + fmtVol(all.s) + ' sets since you started</div>' : '') + '</div></div>';
+  return '<div class="gd-in">' + h + (all.s ? '<div class="gd-f">' + fmtVol(all.r) + ' reps across ' + fmtVol(all.s) + ' sets since you started</div>' : '') + '</div>';
 }
-/* opening a muscle group without redrawing the page: the old ledger folds away as the new one unfolds, both on the same long, soft curve */
-var DD = "cubic-bezier(.45,.05,.15,1)", DC = "cubic-bezier(.45,0,.2,1)";
+/* opening a muscle group: the same fold as Progress (a class toggle on the shared accordion), while the figure's glow moves to it */
 function bodyDrop(fromMap){
   var w = sets7(), sel = {}, side = UI.bside || "front";
   BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); });
-  var bm = view.querySelector(".bmap"); if(bm){ bm.innerHTML = vitFig(side, w.mus, sel); [].forEach.call(bm.querySelectorAll(".vit-g"), function(q){ if(!calm) q.animate([{ opacity:.35 }, { opacity:1 }], { duration:900, easing:"ease-out" }); }); }
+  [].forEach.call(view.querySelectorAll(".gacc"), function(el){ var bt = el.firstChild, on = bt.dataset.g === UI.bsel; el.classList.toggle("open", on); bt.setAttribute("aria-expanded", on); });
+  var bm = view.querySelector(".bmap"); if(bm){ bm.innerHTML = vitFig(side, w.mus, sel); if(!calm) [].forEach.call(bm.querySelectorAll(".vit-g"), function(q){ q.animate([{ opacity:.35 }, { opacity:1 }], { duration:900, easing:"ease-out" }); }); }
   var inf = $("#b-info"); if(inf){ var n2 = UI.bsel ? (w.grp[UI.bsel] || 0) : 0; inf.innerHTML = UI.bsel ? '<b>' + esc(UI.bsel) + '</b>' + n2 + (n2 === 1 ? " set" : " sets") + ' this week' : ""; }
-  [].forEach.call(view.querySelectorAll(".gdd"), function(row){ var btn = row.querySelector(".grow-r"), g = btn.dataset.g, want = UI.bsel === g, d = row.querySelector(".gd");
-    btn.setAttribute("aria-expanded", want); row.classList.toggle("open", want);
-    if(!want && d && !d._closing){ d._closing = true; d.getAnimations().forEach(function(q){ q.cancel(); });
-      if(calm){ d.remove(); return; }
-      var h0 = d.offsetHeight; d.style.height = h0 + "px";
-      d.animate([{ height:h0 + "px", opacity:1 }, { height:"0px", opacity:0 }], { duration:620, easing:DC, fill:"forwards" }).onfinish = function(){ d.remove(); }; }
-    if(want && (!d || d._closing)){ if(d) d.remove(); row.insertAdjacentHTML("beforeend", gDrop(g, w)); d = row.querySelector(".gd"); if(calm) return;
-      var hh = d.scrollHeight; d.style.height = "0px";
-      d.animate([{ height:"0px" }, { height:hh + "px" }], { duration:900, easing:DD }).onfinish = function(){ d.style.height = ""; };
-      d.style.height = "";
-      d.querySelector(".gd-in").animate([{ opacity:0 }, { opacity:1 }], { duration:700, delay:120, easing:"ease-out", fill:"backwards" });
-      [].forEach.call(d.querySelectorAll(".gd-r,.gd-f,.gd-e"), function(r, i){ r.animate([{ opacity:0, transform:"translate3d(0,-10px,0)", filter:"blur(3px)" }, { opacity:1, transform:"none", filter:"blur(0)" }], { duration:820, delay:180 + i * 75, easing:"cubic-bezier(.22,1,.36,1)", fill:"backwards" }); });
-      if(fromMap) setTimeout(function(){ row.scrollIntoView({ behavior:"smooth", block:"center" }); }, 60); } });
+  if(fromMap && UI.bsel){ var row = view.querySelector(".gacc.open"); if(row) setTimeout(function(){ row.scrollIntoView({ behavior:"smooth", block:"start" }); }, 80); }
 }
 function vBody(){
   var w = sets7(), on = {}, rows = "", mu = measUnit(), ms = S.cfg.meas || [], sel = {}, info;
   S.cfg.routines.forEach(function(r){ r.exercises.forEach(function(x){ var m = mmFor(x.name); if(!m) return; var P = mmExpand(m[0]); BODY_GROUPS.forEach(function(g){ if(g[1].some(function(k){ return P[k]; })) on[g[0]] = 1; }); }); });
   BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); if(!on[g[0]] && !w.grp[g[0]]) return; var n = w.grp[g[0]] || 0;
     var open = UI.bsel === g[0];
-    rows += '<div class="gdd' + (open ? " open" : "") + '" data-rv><button type="button" class="grow-r" data-act="bsel" data-g="' + g[0] + '" aria-expanded="' + open + '"><div><span>' + g[0] + '</span><span>' + n + '<i class="gchev">' + IC.chev + '</i></span></div><p><i style="width:' + Math.min(100, n / 20 * 100) + '%"></i></p></button>' + (open ? gDrop(g[0], w) : '') + '</div>'; });
+    rows += '<div class="acc gacc' + (open ? " open" : "") + '" data-rv><button type="button" data-act="bsel" data-g="' + g[0] + '" aria-expanded="' + open + '"><span>' + g[0] + '</span><span class="gv"><span' + (n >= 10 ? ' class="in"' : '') + '>' + n + (n === 1 ? ' set' : ' sets') + '</span>' + IC.chev + '</span></button><div class="acc-b"><div>' + gDrop(g[0], w) + '</div></div></div>'; });
   var side = UI.bside || "front", has = function(sd){ return VM[sd].some(function(x){ return sel[x[0]]; }); };
   if(UI.bsel && UI.bselNew){ UI.bselNew = false; if(!has(side) && has(side === "back" ? "front" : "back")) side = UI.bside = side === "back" ? "front" : "back"; }
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
@@ -2169,7 +2163,7 @@ function vBody(){
   else info = "";
   var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets per muscle over the last 7 days. Tap one to see what worked it.</div><div class="hz" data-rv></div>' + vCheck() +
     '<div class="bmap" data-rv>' + vitFig(side, w.mus, sel) + '</div><div class="bside" data-rv role="group" aria-label="View"><button type="button" data-act="bside" data-v="front" aria-pressed="' + (side === "front") + '">Front</button><i></i><button type="button" data-act="bside" data-v="back" aria-pressed="' + (side === "back") + '">Back</button></div><div class="b-info" id="b-info" aria-live="polite">' + info + '</div>' +
-    '<div class="sec"><h2>Muscles</h2><span class="sec-v">Aim for 10–20</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div>';
+    '<div class="sec"><h2>Muscles</h2><span class="sec-v">Sets this week · aim for 10–20</span></div><div class="list" style="margin-top:0">' + rows + '</div>';
   var last = ms.length ? ms[ms.length - 1] : null;
   h += vThenNow();
   if(!last) UI.trk.push(["Measurements", "Once a month, same time of day.", '<button type="button" class="lnk" data-act="meas-log">+ Log</button>']);
