@@ -1434,7 +1434,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "132";
+var BUILD = "133";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3228,21 +3228,20 @@ vExercise = function(){
 };
 })();
 
-/* a superset flows on its own: Complete set on one lift carries you to the next lift of the pair;
-   on the last, it brings you back to the list. The set lands first, then the page moves */
+/* a superset flows on its own: Complete set on one lift carries you straight to the next lift of the pair;
+   on the last, it brings you back to the list. No pause: the set is logged and the page moves on the same tap, with the app's usual transition */
 (function(){
 var _cs = completeSet;
 completeSet = function(ei, si){
-  var a = S.active, x = a && a.exercises[ei]; if(!x) return _cs(ei, si);
-  var was = x.sets[si] && x.sets[si].done; _cs(ei, si);
-  if(!S.active || was || !(x.sets[si] && x.sets[si].done)) return;
-  var grp = groupOf(a, ei); if(grp.length < 2) return;
+  var a = S.active, x = a && a.exercises[ei]; if(!x || !x.sets[si] || x.sets[si].done) return _cs(ei, si);
+  var grp = groupOf(a, ei); if(grp.length < 2) return _cs(ei, si);
+  var R = render; render = function(){}; try{ _cs(ei, si); } finally { render = R; }
+  if(!x.sets[si].done){ render(); return; }
   var k = grp.indexOf(ei), nx = k < grp.length - 1 ? grp[k + 1] : -1;
   if(nx >= 0 && curIdx(a.exercises[nx]) < 0) nx = -1;
-  clearTimeout(UI.ssT);
-  UI.ssT = setTimeout(function(){ if(S.active !== a || a.openEx !== ei || view.dataset.v !== "ex") return;
-    if(nx >= 0) nav(function(){ a.openEx = nx; saveActive(); render(); }, "fwd");
-    else goBack(); }, calm ? 0 : 700);
+  UI.just = null;
+  if(nx >= 0) nav(function(){ a.openEx = nx; saveActive(); render(); }, "fwd");
+  else nav(function(){ a.openEx = null; saveActive(); render(); }, "back", view.querySelector(".big"), '[data-e="' + ei + '"] .nm');
 };
 })();
 
