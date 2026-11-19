@@ -2401,37 +2401,45 @@ function hero(quick){
   [[".h-top", 1900, 0]].forEach(function(q){
     el.querySelector(q[0]).animate([{ opacity:0, transform:"translate3d(0," + q[2] + "px,0)" }, { opacity:1, transform:"none" }], { duration:1500, delay:q[1], easing:SLOW, fill:"backwards" }); });
 }
-/* the reflection: the wordmark drawn once (upside down, in its own font, kerning and dot), then laid into a canvas one device-pixel row at a time on a smooth, continuous wave. No slices, no steps */
+/* the reflection: the wordmark drawn once (upside down, in its own font, kerning and dot), then laid into a canvas one device-pixel row at a time on a smooth, continuous wave. No slices, no steps.
+   Everything is measured in layout units (the opening scales and lifts the word), so redrawing it at any moment gives exactly the same picture: no jumps */
 function buildRef(ref, fs, N, base){
   var src = ref.id === "wm-ref" ? $("#wm") : $("#h-w"), o = { base:base, ok:false, ref:ref, src:src, fs:fs };
   var make = function(){
     var tn = null; for(var c = src.firstChild; c; c = c.nextSibling) if(c.nodeType === 3 && c.nodeValue.trim()){ tn = c; break; } if(!tn) return;
-    var cs = getComputedStyle(src), d = Math.min(window.devicePixelRatio || 1, 3), sr = src.getBoundingClientRect(), H = Math.round(fs * 0.868), PAD = 16;
-    /* where the baseline sits in the source box */
-    var W = Math.ceil(sr.width) + PAD * 2, off = document.createElement("canvas"), g = off.getContext("2d");
-    off.width = Math.ceil(W * d); off.height = Math.ceil(H * d); g.scale(d, d);
-    g.font = cs.fontStyle + " " + cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily; g.fillStyle = cs.color; g.textBaseline = "alphabetic";
-    /* baseline inside the box: line-height is 1em and the text sits at the bottom of it */
-    var mm = g.measureText("Wake"), fA = mm.fontBoundingBoxAscent || fs * 0.97, fD = mm.fontBoundingBoxDescent || fs * 0.26, fsz = parseFloat(cs.fontSize), by = sr.height - fsz + (fsz - (fA + fD)) / 2 + fA;
+    var cs = getComputedStyle(src), d = Math.min(window.devicePixelRatio || 1, 3), sr = src.getBoundingClientRect(), lw = src.offsetWidth, lh = src.offsetHeight; if(!lw || !sr.width) return;
+    var sc = sr.width / lw, H = Math.round(fs * 0.868), PAD = 16, W = lw + PAD * 2;
+    var mk = function(){ var cv = document.createElement("canvas"); cv.width = Math.ceil(W * d); cv.height = Math.ceil(H * d); var g = cv.getContext("2d"); g.scale(d, d);
+      g.font = cs.fontStyle + " " + cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily; g.fillStyle = cs.color; g.textBaseline = "alphabetic"; return [cv, g]; };
+    var A = mk(), off = A[0], g = A[1], B = mk(), offN = B[0], gN = B[1], C = mk(), offD = C[0], gD = C[1];
+    var mm = g.measureText("Wake"), fA = mm.fontBoundingBoxAscent || fs * 0.97, fD = mm.fontBoundingBoxDescent || fs * 0.26, fsz = parseFloat(cs.fontSize), by = lh - fsz + (fsz - (fA + fD)) / 2 + fA;
     var rg = document.createRange(), txt = tn.nodeValue;
-    for(var k = 0; k < txt.length; k++){ rg.setStart(tn, k); rg.setEnd(tn, k + 1); var r = rg.getBoundingClientRect(); if(txt[k].trim()) g.fillText(txt[k], PAD + r.left - sr.left, H); }
-    var dot = src.querySelector("i"); if(dot){ var dr = dot.getBoundingClientRect(), dc = getComputedStyle(dot).backgroundColor; if(!dc || /rgba\(0, 0, 0, 0\)|transparent/.test(dc)) dc = "#14D3C2";
-      g.fillStyle = dc; var rad = (dot.offsetWidth || dr.width) / 2; g.beginPath(); g.arc(PAD + dr.left - sr.left + dr.width / 2, H - (by - (dr.top - sr.top) - dr.height / 2), rad, 0, Math.PI * 2); g.fill(); }
-    var cv = ref.querySelector("canvas") || document.createElement("canvas"); ref.innerHTML = ""; ref.appendChild(cv);
-    cv.width = off.width; cv.height = off.height; cv.style.cssText = "position:absolute;top:0;width:" + W + "px;height:" + H + "px;left:" + (sr.left - ref.getBoundingClientRect().left - PAD).toFixed(1) + "px";
-    ref.style.height = H + "px"; o.off = off; o.cv = cv; o.ctx = cv.getContext("2d"); o.W = W; o.H = H; o.d = d; o.ok = true; };
-  o.make = make; make(); setTimeout(make, 2400); setTimeout(make, 4200); /* again once the entrance has settled */
+    for(var k = 0; k < txt.length; k++){ if(!txt[k].trim()) continue; rg.setStart(tn, k); rg.setEnd(tn, k + 1); var r = rg.getBoundingClientRect(), x = PAD + (r.left - sr.left) / sc; g.fillText(txt[k], x, H); gN.fillText(txt[k], x, H); }
+    var dot = src.querySelector("i"); o.dot = dot;
+    if(dot){ var dc = getComputedStyle(dot).backgroundColor; if(!dc || /rgba\(0, 0, 0, 0\)|transparent/.test(dc)) dc = "#14D3C2";
+      var dw = dot.offsetWidth, cx = dot.offsetLeft - src.offsetLeft + dw / 2, cy = dot.offsetTop - src.offsetTop + dot.offsetHeight / 2;
+      if(dot.offsetParent !== src.offsetParent){ var dr = dot.getBoundingClientRect(); cx = (dr.left - sr.left) / sc + dw / 2; cy = (dr.top - sr.top) / sc + dot.offsetHeight / 2; }
+      [g, gD].forEach(function(q){ q.fillStyle = dc; q.beginPath(); q.arc(PAD + cx, H - (by - cy), dw / 2, 0, Math.PI * 2); q.fill(); }); }
+    var cv = ref.querySelector("canvas") || document.createElement("canvas"); if(cv.parentNode !== ref){ ref.innerHTML = ""; ref.appendChild(cv); }
+    var rr = ref.getBoundingClientRect(), left = (sr.left - rr.left) / sc - PAD;
+    if(cv.width !== off.width) cv.width = off.width; if(cv.height !== off.height) cv.height = off.height;
+    cv.style.cssText = "position:absolute;top:0;width:" + W + "px;height:" + H + "px;left:" + left.toFixed(1) + "px";
+    ref.style.height = H + "px"; o.off = off; o.offN = offN; o.offD = offD; o.cv = cv; o.ctx = cv.getContext("2d"); o.W = W; o.H = H; o.d = d; o.ok = true; };
+  o.make = make; make();
   try{ document.fonts.ready.then(function(){ make(); }); }catch(e){}
   addEventListener("resize", function(){ setTimeout(make, 60); });
   return o;
 }
+/* the dot in the water grows with the dot above it */
+function dotScale(o){ var el = o.dot; if(!el || !el.getAnimations().length) return 1; var m = getComputedStyle(el).transform; if(!m || m === "none") return 1; var a = parseFloat(m.split("(")[1]); return isFinite(a) ? Math.max(0, Math.min(1, a)) : 1; }
 function refDraw(o, t, amp, px){
-  if(!o || !o.ok) return; var g = o.ctx, d = o.d, Hd = o.off.height, Wd = o.off.width;
+  if(!o || !o.ok) return; var g = o.ctx, d = o.d, Hd = o.off.height, Wd = o.off.width, ds = dotScale(o);
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, Wd, Hd);
+  var two = ds < 1, src = two ? o.offN : o.off;
   for(var r = 0; r < Hd; r++){ var y = r / d, k = y / o.H;
-    var x = Math.sin(t * 1.15 + y * 0.2 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + y * 0.068) * amp * k * 1.2;
-    g.globalAlpha = o.base * Math.pow(1 - k, 1.6);
-    g.drawImage(o.off, 0, Hd - 1 - r, Wd, 1, x * d, r, Wd, 1); }
+    var x = Math.sin(t * 1.15 + y * 0.2 + px * 0.012) * amp * (0.25 + k * 1.9) + Math.sin(t * 0.47 + y * 0.068) * amp * k * 1.2, al = o.base * Math.pow(1 - k, 1.6);
+    g.globalAlpha = al; g.drawImage(src, 0, Hd - 1 - r, Wd, 1, x * d, r, Wd, 1);
+    if(two && ds > 0){ g.globalAlpha = al * ds; g.drawImage(o.offD, 0, Hd - 1 - r, Wd, 1, x * d, r, Wd, 1); } }
   g.globalAlpha = 1;
 }
 /* the wave along the opening tide runs as CSS animations (see .tg i), so it stays on the compositor and never stutters */
