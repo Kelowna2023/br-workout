@@ -810,6 +810,42 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .f-best{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--t);margin-left:9px;box-shadow:0 0 8px rgba(20,211,194,.7);flex:none}
 .f-ls u{text-decoration:none;color:var(--tsoft);font-size:10px;margin-left:5px;vertical-align:1px}
 .f-act{margin-top:34px}
+
+/* a day in History: quiet */
+.dy-d{font-size:13px;color:var(--mu2)}
+.dy{margin-top:10px}
+.dy+.dy{margin-top:34px;padding-top:26px;border-top:.5px solid var(--ln)}
+.dy-n{font:600 28px/1.05 var(--font)!important;letter-spacing:-.04em!important;margin:0}
+.dy-n i{display:inline-block;width:.19em;height:.19em;border-radius:50%;background:var(--t);margin-left:.06em}
+.dy-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;margin-top:8px;font-size:13.5px;color:var(--mu);font-variant-numeric:tabular-nums}
+.dy-m i{width:3px;height:3px;border-radius:50%;background:var(--mu2)}
+.dy-ls{margin-top:22px}
+.dy-x{padding:11px 0}
+.dy-xn{display:flex;align-items:center;font-size:15.5px;font-weight:500;letter-spacing:-.01em;color:var(--tx)}
+.dy-xs{margin-top:4px;font-size:13.5px;color:var(--mu);font-variant-numeric:tabular-nums}
+.dy-xs i{font-style:normal;color:var(--mu2);margin-left:8px;font-size:12.5px}
+.dy-xs b{font-weight:400;color:var(--mu2)}
+.dy-x em{display:block;margin-top:7px;padding-left:10px;border-left:1px solid rgba(143,211,202,.28);font-size:13px;line-height:1.45;color:var(--mu);font-style:italic}
+.dy-a{display:flex;gap:26px;margin-top:18px}
+.dy-a button{min-height:40px;font-size:14.5px;font-weight:500;color:var(--tsoft)}
+.dy-a .dl{color:var(--mu2);font-weight:400}
+.dy-more{margin-top:26px;border-top:.5px solid var(--ln);border-bottom:0}
+.dy-more>button{min-height:56px!important;font:400 15px/1 var(--font)!important;letter-spacing:0!important;color:var(--mu)!important}
+.dy-more>button svg{width:15px!important;height:15px!important;color:var(--mu2)!important}
+.dy-more.open>button svg{transform:rotate(90deg)}
+#sheet .lg-r{color:var(--tx);font-weight:400;font-size:15.5px;min-height:50px}
+#sheet .lg-r svg{color:var(--mu2);width:15px;height:15px}
+.dy-e{margin-top:14px;font-size:14px;color:var(--mu)}
+.dy-list{margin-top:10px;border-top:.5px solid var(--ln)}
+
+/* one rule for teal type: text is always the soft pastel; bright teal is kept for points of light only
+   (the full stops, the active line under a button or tab, a new-best dot, and "Go") */
+.bk,.t,.sub.t,.lnk,.wk-n b,.wk-s b,.wrow.on .wv,.hw-u button,.hw-b,.sc.tap b,.sc em,.foot button,
+.prow.tap>span:first-child,.hrow.tap b,.mrow.tap>span:first-child,.grow-r.tap div span:first-child,
+.xrow small.t,.xrow.on small,.xrow .ct b,.sub b,.x-beat,.nw small button,.dset .v small,.dset .nb.has,.x-more button,
+.cal-h .ib,.lg-r,.acc.open>button,.acc>button svg,.pg-up,.up,.fs-r span:last-child .up,.b-info b,.grow-r[aria-pressed="true"] div span,
+.chips button[aria-pressed="true"],.e-st b.t,.wk-ac>b,.tag,.trk b{color:var(--tsoft)!important}
+.acc.open>button{color:var(--tsoft)!important}
 </style>
 </head>
 <body>
@@ -2130,16 +2166,26 @@ function vHistory(){
     '<div class="cal" data-rv>' + cells + '</div>' +
     '<div class="sec" data-rv><h2>This month</h2><span class="sec-v">' + (cnt ? cnt + (cnt === 1 ? " workout" : " workouts") : "Nothing yet") + '</span></div><div class="list" style="margin-top:8px">' + list + '</div>';
 }
+/* a day, read back quietly: the name with its full stop, one line of numbers, each lift as a single line of sets, your notes in your words.
+   Reopen and Delete are words, not buttons; logging another workout waits behind one quiet line */
+function setsLine(x, u){
+  var ss = x.sets, wt = num((ss[0] || {}).w) > 0, same = ss.length > 1 && ss.every(function(q){ return num(q.w) === num(ss[0].w) && String(q.r) === String(ss[0].r); });
+  if(same) return ss.length + ' × ' + esc(ss[0].r) + (wt ? '<i>' + fmtW(num(ss[0].w)) + ' ' + esc(u) + '</i>' : '<i>reps</i>');
+  return ss.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + ' × ' : '') + esc(q.r); }).join('<b>,</b> ') + '<i>' + (wt ? esc(u) : 'reps') + '</i>';
+}
 function daySheet(t){
-  var u = S.cfg.units, ss = S.sessions.filter(function(s){ return dayStart(s.startedAt) === t; }), ps = S.photos.filter(function(p){ return dayStart(p.at) === t; }), h = '<div><div class="eyebrow">' + esc(fmtDate(t)) + '</div></div>';
+  var u = S.cfg.units, ss = S.sessions.filter(function(s){ return dayStart(s.startedAt) === t; }), ps = S.photos.filter(function(p){ return dayStart(p.at) === t; }), h = '<div class="dy-d">' + esc(fmtDate(t)) + '</div>';
   ss.forEach(function(s){
-    h += '<div><h2>' + esc(s.name) + '</h2><div class="muted">' + s.setCount + (s.setCount === 1 ? " set" : " sets") + (s.dur ? " · " + fmtMin(s.dur) : "") + (s.prs && s.prs.length ? ' · <span class="t">' + s.prs.length + " new " + (s.prs.length === 1 ? "best" : "bests") + '</span>' : '') + '</div>' +
-      s.exercises.map(function(x){ var notes = x.sets.filter(function(q){ return q.note; }).map(function(q){ return '<em>' + esc(q.note) + '</em>'; }).join("");
-        return '<div class="dx-ex"><b>' + esc(x.name) + '</b><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + (num((x.sets[0] || {}).w) > 0 ? " " + esc(u) : " reps") + '</span>' + notes + '</div>'; }).join("") +
-      '<div class="row" style="margin-top:12px"><button type="button" class="btn grow" data-act="reopen" data-id="' + esc(s.id) + '">Reopen</button><button type="button" class="btn ghost danger grow" data-act="del-session" data-id="' + esc(s.id) + '">Delete</button></div></div>'; });
+    var meta = [s.dur ? fmtMin(s.dur) : '', s.setCount + (s.setCount === 1 ? " set" : " sets"), s.prs && s.prs.length ? s.prs.length + " new " + (s.prs.length === 1 ? "best" : "bests") : ''].filter(Boolean);
+    h += '<div class="dy"><h2 class="dy-n">' + esc(s.name) + '<i></i></h2><div class="dy-m">' + meta.join('<i></i>') + '</div><div class="dy-ls">' +
+      s.exercises.map(function(x){ var notes = x.sets.filter(function(q){ return q.note; }).map(function(q){ return '<em>' + esc(q.note) + '</em>'; }).join(""), best = x.sets.some(function(q){ return q.pr; });
+        return '<div class="dy-x"><div class="dy-xn">' + esc(x.name) + (best ? '<span class="f-best" aria-label="New best"></span>' : '') + '</div><div class="dy-xs">' + setsLine(x, u) + '</div>' + notes + '</div>'; }).join("") + '</div>' +
+      '<div class="dy-a"><button type="button" data-act="reopen" data-id="' + esc(s.id) + '">Reopen</button><button type="button" class="dl" data-act="del-session" data-id="' + esc(s.id) + '">Delete</button></div></div>'; });
   if(ps.length) h += '<div class="ph-strip">' + ps.map(function(q){ return '<button type="button" data-act="ph-view" data-id="' + q.id + '"><img src="' + q.url + '" alt="Progress photo"></button>'; }).join("") + '</div>';
-  if(t <= dayStart(Date.now())) h += '<div><div class="muted">' + (ss.length ? "Log another workout for this day" : t === dayStart(Date.now()) ? "Nothing logged today. Start one" : "Nothing logged. Add the workout you did") + '</div><div style="margin-top:6px">' + S.cfg.routines.map(function(r){ return '<button type="button" class="lg-r" data-act="log-day" data-id="' + esc(r.id) + '" data-t="' + t + '"><span>' + esc(r.name) + '</span>' + IC.chev + '</button>'; }).join("") + '</div></div>';
-  sheet(h + '<button type="button" class="btn" data-act="sheet-close">Close</button>');
+  if(t <= dayStart(Date.now())){ var list = S.cfg.routines.map(function(r){ return '<button type="button" class="lg-r" data-act="log-day" data-id="' + esc(r.id) + '" data-t="' + t + '"><span>' + esc(r.name) + '</span>' + IC.chev + '</button>'; }).join("");
+    h += ss.length ? '<div class="acc dy-more"><button type="button" data-act="dy-more" aria-expanded="false">Log another workout' + IC.chev + '</button><div class="acc-b"><div>' + list + '</div></div></div>'
+      : '<div class="dy-e">' + (t === dayStart(Date.now()) ? "Nothing logged today." : "Nothing logged this day.") + ' Add the workout you did.</div><div class="dy-list">' + list + '</div>'; }
+  sheet(h);
 }
 
 /* ---------- progress: your days, the weight you lifted, best sets marked ---------- */
@@ -2173,7 +2219,7 @@ function vProgEx(){
       '<div class="pday-s"><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + '</span>' + (x.best ? '<span class="tag">Best</span>' : '') + (x.up ? '<span class="up">▲ ' + esc(x.up) + '</span>' : '') + '</div>' + notes + '</div>'; }
   return '<h1 class="big' + (name.length > 16 ? " lg" : "") + '">' + esc(name) + '</h1>' +
     '<div class="sub" data-rv>' + (d.best ? 'Best <b>' + esc(setTxt(d.best.w, d.best.r, u)) + '</b> · ' + esc(fmtShort(d.best.t)) : "") + '</div><div class="hz" data-rv></div>' +
-    (d.best ? '<div class="sec"><h2>Next time</h2></div><div class="list" style="margin-top:0;border-top:0"><div class="trk"><div><b style="color:var(--t)">Beat ' + esc(setTxt(d.best.w, d.best.r, u)) + '</b><small>One more rep, or a little more weight, and it moves.</small></div></div></div>' : '') +
+    (d.best ? '<div class="sec"><h2>Next time</h2></div><div class="list" style="margin-top:0;border-top:0"><div class="trk"><div><b style="color:var(--tsoft)">Beat ' + esc(setTxt(d.best.w, d.best.r, u)) + '</b><small>One more rep, or a little more weight, and it moves.</small></div></div></div>' : '') +
     '<div class="sec"><h2>Sessions</h2><span class="sec-v">' + d.days.length + ' logged</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div><div style="height:60px"></div>';
 }
 
@@ -2778,6 +2824,7 @@ document.addEventListener("click", function(ev){
         sheet('<div class="eyebrow">' + esc(fmtDate(q.at)) + '</div><img class="ph-full" src="' + q.url + '" alt="Progress photo, ' + esc(fmtDate(q.at)) + '"><div class="row"><button class="btn danger grow" type="button" data-act="ph-del" data-id="' + esc(q.id) + '">Delete photo</button><button class="btn grow" type="button" data-act="sheet-close">Close</button></div>'); })(); break;
     case "ph-del": (function(id){ ask("Delete this photo?", "It's removed from the app. The copy in your camera roll stays.", "Delete photo", function(){ pTx("readwrite", function(st){ return st.delete(id); }).then(loadPhotos); }); })(b.dataset.id); break;
     case "start-fresh": (function(r){ if(!r) return; ask("Start a fresh " + r.name + "?", "This week's " + r.name + " stays saved in History. A new, empty session begins.", "Start fresh", function(){ haptic(); nav(function(){ UI.done = null; goWorkout(r); render(); }, "fwd"); }, { no:"Not now" }); })(rs.filter(function(r){ return r.id === b.dataset.id; })[0]); break;
+    case "dy-more": (function(){ var el = b.parentNode, on = !el.classList.contains("open"); el.classList.toggle("open", on); b.setAttribute("aria-expanded", on); haptic(); if(on) setTimeout(function(){ el.scrollIntoView({ behavior:"smooth", block:"end" }); }, 120); })(); break;
     case "reopen": (function(id){ UI.done = null; closeSheet(); haptic(); reopenSession(id); location.hash = "today"; render(); toast("Workout reopened"); })(b.dataset.id); break;
     case "end-undo": (function(id){ UI.done = null; var e = $("#end"); e.getAnimations().forEach(function(q){ q.cancel(); }); e.hidden = true; e.innerHTML = ""; e.onclick = null; haptic(); reopenSession(id); render(); })(b.dataset.id); break;
     case "del-session": (function(id){ ask("Delete this workout?", "It will be removed from your history and bests.", "Delete", function(){
