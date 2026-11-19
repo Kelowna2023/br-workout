@@ -899,7 +899,38 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 #app[data-s="home"] #bar::before{bottom:0;height:auto}
 #app[data-s="home"] .big+*{margin-top:12px}
 </style>
-</head>
+<style>
+/* ---- History: the shoreline ---- */
+.shr{position:relative;height:150px;margin:30px calc(var(--g) * -1) 0;touch-action:none;-webkit-user-select:none;user-select:none}
+.shr svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.shr .p{stroke:rgba(245,242,236,.24);stroke-width:1;transition:stroke .7s cubic-bezier(.22,1,.36,1)}
+.shr .p.on{stroke:#F5F2EC}
+.shr .hl{stroke:rgba(245,242,236,.22);stroke-width:1}
+.shr .mo{fill:var(--mu);font:400 11px var(--font)}
+.shr .pt{fill:var(--t);transition:transform .7s cubic-bezier(.22,1,.36,1)}
+.shr-sel{margin-top:6px;margin-bottom:26px}
+.shr-sel .hrow{border-top:.5px solid var(--ln)}
+.shr-sel .hrow b{font-size:18px!important}
+.shr-sel .hrow small{font-size:13.5px!important}
+.shr-sel b i{display:inline-block;width:.19em;height:.19em;border-radius:50%;background:var(--t);margin-left:.06em;vertical-align:baseline}
+.shr-sel>div{transition:opacity .45s cubic-bezier(.65,0,.35,1)}
+/* the calendar, quieted: no glow, a hairline ring and one small point */
+.cd.on span{background:none!important;box-shadow:inset 0 0 0 .5px rgba(245,242,236,.4)!important}
+.cd.on::after{box-shadow:none!important;width:3px!important;height:3px!important;margin-left:-1.5px!important}
+/* ---- Progress: the horizon ---- */
+.phz{position:relative;height:120px;margin:30px calc(var(--g) * -1) 0}
+.phz svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.phz .ln{fill:none;stroke:#F5F2EC;stroke-opacity:.7;stroke-width:1.2}
+.phz .bs{stroke:rgba(245,242,236,.14);stroke-width:1;stroke-dasharray:2 5}
+.phz-c{display:flex;justify-content:space-between;font-size:13.5px;color:var(--mu);margin-top:10px}
+.phz-c b{color:#8FD3CA;font-weight:400}
+.pg-n{display:block;text-align:left}
+.pg-n small{display:block;font:400 13.5px/1.3 var(--font);letter-spacing:0;color:var(--mu);margin-top:4px}
+.acc>button .pg-n{font-size:18px}
+.prow .tr{display:inline-block;width:46px;height:14px;margin-right:12px;vertical-align:middle;overflow:visible}
+.prow .tr path{fill:none;stroke:rgba(245,242,236,.35);stroke-width:1}
+.prow .tr circle{fill:var(--t)}
+</style></head>
 <body>
 <div id="app" data-s="home">
   <div id="bar"><span id="bar-l"></span><span id="bar-t"></span><span id="bar-r"></span><span id="bar-date"></span></div>
@@ -1344,7 +1375,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "126";
+var BUILD = "127";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -2964,6 +2995,130 @@ WMS = buildRef($("#wm-ref"), 76, 36, 0.3);
   vv.addEventListener("resize", fix); vv.addEventListener("scroll", fix);
   document.addEventListener("focusin", function(){ setTimeout(fix, 50); setTimeout(fix, 320); setTimeout(fix, 600); });
   document.addEventListener("focusout", function(){ setTimeout(fix, 120); }); })();
+
+
+(function(){
+var EZO = "cubic-bezier(.22,1,.36,1)", INOUT = "cubic-bezier(.65,0,.35,1)";
+function stop(name){ return esc(name) + '<i></i>'; }
+
+/* ================= HISTORY ================= */
+var _vH = vHistory;
+vHistory = function(){
+  var h = _vH(), m = '<div class="hz" data-rv></div>', cut = h.indexOf(m) + m.length;
+  return h.slice(0, cut) + '<div class="shr" id="shr" data-rv></div><div class="shr-sel" id="shr-sel"></div>' + h.slice(cut);
+};
+function shore(){
+  var box = $("#shr"); if(!box) return;
+  var W = box.clientWidth, H = 150, base = 112, pad = 20, now = Date.now(), span = 84 * 864e5, t0 = dayStart(now) - span + 864e5;
+  var ss = S.sessions.filter(function(s){ return s.startedAt >= t0; }).slice().sort(function(a, b){ return a.startedAt - b.startedAt; });
+  if(!ss.length){ box.style.display = "none"; return; }
+  var mx = Math.max.apply(null, ss.map(function(s){ return s.volume || s.setCount * 100; }));
+  var X = function(t){ return pad + (t - t0) / (dayStart(now) + 864e5 - t0) * (W - pad * 2); };
+  var g = '<line class="hl" x1="0" x2="' + W + '" y1="' + base + '" y2="' + base + '"/>';
+  for(var m = new Date(t0); m.getTime() < now; m.setMonth(m.getMonth() + 1, 1)){ var mt = new Date(m.getFullYear(), m.getMonth(), 1).getTime(); if(mt < t0) continue;
+    g += '<text class="mo" x="' + (X(mt) + 2) + '" y="' + (base + 24) + '">' + new Date(mt).toLocaleDateString("en-US", { month:"short" }) + '</text><line class="hl" x1="' + X(mt) + '" x2="' + X(mt) + '" y1="' + base + '" y2="' + (base + 6) + '"/>'; }
+  ss.forEach(function(s, i){ var x = X(s.startedAt + 432e5), hh = 22 + 66 * ((s.volume || s.setCount * 100) / mx);
+    g += '<line class="p" data-i="' + i + '" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + (base - hh).toFixed(1) + '" y2="' + base + '"/>'; });
+  g += '<circle class="pt" r="2.5" cx="0" cy="0"/>';
+  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-label="Your last 12 weeks. Slide along it to read each workout.">' + g + '</svg>';
+  var posts = [].slice.call(box.querySelectorAll(".p")), pt = box.querySelector(".pt"), cur = -1, sel = $("#shr-sel");
+  function pick(i, quiet){
+    if(i === cur) return; if(cur >= 0) posts[cur].classList.remove("on"); cur = i; var p = posts[i]; p.classList.add("on");
+    pt.style.transform = "translate(" + p.getAttribute("x1") + "px," + p.getAttribute("y1") + "px)";
+    var s = ss[i], meta = [fmtDate(s.startedAt), s.setCount + (s.setCount === 1 ? " set" : " sets"), s.dur ? fmtMin(s.dur) : ""].filter(Boolean).join(", ");
+    var row = '<div><button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '"><span><b>' + esc(s.name) + '<i></i></b><small>' + esc(meta) + '</small></span><span class="r">' + (s.prs && s.prs.length ? '<span style="color:#8FD3CA">' + s.prs.length + (s.prs.length === 1 ? " new best" : " new bests") + '</span>' : fmtVol(s.volume) + " " + esc(S.cfg.units)) + '</span></button></div>';
+    sel.innerHTML = row; if(!quiet && !calm) sel.firstChild.animate([{ opacity:.35 }, { opacity:1 }], { duration:420, easing:INOUT });
+  }
+  function at(cx){ var r = box.getBoundingClientRect(), x = cx - r.left, best = 0, bd = 1e9; posts.forEach(function(p, i){ var d = Math.abs(+p.getAttribute("x1") - x); if(d < bd){ bd = d; best = i; } }); return best; }
+  box.addEventListener("pointerdown", function(e){ box.setPointerCapture(e.pointerId); box._d = 1; pick(at(e.clientX)); });
+  box.addEventListener("pointermove", function(e){ if(box._d) pick(at(e.clientX)); });
+  box.addEventListener("pointerup", function(){ box._d = 0; });
+  pick(posts.length - 1, true);
+  window._shorePick = function(i){ pick(i); }; window._shoreN = posts.length;
+  /* arriving: the posts rise out of the horizon, oldest first, like a tide coming in */
+  if(!calm) posts.forEach(function(p, i){ p.animate([{ transform:"scaleY(0)" }, { transform:"scaleY(1)" }], { duration:1100, delay:300 + i * 26, easing:EZO, fill:"backwards" }); p.style.transformOrigin = "0 " + base + "px"; p.style.transformBox = "view-box"; });
+  if(!calm) pt.animate([{ opacity:0 }, { opacity:1 }], { duration:900, delay:300 + posts.length * 26 + 500, fill:"backwards" });
+}
+
+/* ================= PROGRESS ================= */
+function trendOf(k){ var d = pgData(k); return d.days.map(function(x){ return { t:x.t, v:x.top.w > 0 ? x.top.w * (1 + x.top.r / 30) : x.top.r }; }); }
+var _vP = vProgress;
+vProgress = function(){
+  var h = _vP(), idx = histIndex(), ks = Object.keys(idx), T = {};
+  ks.forEach(function(k){ var t = trendOf(k); if(t.length > 1) T[k] = t; });
+  /* the horizon: every lift against where it started, averaged week by week */
+  var first = Infinity; Object.keys(T).forEach(function(k){ first = Math.min(first, T[k][0].t); });
+  var w0 = weekStart(first), wn = weekStart(Date.now()), pts = [];
+  for(var w = w0; w <= wn; w += 7 * 864e5){ var sum = 0, n = 0;
+    Object.keys(T).forEach(function(k){ var t = T[k], b = t[0].v, last = null; t.forEach(function(q){ if(q.t < w + 7 * 864e5) last = q.v; }); if(last != null){ sum += last / b; n++; } });
+    if(n) pts.push((sum / n - 1) * 100); }
+  var gain = pts.length ? Math.round(pts[pts.length - 1]) : 0;
+  var hz = '<div class="phz" id="phz" data-rv data-p="' + pts.map(function(v){ return v.toFixed(2); }).join(",") + '"></div><div class="phz-c" data-rv><span>' + (pts.length ? new Date(w0).toLocaleDateString("en-US", { month:"long" }) : "") + '</span><span>' + (gain > 0 ? 'Stronger by <b>' + gain + '%</b>' : 'Holding steady') + '</span></div>';
+  h = h.replace('<div class="list" style="margin-top:28px">', hz + '<div class="list" style="margin-top:28px">');
+  /* each routine says how it's moving before you open it */
+  S.cfg.routines.forEach(function(r){ var tot = 0, up = 0; r.exercises.forEach(function(x){ var k = key(x.name); if(!idx[k]) return; tot++; var d = pgData(k); if(d.days.length > 1 && beats(d.best.w, d.best.r, d.days[0].top)) up++; });
+    var lab = '>' + esc(r.name) + IC.chev;
+    h = h.replace('data-g="' + esc(r.id) + '" aria-expanded="false"' + lab, 'data-g="' + esc(r.id) + '" aria-expanded="false"><span class="pg-n">' + esc(r.name) + '<small>' + (tot ? up + ' of ' + tot + ' lifts up' : 'Not logged yet') + '</small></span>' + IC.chev)
+         .replace('data-g="' + esc(r.id) + '" aria-expanded="true"' + lab, 'data-g="' + esc(r.id) + '" aria-expanded="true"><span class="pg-n">' + esc(r.name) + '<small>' + (tot ? up + ' of ' + tot + ' lifts up' : 'Not logged yet') + '</small></span>' + IC.chev); });
+  /* and each lift carries a small line of its own */
+  h = h.replace(/data-act="pg-go" data-k="([^"]+)"><span>([^<]*)<\/span><span>/g, function(all, k, n){ var t = T[k.replace(/&amp;/g, "&")]; if(!t) return all;
+    var mn = Math.min.apply(null, t.map(function(q){ return q.v; })), mx = Math.max.apply(null, t.map(function(q){ return q.v; })), d = t.map(function(q, i){ return (i ? "L" : "M") + (i / (t.length - 1) * 46).toFixed(1) + " " + (13 - (q.v - mn) / ((mx - mn) || 1) * 12).toFixed(1); }).join(" ");
+    var ly = (13 - (t[t.length - 1].v - mn) / ((mx - mn) || 1) * 12).toFixed(1);
+    return 'data-act="pg-go" data-k="' + k + '"><span>' + n + '</span><span><svg class="tr" viewBox="0 0 46 14"><path d="' + d + '"/>' + (t[t.length - 1].v >= mx ? '<circle cx="46" cy="' + ly + '" r="2"/>' : '') + '</svg>'; });
+  return h;
+};
+function horizon(){
+  var box = $("#phz"); if(!box) return; var p = (box.dataset.p || "").split(",").filter(Boolean).map(Number); if(p.length < 2){ box.style.display = "none"; return; }
+  var W = box.clientWidth, H = 120, pad = 20, mx = Math.max(1, Math.max.apply(null, p)), mn = Math.min(0, Math.min.apply(null, p)), Y = function(v){ return 96 - (v - mn) / (mx - mn) * 78; };
+  var d = p.map(function(v, i){ return (i ? "L" : "M") + (pad + i / (p.length - 1) * (W - pad * 2)).toFixed(1) + " " + Y(v).toFixed(1); }).join(" ");
+  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-label="Average strength across your lifts, week by week"><line class="bs" x1="0" x2="' + W + '" y1="' + Y(0) + '" y2="' + Y(0) + '"/><path class="ln" pathLength="1" d="' + d + '"/><circle r="3" fill="#14D3C2" cx="' + (W - pad) + '" cy="' + Y(p[p.length - 1]).toFixed(1) + '"/></svg>';
+  if(calm) return; var ln = box.querySelector(".ln"), c = box.querySelector("circle");
+  ln.animate([{ strokeDasharray:"1", strokeDashoffset:1 }, { strokeDasharray:"1", strokeDashoffset:0 }], { duration:2200, delay:350, easing:INOUT, fill:"backwards" });
+  c.animate([{ opacity:0 }, { opacity:1 }], { duration:900, delay:2400, fill:"backwards" });
+}
+
+/* ================= BODY ================= */
+/* the figure keeps its lines; the muscles hold light instead of glowing: crisp fills, no blur, no teal wash.
+   The circle becomes a quiet line, with one point of light where it meets the ground. */
+vitFig = function(side, mus, sel){
+  var fill = "", hit = "", both = function(x){ return x + '<g transform="translate(1060,0) scale(-1,1)">' + x + '</g>'; };
+  VM[side].forEach(function(sh){ var m = sh[0], v = mus[m] || 0, on = !!sel[m], w = function(x){ return sh[2] ? both(x) : x; };
+    if(on || v) fill += w('<path d="' + sh[1] + '" fill="#F5F2EC" fill-opacity="' + (on ? .5 : Math.min(.32, 0.07 + v / 48).toFixed(3)) + '"/>');
+    hit += w('<path data-act="bmus" data-m="' + m + '" d="' + sh[1] + '" fill="#000" fill-opacity="0" stroke="#000" stroke-opacity="0" stroke-width="26" pointer-events="all"/>'); });
+  return '<div class="vit' + (side === "back" ? " back" : "") + '"><div class="vit-in">' +
+    '<svg viewBox="30 26 1002 1000" role="img" aria-label="Vitruvian figure, ' + side + ' view, muscles lit by sets in the last 7 days"><defs><clipPath id="vsw"><rect class="vsw-r" x="0" y="0" width="1100" height="1100"/></clipPath></defs>' +
+    '<circle class="vit-c" cx="531" cy="521" r="478" fill="none" stroke="#F5F2EC" stroke-opacity=".22" stroke-width="1.5" transform="rotate(-90 531 521)"/>' +
+    '<rect class="vit-q" x="139" y="207" width="784" height="792" fill="none" stroke="#EDE6D6" stroke-opacity=".4" stroke-width="1.5"/>' +
+    '<g class="vit-g" clip-path="url(#vsw)">' + fill + '</g>' + VIT_BODY +
+    '<line class="vsw-l" x1="139" x2="923" y1="207" y2="207" stroke="#F5F2EC" stroke-width="1.6" opacity="0"/>' +
+    '<circle class="vit-sun" cx="531" cy="999" r="7" fill="#14D3C2"/>' + hit + '</svg></div></div>';
+};
+var VK2 = "";
+vitMaybe = function(type){
+  if(type !== "body"){ VK2 = ""; return; } var k = "body:" + (UI.bside || "front"); if(k === VK2) return; var first = VK2 === ""; VK2 = k;
+  var box = view.querySelector(".vit-in"); if(!box || calm) return; var c = box.querySelector(".vit-c"), q = box.querySelector(".vit-q"), sun = box.querySelector(".vit-sun");
+  var back = (UI.bside || "front") === "back", ls = [].filter.call(box.querySelectorAll(".vl"), function(e){ return !e.classList.contains(back ? "vf" : "vb"); });
+  var ord = function(e){ var pr = e.parentNode; return [].indexOf.call(pr.children, e) + (pr.hasAttribute("transform") ? 4 : 0); }, NN = 50;
+  var draw = function(t0, each, gap){ ls.forEach(function(e){ var i = ord(e); e.animate([{ strokeDasharray:"1", strokeDashoffset:1, opacity:0 }, { strokeDasharray:"1", strokeDashoffset:.97, opacity:1, offset:.04 }, { strokeDasharray:"1", strokeDashoffset:0, opacity:1 }], { duration:each, delay:t0 + i * gap, easing:"cubic-bezier(.45,0,.15,1)", fill:"backwards" }); }); };
+  var sweep = function(t0){ var r = box.querySelector(".vsw-r"), l = box.querySelector(".vsw-l");
+    /* one line of light passes down the figure, and each muscle keeps what it was given */
+    r.animate([{ transform:"translateY(-893px)" }, { transform:"translateY(0)" }], { duration:2600, delay:t0, easing:INOUT, fill:"backwards" });
+    l.animate([{ transform:"translateY(0)", opacity:0 }, { opacity:.75, offset:.08 }, { opacity:.75, offset:.9 }, { transform:"translateY(792px)", opacity:0 }], { duration:2600, delay:t0, easing:INOUT }); };
+  if(first){
+    var L = Math.ceil(2 * Math.PI * 478) + 4;
+    c.animate([{ strokeDasharray:L + "px", strokeDashoffset:L + "px" }, { strokeDasharray:L + "px", strokeDashoffset:"0px" }], { duration:1700, delay:150, easing:"cubic-bezier(.5,0,.15,1)", fill:"backwards" });
+    q.animate([{ strokeDasharray:"3160px", strokeDashoffset:"3160px" }, { strokeDasharray:"3160px", strokeDashoffset:"0px" }], { duration:1700, delay:500, easing:"cubic-bezier(.5,0,.15,1)", fill:"backwards" });
+    sun.animate([{ opacity:0 }, { opacity:1 }], { duration:1200, delay:1700, fill:"backwards" });
+    var gap = 46; draw(900, 1200, gap); sweep(900 + NN * gap + 300);
+  } else {
+    box.animate([{ transform:"rotateY(" + (back ? -90 : 90) + "deg)", opacity:0 }, { transform:"rotateY(0deg)", opacity:1 }], { duration:900, easing:EZO }); sweep(500);
+  }
+};
+
+/* no more teal rings behind History: the shoreline is its piece now */
+var _deco = deco; deco = function(type){ _deco(type); var r = document.querySelector(".dk-rings"); if(r && type === "history") r.innerHTML = ""; };
+var _ar = afterRender; afterRender = function(){ _ar(); var t = view.dataset.v; if(t === "history") shore(); if(t === "progress") horizon(); };
+})();
 
 render();
 if(viewName() === "today") hero();
