@@ -59,8 +59,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;str
 #bar-t{position:absolute;left:50%;top:calc(var(--st) + 22px);height:52px;display:flex;align-items:center;transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:-.02em;opacity:var(--tp,0);max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .ib{width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:50%;transition:transform .3s var(--spring),color .2s}
 .ib.due,#tabs a.due{position:relative}
-.ib.due::after{content:"";position:absolute;top:10px;right:9px;width:5px;height:5px;border-radius:50%;background:var(--t);box-shadow:0 0 0 2px var(--bg),0 0 8px rgba(20,211,194,.55)}
-#tabs a.due::after{content:"";position:absolute;top:11px;right:calc(50% - 27px);width:4px;height:4px;border-radius:50%;background:var(--t);box-shadow:0 0 6px rgba(20,211,194,.6)}
+.ib.due::after{content:"";position:absolute;top:10px;right:9px;width:5px;height:5px;border-radius:50%;background:var(--t);box-shadow:0 0 0 2px var(--bg),0 0 0 transparent}
+#tabs a.due::after{content:"";position:absolute;top:11px;right:calc(50% - 27px);width:4px;height:4px;border-radius:50%;background:var(--t);box-shadow:0 0 0 transparent}
 .ib.tap{transform:scale(.88);color:var(--tx)}
 #bar-date{position:absolute;left:var(--g);top:calc(var(--st) + 30px);height:52px;display:flex;align-items:center;font-size:14px;color:#A8A49C;font-weight:500;pointer-events:none}
 
@@ -107,7 +107,7 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 /* tags: small pieces of the same smoked glass as the buttons. Complete is teal; In progress carries a slow-breathing teal point */
 .tag{flex:none;display:inline-flex;align-items:center;gap:7px;font:500 12px/1 var(--font);letter-spacing:-.005em;color:#9FE9E0;padding:7px 11px;border-radius:10px;white-space:nowrap;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1)}
 .tag.q{color:#C9C5BD;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1)}
-.tag.q::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--t);box-shadow:0 0 8px rgba(20,211,194,.7);animation:tagb 2.8s ease-in-out infinite}
+.tag.q::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--t);box-shadow:0 0 0 transparent;animation:tagb 2.8s ease-in-out infinite}
 @keyframes tagb{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.tag.q::before{animation:none}}
 
@@ -115,15 +115,15 @@ h2{font:500 20px/1.2 var(--font);letter-spacing:-.03em}
 .btn.tap{transform:scale(.965)}
 /* buttons share the tab bar's material: smoked glass with a fine light rim. The main action is the lit key: a teal glow from below and a hairline of teal light */
 .btn{border:0;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.018));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.04);letter-spacing:-.01em;position:relative;overflow:hidden}
-.btn.go{color:#F5FFFD;font-weight:500;background:radial-gradient(90% 80% at 50% 125%,rgba(20,211,194,.26),rgba(20,211,194,.06) 55%,transparent 82%),linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));box-shadow:inset 0 0 0 .5px rgba(150,245,235,.2),inset 0 1px 0 rgba(255,255,255,.06),0 18px 40px -22px rgba(20,211,194,.45)}
+.btn.go{color:#F5FFFD;font-weight:500;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.028));box-shadow:inset 0 0 0 .5px rgba(150,245,235,.2),inset 0 1px 0 rgba(255,255,255,.06),0 0 0 transparent}
 .btn.go::after{content:"";position:absolute;left:30%;right:30%;bottom:0;height:1px;transform:scaleY(.6);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(170,248,240,.7),transparent);pointer-events:none}
 .btn.go:disabled::after{opacity:.3}
 /* the brand signature: one short line of the logo's teal, centred on the base of a key, with a little light pooled above it.
    No coloured outlines: the glass keeps its quiet neutral edge */
 .btn.go,#tab-pill,#clock .chips button.p,.rb{box-shadow:inset 0 0 0 .5px rgba(255,255,255,.085),inset 0 1px 0 rgba(255,255,255,.05)}
-.btn.go,#tab-pill,#clock .chips button.p{background:radial-gradient(36% 46% at 50% 100%,rgba(20,211,194,.16),transparent 100%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))}
+.btn.go,#tab-pill,#clock .chips button.p{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))}
 .btn.go::after,#tab-pill::after,#clock .chips button.p::after{content:"";position:absolute;left:50%;bottom:0;width:34%;max-width:120px;height:1.5px;border-radius:2px;transform:translateX(-50%);
-  background:linear-gradient(90deg,rgba(20,211,194,0),#14D3C2 30%,#7FF2E6 50%,#14D3C2 70%,rgba(20,211,194,0));box-shadow:0 0 10px rgba(20,211,194,.55);pointer-events:none}
+  background:linear-gradient(90deg,rgba(20,211,194,0),#14D3C2 30%,#7FF2E6 50%,#14D3C2 70%,rgba(20,211,194,0));box-shadow:0 0 0 transparent;pointer-events:none}
 #tab-pill::after{width:40%;max-width:44px;height:1.5px}
 #clock .chips button.p::after{width:38%;max-width:40px}
 .rb{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
@@ -154,7 +154,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .tg i.p{background:#3A3A3A}
 .tg i.t{background:var(--t);opacity:.6}
 .tg i.n{height:26px;background:var(--t)}
-.tg i.n::before{content:"";position:absolute;left:-2.5px;top:-9px;width:6px;height:6px;border-radius:50%;background:var(--t);box-shadow:0 0 12px rgba(20,211,194,.55)}
+.tg i.n::before{content:"";position:absolute;left:-2.5px;top:-9px;width:6px;height:6px;border-radius:50%;background:var(--t);box-shadow:0 0 0 transparent}
 .h-cd .yg{margin-top:16px}
 .h-cd .yg-g i{border-color:#1D1D1D}
 .h-cd .yg-g i.p{background:#1D1D1D}
@@ -304,7 +304,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 .rest[data-st="paused"] .rest-t i{background:var(--t)}
 .rest[data-st="go"] .rest-t b{color:var(--t)}
 .rest-b{display:flex;gap:8px}
-.rb{width:44px;height:44px;border-radius:50%;border:0;background:radial-gradient(90% 80% at 50% 125%,rgba(20,211,194,.2),transparent 75%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.05);display:grid;place-items:center;color:var(--t);transition:transform .28s var(--spring)}
+.rb{width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.05);display:grid;place-items:center;color:var(--t);transition:transform .28s var(--spring)}
 .rb.tap{transform:scale(.86)}
 .rb svg{width:18px;height:18px}
 .rb.x{color:var(--mu)}
@@ -328,7 +328,7 @@ textarea.field{padding:12px 14px;min-height:76px;resize:none;line-height:1.4}
 /* the tab bar: a floating soft-square of smoked glass, the same corners as the buttons. The page runs on underneath it, softened by the blur;
    a glass key lit from below in teal slides to the section you tap */
 #tabs{position:absolute;left:16px;right:16px;bottom:calc(max(var(--sb), 12px) + 4px);display:flex;padding:5px;border-radius:20px;background:rgba(18,22,22,.6);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.65),0 2px 8px rgba(0,0,0,.4);z-index:15;view-transition-name:tabs;transform:translateZ(0)}
-#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:15px;background:radial-gradient(90% 70% at 50% 118%,rgba(20,211,194,.2),rgba(20,211,194,.05) 55%,transparent 80%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.075),inset 0 1px 0 rgba(255,255,255,.05);pointer-events:none;opacity:0;will-change:transform,width}
+#tab-pill{position:absolute;left:0;top:5px;bottom:5px;width:0;border-radius:15px;background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.075),inset 0 1px 0 rgba(255,255,255,.05);pointer-events:none;opacity:0;will-change:transform,width}
 #tab-pill::after{content:"";position:absolute;left:34%;right:34%;bottom:0;height:1px;transform:scaleY(.5);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.75),transparent)}
 /* a soft fall to black behind the bar, so the page dissolves before it reaches the glass */
 #tab-veil{position:absolute;left:0;right:0;bottom:0;height:calc(max(var(--sb), 12px) + 104px);background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.72) 34%,#000 52%);pointer-events:none;z-index:14}
@@ -473,7 +473,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 /* while a rest runs, it follows you: a small glass capsule under the status bar on every other page. Tap it for the full clock */
 #mini{position:absolute;z-index:25;top:calc(var(--st) + 26px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:9px;height:36px;padding:0 14px 0 12px;border-radius:18px;background:rgba(18,22,22,.62);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 12px 30px rgba(0,0,0,.55);overflow:hidden;font-size:13px;color:var(--mu);transition:opacity .45s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
 #mini[hidden]{display:flex!important;opacity:0;pointer-events:none;transform:translate(-50%,-14px) scale(.94)}
-#mini i{width:6px;height:6px;border-radius:50%;background:var(--t);box-shadow:0 0 8px rgba(20,211,194,.7);animation:tagb 2.8s ease-in-out infinite}
+#mini i{width:6px;height:6px;border-radius:50%;background:var(--t);box-shadow:0 0 0 transparent;animation:tagb 2.8s ease-in-out infinite}
 #mini b{font:500 15px/1 var(--font);color:var(--tx);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #mini em{position:absolute;left:14px;right:14px;bottom:0;height:1.5px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
 #mini u{position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,211,194,.4),#14D3C2);transform-origin:0 50%;transform:scaleX(0)}
@@ -492,7 +492,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 /* the rest controls: one smoked-glass bar like the tab bar; Pause is the lit key in the middle */
 #clock .chips{display:flex;justify-content:center;flex-wrap:nowrap;gap:0;margin:14px auto 0;padding:5px;width:max-content;max-width:calc(100% - 32px);border-radius:20px;background:rgba(18,22,22,.6);-webkit-backdrop-filter:blur(28px) saturate(1.7);backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),0 20px 44px rgba(0,0,0,.55)}
 #clock .chips button{position:relative;min-height:48px;padding:0 17px;border:0;border-radius:15px;font-size:14.5px;font-weight:500;letter-spacing:-.01em;color:#8A867F;font-variant-numeric:tabular-nums;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;transition:color .42s cubic-bezier(.22,1,.36,1),transform .3s cubic-bezier(.22,1,.36,1)}
-#clock .chips button.p{min-width:96px;color:#F5FFFD;background:radial-gradient(90% 70% at 50% 118%,rgba(20,211,194,.2),rgba(20,211,194,.05) 55%,transparent 80%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.075),inset 0 1px 0 rgba(255,255,255,.05)}
+#clock .chips button.p{min-width:96px;color:#F5FFFD;background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.075),inset 0 1px 0 rgba(255,255,255,.05)}
 #clock .chips button.p::after{content:"";position:absolute;left:30%;right:30%;bottom:0;height:1px;transform:scaleY(.5);transform-origin:50% 100%;background:linear-gradient(90deg,transparent,rgba(150,245,235,.8),transparent)}
 .wheel.one{font-size:34px;letter-spacing:-.03em}
 .wheel.one>div{width:150px}
@@ -526,7 +526,7 @@ details.rt summary small{font-size:13px;color:var(--mu2);font-weight:400;letter-
 .oh{position:absolute;left:0;right:0;height:1px;pointer-events:none;transform-origin:0 50%;z-index:3}
 .oh::before{content:"";position:absolute;inset:0;transform:scaleY(.5);transform-origin:0 0;background:linear-gradient(90deg,rgba(20,211,194,.7),rgba(20,211,194,.7) 55%,transparent 92%)}
 .gl.one,.gr.one{animation:none}
-.h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(20,211,194,.2),rgba(20,211,194,.05) 50%,transparent 72%);opacity:.28;pointer-events:none;will-change:transform}
+.h-glow{position:absolute;left:50%;top:-.5em;width:1.9em;height:1em;margin-left:-.95em;background:;opacity:.28;pointer-events:none;will-change:transform}
 .h-top{position:absolute;left:var(--g);right:var(--g);top:calc(40.5% - min(33vw,150px) * .73 - 36px);display:flex;justify-content:space-between;font-size:13px;font-weight:500;color:var(--mu2)}
 .h-sea{will-change:transform;position:absolute;left:0;right:0;top:49%;font:600 min(33vw,150px)/1 var(--font);letter-spacing:-.05em}
 .h-rise{position:absolute;left:0;right:0;bottom:0;height:.868em;overflow:hidden;display:flex;justify-content:center}
@@ -627,13 +627,13 @@ html[data-carry="1"]::view-transition-new(root){animation:fade .26s .2s ease-out
 .tg i.p{background:linear-gradient(to top,rgba(20,211,194,var(--a,.3)),rgba(20,211,194,calc(var(--a,.3) * .12)) 110%)}
 .tg i.t{opacity:1;background:linear-gradient(to top,#14D3C2,#9FF5EA)}
 .tg i.n{background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8)}
-.tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 14px rgba(20,211,194,.8)}
+.tg i.n::before{left:-2px;background:#C9FFF8;box-shadow:0 0 0 transparent}
 /* the passing wave: each tick lights to this week's brightness at the crest */
-.tg i:not(.n)::after{content:"";position:absolute;inset:0;will-change:opacity;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0);box-shadow:0 0 9px rgba(20,211,194,.5)}
+.tg i:not(.n)::after{content:"";position:absolute;inset:0;will-change:opacity;border-radius:inherit;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);opacity:var(--w,0);box-shadow:0 0 0 transparent}
 /* the apex: one glowing pin that glides the whole row at a constant speed; the pins it passes lift to a little over half its height */
 .tg{position:relative}
 .tg b{position:absolute;left:0;bottom:0;width:100%;height:28px;pointer-events:none;opacity:0;will-change:transform}
-.tg b::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:100%;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);box-shadow:0 0 9px rgba(20,211,194,.55)}
+.tg b::before{content:"";position:absolute;left:0;bottom:0;width:1px;height:100%;background:linear-gradient(to top,#0FA89B,#14D3C2 45%,#C9FFF8);box-shadow:0 0 0 transparent}
 /* hairline pins, as thin and sharp as the horizon line */
 .tg i{width:1px;border-radius:0}
 .tg i.n::before{left:-2.5px}
@@ -749,8 +749,8 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .wk-s b{color:var(--tsoft);font-weight:500}
 /* History: training days are a fine teal ring of glass with a point of light beneath, not a solid block */
 .cd.on{color:var(--tx);font-weight:500}
-.cd.on span{background:radial-gradient(70% 70% at 50% 110%,rgba(20,211,194,.18),transparent 75%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));box-shadow:inset 0 0 0 1px rgba(20,211,194,.55),0 0 18px -4px rgba(20,211,194,.35)}
-.cd.on::after{content:"";position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--t);box-shadow:0 0 6px rgba(20,211,194,.8)}
+.cd.on span{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));box-shadow:inset 0 0 0 1px rgba(20,211,194,.55),0 0 0 transparent}
+.cd.on::after{content:"";position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--t);box-shadow:0 0 0 transparent}
 .cal-h .ib{color:var(--tsoft)}
 
 /* a finished routine reads like a page from a logbook: settled, quiet, every set kept */
@@ -818,7 +818,7 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .f-sec span:first-child{color:var(--mu)}
 .f-ls .fs-r{font-size:16px;min-height:50px}
 .f-ls .fs-r span:first-child{display:inline-flex;align-items:center}
-.f-best{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--t);margin-left:9px;box-shadow:0 0 8px rgba(20,211,194,.7);flex:none}
+.f-best{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--t);margin-left:9px;box-shadow:0 0 0 transparent;flex:none}
 .f-ls u{text-decoration:none;color:var(--tsoft);font-size:10px;margin-left:5px;vertical-align:1px}
 .f-act{margin-top:34px}
 
@@ -856,15 +856,15 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .xrow small.t,.xrow.on small,.xrow .ct b,.sub b,.x-beat,.nw small button,.dset .v small,.dset .nb.has,.x-more button,
 .cal-h .ib,.lg-r,.acc.open>button,.acc>button svg,.pg-up,.up,.fs-r span:last-child .up,.b-info b,.grow-r[aria-pressed="true"] div span,
 .chips button[aria-pressed="true"],.e-st b.t,.wk-ac>b,.tag,.trk b{color:var(--tsoft)!important}
-.acc.open>button{color:var(--tsoft)!important}
+.acc.open>button{color:var(--tx)!important}
 
 /* one button. Every button in Wake is the same piece of smoked glass with a thin line of light at its foot;
    the only other kind is a quiet word (ghost) for the second choice. Destructive buttons keep the shape with a neutral light */
 .btn:not(.ghost){color:var(--tx)!important;font-weight:500;
-  background:radial-gradient(36% 46% at 50% 100%,rgba(20,211,194,.16),transparent 100%),linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))!important;
   box-shadow:inset 0 0 0 .5px rgba(255,255,255,.085),inset 0 1px 0 rgba(255,255,255,.05)!important}
 .btn:not(.ghost)::after{content:"";position:absolute;left:50%;bottom:0;width:34%;max-width:120px;height:1.5px;border-radius:2px;transform:translateX(-50%);
-  background:linear-gradient(90deg,rgba(20,211,194,0),#14D3C2 30%,#7FF2E6 50%,#14D3C2 70%,rgba(20,211,194,0));box-shadow:0 0 10px rgba(20,211,194,.55);pointer-events:none}
+  background:linear-gradient(90deg,rgba(20,211,194,0),#14D3C2 30%,#7FF2E6 50%,#14D3C2 70%,rgba(20,211,194,0));box-shadow:0 0 0 transparent;pointer-events:none}
 .btn.danger:not(.ghost){background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022))!important}
 .btn.danger:not(.ghost)::after{background:linear-gradient(90deg,transparent,rgba(245,242,236,.45),transparent);box-shadow:none}
 .btn.ghost{color:var(--mu)!important}
@@ -933,6 +933,19 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .prow .tr{display:inline-block;width:46px;height:14px;margin-right:12px;vertical-align:middle;overflow:visible}
 .prow .tr path{fill:none;stroke:rgba(245,242,236,.35);stroke-width:1}
 .prow .tr circle{fill:var(--t)}
+</style><style>
+/* ==== teal is light, never ink. Words, headings, links and icons are off-white or quiet grey;
+   teal is left only as small points: full stops, Go on the rest clock, the new-best dot, the ground point, the one button's thin line ==== */
+.bk,.lnk,.foot button,.foot button.t,.x-more button,.hw-u button,.nw small button,.lg-r,.bk-n button,.dy-a button,.btn.tl,.t,.sub.t,.x-beat,
+.acc.open>button,.gdd.open .gchev,.grow-r[aria-pressed="true"] div span,.b-info b,.sub b,.wk-n b,.wk-s b,.xrow .ct b,.xrow small.t,.xrow.on small,
+.sc em,.trk b,.dset .v small,.dset .nb.has,.e-st b.t,.creed>b,.wk-ac>b,.phz-c b,.tag,.chips button[aria-pressed="true"],.hw-b,.rb,.f-ls u{color:var(--tx)!important}
+.up,.fs-r span:last-child .up,.pg-up,.dn-k{color:var(--mu)!important}
+.acc>button svg,.cal-h .ib,.ib{color:var(--mu)!important}
+.prow.tap>span:first-child,.hrow.tap b,.mrow.tap>span:first-child,.grow-r.tap div span:first-child,.sc.tap b{color:var(--mu)!important}
+.chips button[aria-pressed="true"]{border-color:rgba(245,242,236,.5)!important}
+.wrow.on .wv{color:rgba(245,242,236,.55)!important}
+.gcap b{color:var(--mu)!important}.gcap span{color:var(--mu2)!important}
+.rest[data-st="go"] .rest-t b,#mini.go b,#clock.go #ck-t{color:var(--t)!important}
 </style></head>
 <body>
 <div id="app" data-s="home">
@@ -1378,7 +1391,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "128";
+var BUILD = "129";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1736,7 +1749,7 @@ var GH = { progress:["προκοπή","prokopē","The Stoic word for progress: t
 var CAP = { home:["ἄσκησις","askēsis","Greek for training. To the Stoics, the body and the character were trained as one."] };
 function ghostCap(type){ return ""; var g = GH[type] || CAP[type]; return g ? '<div class="gcap" data-rv><b>' + g[1] + '<span>' + g[0] + '</span></b>' + g[2] + '</div>' : ""; }
 /* each section gets its own quiet drawing behind the page, made from what that page is about and from your own training */
-var GHOST = { progress:1, history:1 };
+var GHOST = { history:1 };
 function ghostArt(type){
   var W = Math.min(innerWidth, 560), H = innerHeight, sv = function(inner, extra){ return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none" ' + (extra || "") + '>' + inner + '</svg>'; };
   if(type === "progress"){
@@ -2315,7 +2328,7 @@ function vProgEx(){
       '<div class="pday-s"><span>' + x.sets.map(function(q){ return (num(q.w) > 0 ? fmtW(num(q.w)) + " × " : "") + q.r; }).join("  ·  ") + '</span>' + (x.best ? '<span class="tag">Best</span>' : '') + (x.up ? '<span class="up">▲ ' + esc(x.up) + '</span>' : '') + '</div>' + notes + '</div>'; }
   return '<h1 class="big' + (name.length > 16 ? " lg" : "") + '">' + esc(name) + '</h1>' +
     '<div class="sub" data-rv>' + (d.best ? 'Best <b>' + esc(setTxt(d.best.w, d.best.r, u)) + '</b> · ' + esc(fmtShort(d.best.t)) : "") + '</div><div class="hz" data-rv></div>' +
-    (d.best ? '<div class="sec"><h2>Next time</h2></div><div class="list" style="margin-top:0;border-top:0"><div class="trk"><div><b style="color:var(--tsoft)">Beat ' + esc(setTxt(d.best.w, d.best.r, u)) + '</b><small>One more rep, or a little more weight, and it moves.</small></div></div></div>' : '') +
+    (d.best ? '<div class="sec"><h2>Next time</h2></div><div class="list" style="margin-top:0;border-top:0"><div class="trk"><div><b>Beat ' + esc(setTxt(d.best.w, d.best.r, u)) + '</b><small>One more rep, or a little more weight, and it moves.</small></div></div></div>' : '') +
     '<div class="sec"><h2>Sessions</h2><span class="sec-v">' + d.days.length + ' logged</span></div><div class="list" style="margin-top:0;border-top:0">' + rows + '</div><div style="height:60px"></div>';
 }
 
@@ -3029,7 +3042,7 @@ function shore(){
     if(i === cur) return; if(cur >= 0) posts[cur].classList.remove("on"); cur = i; var p = posts[i]; p.classList.add("on");
     pt.style.transform = "translate(" + p.getAttribute("x1") + "px," + p.getAttribute("y1") + "px)";
     var s = ss[i], meta = [fmtDate(s.startedAt), s.setCount + (s.setCount === 1 ? " set" : " sets"), s.dur ? fmtMin(s.dur) : ""].filter(Boolean).join(", ");
-    var row = '<div><button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '"><span><b>' + esc(s.name) + '<i></i></b><small>' + esc(meta) + '</small></span><span class="r">' + (s.prs && s.prs.length ? '<span style="color:#8FD3CA">' + s.prs.length + (s.prs.length === 1 ? " new best" : " new bests") + '</span>' : fmtVol(s.volume) + " " + esc(S.cfg.units)) + '</span></button></div>';
+    var row = '<div><button type="button" class="hrow" data-act="cal-day" data-t="' + dayStart(s.startedAt) + '"><span><b>' + esc(s.name) + '<i></i></b><small>' + esc(meta) + '</small></span><span class="r">' + (s.prs && s.prs.length ? '<span style="color:var(--tx)">' + s.prs.length + (s.prs.length === 1 ? " new best" : " new bests") + '</span>' : fmtVol(s.volume) + " " + esc(S.cfg.units)) + '</span></button></div>';
     sel.innerHTML = row; if(!quiet && !calm) sel.firstChild.animate([{ opacity:.35 }, { opacity:1 }], { duration:420, easing:INOUT });
   }
   function at(cx){ var r = box.getBoundingClientRect(), x = cx - r.left, best = 0, bd = 1e9; posts.forEach(function(p, i){ var d = Math.abs(+p.getAttribute("x1") - x); if(d < bd){ bd = d; best = i; } }); return best; }
@@ -3059,8 +3072,9 @@ vProgress = function(){
     Object.keys(T).forEach(function(k){ var t = T[k], b = t[0].v, last = null; t.forEach(function(q){ if(q.t < w + 7 * 864e5) last = q.v; }); if(last != null){ sum += last / b; n++; } });
     if(n) pts.push((sum / n - 1) * 100); }
   var gain = pts.length ? Math.round(pts[pts.length - 1]) : 0;
-  var hz = '<div class="phz" id="phz" data-rv data-p="' + pts.map(function(v){ return v.toFixed(2); }).join(",") + '"></div><div class="phz-c" data-rv><span>' + (pts.length ? new Date(w0).toLocaleDateString("en-US", { month:"long" }) : "") + '</span><span>' + (gain > 0 ? 'Stronger by <b>' + gain + '%</b>' : 'Holding steady') + '</span></div>';
-  h = h.replace('<div class="list" style="margin-top:28px">', hz + '<div class="list" style="margin-top:28px">');
+  var hz = '<div class="phz" id="phz" data-rv data-p="' + pts.map(function(v){ return v.toFixed(2); }).join(",") + '"></div><div class="phz-c" data-rv><span>' + (pts.length ? new Date(w0).toLocaleDateString("en-US", { month:"long" }) : "") + '</span><span>' + (gain > 0 ? 'Stronger by <b>' + gain + '%</b>' : gain < 0 ? 'Down <b>' + (-gain) + '%</b> for now' : 'Holding steady') + '</span></div>';
+  /* the horizon only appears once there is a line worth drawing: three or more weeks with lifts logged twice */
+  if(pts.length > 2) h = h.replace('<div class="list" style="margin-top:28px">', hz + '<div class="list" style="margin-top:28px">');
   /* each routine says how it's moving before you open it */
   S.cfg.routines.forEach(function(r){ var tot = 0, up = 0; r.exercises.forEach(function(x){ var k = key(x.name); if(!idx[k]) return; tot++; var d = pgData(k); if(d.days.length > 1 && beats(d.best.w, d.best.r, d.days[0].top)) up++; });
     var lab = '>' + esc(r.name) + IC.chev;
