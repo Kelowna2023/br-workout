@@ -2147,7 +2147,6 @@ function bodyDrop(fromMap){
   BODY_GROUPS.forEach(function(g){ if(UI.bsel === g[0]) g[1].forEach(function(k){ sel[k] = 1; }); });
   [].forEach.call(view.querySelectorAll(".gacc"), function(el){ var bt = el.firstChild, on = bt.dataset.g === UI.bsel; el.classList.toggle("open", on); bt.setAttribute("aria-expanded", on); });
   var bm = view.querySelector(".bmap"); if(bm){ bm.innerHTML = vitFig(side, w.mus, sel); if(!calm) [].forEach.call(bm.querySelectorAll(".vit-g"), function(q){ q.animate([{ opacity:.35 }, { opacity:1 }], { duration:900, easing:"ease-out" }); }); }
-  var inf = $("#b-info"); if(inf){ var n2 = UI.bsel ? (w.grp[UI.bsel] || 0) : 0; inf.innerHTML = UI.bsel ? '<b>' + esc(UI.bsel) + '</b>' + n2 + (n2 === 1 ? " set" : " sets") + ' this week' : ""; }
   if(fromMap && UI.bsel){ var row = view.querySelector(".gacc.open"); if(row) setTimeout(function(){ row.scrollIntoView({ behavior:"smooth", block:"start" }); }, 80); }
 }
 function vBody(){
@@ -2159,7 +2158,7 @@ function vBody(){
   var side = UI.bside || "front", has = function(sd){ return VM[sd].some(function(x){ return sel[x[0]]; }); };
   if(UI.bsel && UI.bselNew){ UI.bselNew = false; if(!has(side) && has(side === "back" ? "front" : "back")) side = UI.bside = side === "back" ? "front" : "back"; }
   if(UI.bsel){ var ex = w.ex[UI.bsel], n2 = w.grp[UI.bsel] || 0;
-    info = '<b>' + esc(UI.bsel) + '</b>' + n2 + (n2 === 1 ? " set" : " sets") + ' this week'; }
+    info = ""; }
   else info = "";
   var h = '<h1 class="big">Body</h1><div class="sub" data-rv>Sets per muscle over the last 7 days. Tap one to see what worked it.</div><div class="hz" data-rv></div>' + vCheck() +
     '<div class="bmap" data-rv>' + vitFig(side, w.mus, sel) + '</div><div class="bside" data-rv role="group" aria-label="View"><button type="button" data-act="bside" data-v="front" aria-pressed="' + (side === "front") + '">Front</button><i></i><button type="button" data-act="bside" data-v="back" aria-pressed="' + (side === "back") + '">Back</button></div><div class="b-info" id="b-info" aria-live="polite">' + info + '</div>' +
