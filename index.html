@@ -886,6 +886,8 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 #tab-pill::after,#clock .chips button.p::after{display:none!important}
 /* every button: a hard 1px line in the soft pastel. No blur, no shadow, nothing outside the edge */
 .btn.go{box-shadow:inset 0 0 0 1px rgba(143,211,202,.5),inset 0 1px 0 rgba(255,255,255,.07)!important}
+/* the tab bar's selected tab is a button too: the same hard pastel line */
+#tab-pill{box-shadow:inset 0 0 0 1px rgba(143,211,202,.5),inset 0 1px 0 rgba(255,255,255,.07)!important}
 .tag{box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1)!important}
 .tag.q::before,.f-best,.best{box-shadow:none!important}
 
@@ -1454,7 +1456,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "140";
+var BUILD = "141";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
