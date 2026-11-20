@@ -1456,7 +1456,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "145";
+var BUILD = "146";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3316,41 +3316,42 @@ vExercise = function(){
 })();
 
 (function(){
-/* Train's own quiet drawing: the ensō, the zen circle, made in one breath and left a little open.
-   Here the brush is a handful of hairlines, the way a dry brush leaves the trace of each bristle. It sits in the empty side of the page, clear of the words.
-   It is whole every day; each workout this week puts colour on one more bristle */
+/* Train's own quiet drawing: the path of light. A low sun beside the title, and under it what still water does with light:
+   short level lines, close and bright under the sun, wider and fainter as they come toward you. No horizon is drawn; the lines are the water.
+   Each workout this week lights one line, nearest the sun first. The lines drift a few pixels, slowly, the way a reflection does.
+   Everything is level, like the rules of the list, and it keeps to the empty right side, clear of the words */
 GHOST.home = 1;
-var PA = "#8FD3CA", A0 = 120, SW = 334, _ga = ghostArt;
+var PA = "143,211,202", _ga = ghostArt, css = document.createElement("style");
+css.textContent = ".pl{position:absolute;display:block;height:1px;animation:plin 1400ms cubic-bezier(.2,.7,.2,1) calc(1300ms + var(--i) * 62ms) backwards}" +
+  ".pl u{display:block;width:100%;height:.67px;text-decoration:none;will-change:transform;animation:plsh 9s ease-in-out infinite alternate}" +
+  ".pl-o{transform-box:fill-box;transform-origin:center;animation:plup 2600ms cubic-bezier(.2,.7,.2,1) 250ms backwards}" +
+  ".plh .pl,.plh .pl-o{animation-play-state:paused}" +
+  "@keyframes plin{from{opacity:0;transform:scaleX(.2)}}" +
+  "@keyframes plsh{from{transform:translateX(calc(var(--d) * -1)) scaleX(.84)}to{transform:translateX(var(--d)) scaleX(1.04)}}" +
+  "@keyframes plup{from{opacity:0;transform:translateY(16px)}}" +
+  "@media (prefers-reduced-motion: reduce){.pl,.pl u,.pl-o{animation:none}}";
+document.head.appendChild(css);
+function oy(e){ var y = 0; while(e){ y += e.offsetTop; e = e.offsetParent; } return y; }
+/* a line never runs behind the words "In progress", or along one of the list's own rules: the lines level with those stand down */
+function dodge(el){ if(!el || !el.isConnected) return; var vy = oy(view), bands = [].map.call(view.querySelectorAll(".wr-q"), function(e){ var q = oy(e) - vy; return [q - 7, q + e.offsetHeight + 7]; });
+  [].forEach.call(view.querySelectorAll(".wrow"), function(e){ var q = oy(e) - vy; bands.push([q - 3, q + 3], [q + e.offsetHeight - 3, q + e.offsetHeight + 3]); });
+  [].forEach.call(el.querySelectorAll(".pl"), function(p){ var y = parseFloat(p.style.top); p.style.visibility = bands.some(function(b){ return y > b[0] && y < b[1]; }) ? "hidden" : ""; }); }
+function settle(el){ [0, 500, 1600].forEach(function(t){ setTimeout(function(){ dodge(el); }, t); }); }
 ghostArt = function(type){
   if(type !== "home") return _ga(type);
-  var W = Math.min(innerWidth, 560), H = innerHeight, h = "", j, goal = Math.max(1, +S.cfg.weeklyGoal || 5), ws = weekStart(Date.now()), done = Math.min(goal, S.sessions.filter(function(z){ return z.startedAt >= ws; }).length);
-  var R = Math.min(W * 0.285, H * 0.17) * (W < 380 ? 0.92 : 1), cx = W - 24 - R, cy = H * 0.6, ORD = [5, 2, 8, 0, 10, 3, 7, 1, 9, 4, 6], lit = {},
-      off = [-10, -7.7, -5.9, -3.5, -1.7, 0.4, 2.5, 4.3, 6.7, 8.5, 10.2], st = [6, 0, 3, 1, 0, 2, 0, 4, 1, 0, 5], tail = [40, 5, 24, 0, 31, 11, 0, 27, 7, 35, 15];
-  /* the stroke is pressed where it begins and lifts as it goes, so the bristles draw together toward the tail */
-  var arc = function(o, a, b){ var pts = [], t; for(t = a; t <= b + 0.01; t += 2){ var k = (t - A0) / SW, rr = R + o * (1.08 - 0.5 * k) * (R / 145), q = t * Math.PI / 180; pts.push((cx + rr * Math.cos(q)).toFixed(1) + " " + (cy + rr * Math.sin(q)).toFixed(1)); } return "M" + pts.join(" L"); };
-  for(j = 0; j < Math.min(done, ORD.length); j++) lit[ORD[j]] = 1;
-  for(j = 0; j < off.length; j++){ var a = A0 + st[j], b = A0 + SW - tail[j];
-    h += '<path class="gen" data-a="' + (a - A0) + '" data-b="' + (b - A0) + '" d="' + arc(off[j], a, b) + '" stroke="' + (lit[j] ? PA : "#fff") + '" stroke-opacity="' + (lit[j] ? .38 : j % 3 === 1 ? .13 : .085) + '" stroke-width="' + (lit[j] ? .8 : .5) + '"/>'; }
-  return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none">' + h + '</svg>';
+  var W = Math.min(innerWidth, 560), H = innerHeight, ws = weekStart(Date.now()), done = Math.min(7, S.sessions.filter(function(z){ return z.startedAt >= ws; }).length);
+  var vy = oy(view), top = function(sel, d){ var e = view.querySelector(sel); return e ? oy(e) - vy : d; };
+  var R = Math.round(W * 0.095), cx = W * 0.775, cy = top(".segs", 195) - 14 - R, y = top(".list", 231) + 12, y0 = y, y1 = H - 100, hw = Math.min(W * 0.3, W - 26 - cx), sd = 7, rn = function(){ sd = (sd * 16807) % 2147483647; return sd / 2147483647; }, i = 0, h = "";
+  while(y < y1){ var t = (y - y0) / (y1 - y0), mw = R * 1.4 + (hw * 2 - R * 1.4) * Math.pow(t, 0.8), w = mw * (0.3 + 0.7 * rn()), ox = (rn() - 0.5) * (mw - w) * 0.9, lit = i < done, c = lit ? PA : "255,255,255", op = lit ? .42 : 0.065 + 0.11 * Math.pow(1 - t, 1.3),
+        cut = rn() < 0.3 && w > 46 ? 30 + rn() * 40 : 0, gp = cut ? (6 + rn() * 9) / w * 50 : 0, d = 1.5 + 5.5 * t + rn() * 1.5, dur = 7 + rn() * 6, dl = rn() * 13;
+    h += '<i class="pl" style="left:' + (cx + ox - w / 2).toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;width:' + w.toFixed(1) + 'px;--i:' + i + '"><u style="--d:' + d.toFixed(1) + 'px;animation-duration:' + dur.toFixed(1) + 's;animation-delay:-' + dl.toFixed(1) + 's;background:' +
+      (cut ? 'linear-gradient(90deg,rgba(' + c + ',' + op.toFixed(3) + ') ' + (cut - gp).toFixed(1) + '%,transparent ' + (cut - gp).toFixed(1) + '%,transparent ' + (cut + gp).toFixed(1) + '%,rgba(' + c + ',' + op.toFixed(3) + ') ' + (cut + gp).toFixed(1) + '%)' : 'rgba(' + c + ',' + op.toFixed(3) + ')') + '"></u></i>';
+    y += 6 + 17 * t + rn() * 3; i++; }
+  return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none"><circle class="pl-o" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + R + '" stroke="#fff" stroke-opacity=".17" stroke-width=".6"/></svg>' + h;
 };
-/* the circle is drawn the way it is made: one unhurried sweep, every bristle arriving in its own time.
-   The dashes exist only while the brush is moving: once the stroke is down they are taken away, so nothing can leave the circle half drawn */
-var T = 2600, held = null, booting = true; setTimeout(function(){ booting = false; }, 0);
-function gens(el){ return [].slice.call(el.querySelectorAll(".gen")); }
-function plen(p){ var L = 0; try{ L = Math.ceil(p.getTotalLength()); }catch(e){} return L; }
-function whole(p){ p.style.strokeDasharray = ""; p.style.strokeDashoffset = ""; }
-/* behind the opening screen the brush waits; it touches the page when you arrive */
-function hold(el){ held = el; gens(el).forEach(function(p){ var L = plen(p); if(!(L > 40)) return; p.style.strokeDasharray = L + "px " + L + "px"; p.style.strokeDashoffset = L + "px"; }); }
-function draw(el){ held = null; gens(el).forEach(function(p){ var L = plen(p), a = +p.dataset.a, b = +p.dataset.b; if(calm || !(L > 40) || !p.animate){ whole(p); return; }
-    p.style.strokeDasharray = L + "px " + L + "px"; p.style.strokeDashoffset = "";
-    try{ var an = p.animate([{ strokeDashoffset:L + "px" }, { strokeDashoffset:"0px" }], { duration:Math.max(200, T * (b - a) / SW), delay:300 + T * a / SW, easing:"cubic-bezier(.45,.05,.3,1)", fill:"backwards" }); an.onfinish = function(){ whole(p); }; an.oncancel = function(){ whole(p); }; }catch(e){ whole(p); }
-    setTimeout(function(){ whole(p); }, T + 1500); }); }
-var _gs = ghostSet;
-ghostSet = function(type){
-  var same = type === GHK; _gs(type); if(same) return; held = null; if(type !== "home" || calm) return; var el = $("#ghost").lastElementChild; if(!el) return;
-  if(booting) hold(el); else draw(el);
-};
-var _ed = enterDone; enterDone = function(){ _ed(); if(held && held.isConnected) draw(held); held = null; };
+var booting = true, held = null, _gs = ghostSet, _ed = enterDone; setTimeout(function(){ booting = false; }, 0);
+ghostSet = function(type){ var same = type === GHK; _gs(type); if(type !== "home") return; var el = $("#ghost").lastElementChild; settle(el); if(same || !booting) return; held = el; if(held) held.classList.add("plh"); };
+enterDone = function(){ _ed(); if(held) held.classList.remove("plh"); held = null; if(GHK === "home") settle($("#ghost").lastElementChild); };
 })();
 (function(){
 /* a word for the moment. Resting and finishing each get one, chosen for what the moment is, drawn the way the opening screen draws its word:
