@@ -1456,7 +1456,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "144";
+var BUILD = "145";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3333,13 +3333,24 @@ ghostArt = function(type){
     h += '<path class="gen" data-a="' + (a - A0) + '" data-b="' + (b - A0) + '" d="' + arc(off[j], a, b) + '" stroke="' + (lit[j] ? PA : "#fff") + '" stroke-opacity="' + (lit[j] ? .38 : j % 3 === 1 ? .13 : .085) + '" stroke-width="' + (lit[j] ? .8 : .5) + '"/>'; }
   return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none">' + h + '</svg>';
 };
+/* the circle is drawn the way it is made: one unhurried sweep, every bristle arriving in its own time.
+   The dashes exist only while the brush is moving: once the stroke is down they are taken away, so nothing can leave the circle half drawn */
+var T = 2600, held = null, booting = true; setTimeout(function(){ booting = false; }, 0);
+function gens(el){ return [].slice.call(el.querySelectorAll(".gen")); }
+function plen(p){ var L = 0; try{ L = Math.ceil(p.getTotalLength()); }catch(e){} return L; }
+function whole(p){ p.style.strokeDasharray = ""; p.style.strokeDashoffset = ""; }
+/* behind the opening screen the brush waits; it touches the page when you arrive */
+function hold(el){ held = el; gens(el).forEach(function(p){ var L = plen(p); if(!(L > 40)) return; p.style.strokeDasharray = L + "px " + L + "px"; p.style.strokeDashoffset = L + "px"; }); }
+function draw(el){ held = null; gens(el).forEach(function(p){ var L = plen(p), a = +p.dataset.a, b = +p.dataset.b; if(calm || !(L > 40) || !p.animate){ whole(p); return; }
+    p.style.strokeDasharray = L + "px " + L + "px"; p.style.strokeDashoffset = "";
+    try{ var an = p.animate([{ strokeDashoffset:L + "px" }, { strokeDashoffset:"0px" }], { duration:Math.max(200, T * (b - a) / SW), delay:300 + T * a / SW, easing:"cubic-bezier(.45,.05,.3,1)", fill:"backwards" }); an.onfinish = function(){ whole(p); }; an.oncancel = function(){ whole(p); }; }catch(e){ whole(p); }
+    setTimeout(function(){ whole(p); }, T + 1500); }); }
 var _gs = ghostSet;
 ghostSet = function(type){
-  var same = type === GHK; _gs(type); if(same || calm || type !== "home") return; var el = $("#ghost").lastElementChild; if(!el) return;
-  /* the circle is drawn the way it is made: one unhurried sweep, every bristle arriving in its own time */
-  var T = 2600; [].forEach.call(el.querySelectorAll(".gen"), function(pth){ var L = 1000; try{ L = Math.ceil(pth.getTotalLength()); }catch(e){} var a = +pth.dataset.a, b = +pth.dataset.b; pth.style.strokeDasharray = L;
-    pth.animate([{ strokeDashoffset:L }, { strokeDashoffset:0 }], { duration:Math.max(200, T * (b - a) / SW), delay:300 + T * a / SW, easing:"cubic-bezier(.45,.05,.3,1)", fill:"backwards" }); });
+  var same = type === GHK; _gs(type); if(same) return; held = null; if(type !== "home" || calm) return; var el = $("#ghost").lastElementChild; if(!el) return;
+  if(booting) hold(el); else draw(el);
 };
+var _ed = enterDone; enterDone = function(){ _ed(); if(held && held.isConnected) draw(held); held = null; };
 })();
 (function(){
 /* a word for the moment. Resting and finishing each get one, chosen for what the moment is, drawn the way the opening screen draws its word:
