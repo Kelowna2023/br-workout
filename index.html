@@ -1456,7 +1456,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "148";
+var BUILD = "149";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3315,59 +3315,6 @@ vExercise = function(){
 };
 })();
 
-(function(){
-/* Train's own quiet piece: today's word, written. The word that opened the app stands down the right side in its own script,
-   only its first stroke showing. Scroll, and the rest is written downward at its own unhurried pace, however fast the flick;
-   at the foot of the page its name and meaning are waiting. Scroll back and it is unwritten. One word a day, nothing else */
-GHOST.home = 1;
-var _ga = ghostArt, css = document.createElement("style"), MK = "linear-gradient(180deg,#000 calc(var(--r,0) * 118% - 16%),transparent calc(var(--r,0) * 118% + 2%))";
-css.textContent = ".tw-w{position:relative;overflow:hidden}" +
-  ".tw{position:absolute;right:22px;-webkit-writing-mode:vertical-rl;writing-mode:vertical-rl;white-space:nowrap;line-height:1.05;letter-spacing:.03em;color:rgba(245,242,236,.15);opacity:0;transition:opacity 2200ms cubic-bezier(.2,.7,.2,1) 500ms;-webkit-mask-image:" + MK + ";mask-image:" + MK + "}" +
-  ".tw.on{opacity:1}" +
-  ".pl-end{display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}" +
-  ".pl-end div{max-width:56%;opacity:0;will-change:transform,opacity}" +
-  ".pl-end b{display:block;font-weight:300;font-size:17px;letter-spacing:.07em;color:rgba(245,242,236,.9)}" +
-  ".pl-end span{display:block;margin-top:8px;font-size:13px;line-height:1.55;color:#77746E}" +
-  /* rows dissolve as they rise under the small title, once the page has moved */
-  '#app[data-s="home"] #view{-webkit-mask-image:linear-gradient(180deg,transparent calc((var(--st) + 46px) * var(--mk,0)),#000 calc((var(--st) + 104px) * var(--mk,0)));mask-image:linear-gradient(180deg,transparent calc((var(--st) + 46px) * var(--mk,0)),#000 calc((var(--st) + 104px) * var(--mk,0)))}' +
-  "@media (prefers-reduced-motion: reduce){.tw{transition:none}}";
-document.head.appendChild(css);
-function cl(v){ return v < 0 ? 0 : v > 1 ? 1 : v; }
-/* the page gets room to scroll: the routines still all fit on the first screen, and below them the word's meaning waits */
-var _vh = vHome, _fh = fitHome;
-vHome = function(){ var h = _vh(), x = wordToday(); if(h.indexOf('class="wrow') < 0) return h;
-  /* the right-hand side belongs to the word now, so "In progress" moves into the row's own grey line */
-  h = h.replace(/<small>(\d+ lifts?)[^<]*<\/small><\/span><span class="wr"><span class="wr-q">In progress<\/span><\/span>/g, '<small>$1 · In progress</small></span><span class="wr"></span>');
-  return h + '<div class="pl-end" style="height:' + Math.round(innerHeight * 0.5) + 'px"><div><b>' + x[0] + '</b><span>' + x[3] + '. ' + x[4] + '</span></div></div>'; };
-fitHome = function(){ _fh(); if(app.dataset.s === "home" && view.querySelector(".pl-end")) view.style.overflowY = ""; };
-ghostArt = function(type){
-  if(type !== "home") return _ga(type);
-  var W = Math.min(innerWidth, 560), H = innerHeight, x = wordToday(), n = Array.from ? Array.from(x[1]).length : x[1].length;
-  return '<div class="tw-w" style="width:' + W + 'px;height:' + H + 'px"><div class="tw" data-r0="' + (x[2] === "j" ? (1 / n + 0.04).toFixed(3) : "0.2") + '" style="top:102px;font-family:' + WF[x[2]].replace(/"/g, "'") + '">' + x[1] + '</div></div>';
-};
-/* as large as the right-hand margin allows, and never longer than the page */
-function fit(el){ var t = el && el.querySelector(".tw"); if(!t) return; var W = Math.min(innerWidth, 560), cap = Math.min(W * 0.27, 112), L = innerHeight - 118 - 102; t.style.fontSize = cap + "px"; var h = t.offsetHeight; if(h > L) t.style.fontSize = (cap * L / h).toFixed(1) + "px"; }
-var sy = 0, pd = 0, lt = 0, raf = 0, booting = true, held = null, _gs = ghostSet, _ed = enterDone, _pt = paint; setTimeout(function(){ booting = false; }, 0);
-function apply(){
-  var gh = $("#ghost").lastElementChild; if(!gh || !gh.classList.contains("gh-home")) return;
-  var hd = 1 - cl(sy / 64), end = view.querySelector(".pl-end div"), xo = view.querySelector(".x-of"), wk = view.querySelector(".wk"), t = gh.querySelector(".tw"), mk = (1 - hd).toFixed(3);
-  gh.style.transform = "none"; if(view._mk !== mk){ view._mk = mk; view.style.setProperty("--mk", mk); }
-  if(xo) xo.style.opacity = hd.toFixed(3); if(wk && wk.parentNode) wk.parentNode.style.opacity = hd.toFixed(3);
-  if(t){ var r0 = +t.dataset.r0, r = (r0 + (1 - r0) * cl(pd / 0.86)).toFixed(4); if(t._r !== r){ t._r = r; t.style.setProperty("--r", r); } }
-  if(end){ var o = cl((pd - 0.6) / 0.38); end.style.opacity = o.toFixed(3); end.style.transform = "translate3d(0," + ((1 - o) * 16).toFixed(1) + "px,0)"; }
-}
-/* the page follows the finger closely; the writing does not hurry */
-function tick(now){ raf = 0; var t = Math.max(0, view.scrollTop), max = Math.max(1, view.scrollHeight - view.clientHeight), tp = cl(t / max), dt = Math.min(64, lt ? now - lt : 16); lt = now;
-  sy = calm ? t : sy + (t - sy) * 0.2; if(Math.abs(t - sy) < 0.3) sy = t;
-  if(calm) pd = tp; else { var st = (tp - pd) * 0.07, cap = dt / (tp > pd ? 3600 : 1600); pd += Math.max(-cap, Math.min(cap, st)); if(Math.abs(tp - pd) < 0.0015) pd = tp; }
-  apply(); if(sy !== t || pd !== tp) raf = requestAnimationFrame(tick); else lt = 0; }
-paint = function(){ _pt(); if(app.dataset.s !== "home") return; var gh = $("#ghost").lastElementChild; if(gh && gh.classList.contains("gh-home")) gh.style.transform = "none"; if(!raf) raf = requestAnimationFrame(tick); };
-function settle(el){ var go = function(){ if(app.dataset.s !== "home" || !el || !el.isConnected) return; fit(el); if(!raf){ sy = Math.max(0, view.scrollTop); pd = cl(sy / Math.max(1, view.scrollHeight - view.clientHeight)); apply(); } };
-  [0, 500, 1600].forEach(function(t){ setTimeout(go, t); }); try{ var x = wordToday(); document.fonts.load("100px " + WF[x[2]], x[1]).then(go, go); }catch(e){} }
-function show(el){ var t = el && el.querySelector(".tw"); if(t) requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add("on"); }); }); }
-ghostSet = function(type){ var same = type === GHK; _gs(type); if(type !== "home") return; var el = $("#ghost").lastElementChild; settle(el); if(same) return; if(booting) held = el; else show(el); };
-enterDone = function(){ _ed(); if(held) show(held); held = null; if(GHK === "home") settle($("#ghost").lastElementChild); };
-})();
 (function(){
 /* a word for the moment. Resting and finishing each get one, chosen for what the moment is, drawn the way the opening screen draws its word:
    it arrives stirred and settles until it is sharp and still */
