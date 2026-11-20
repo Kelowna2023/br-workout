@@ -871,11 +871,11 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .btn.ghost.danger{color:var(--mu2)!important}
 .btn:disabled::after{opacity:.3}
 
-/* the button, final: dark glass, soft corners, a one-pixel teal outline at low strength (the saturated brand teal, faded,
-   so it reads as teal rather than grey), a faint highlight on the top edge. No underline */
+/* the button, final: dark glass, soft corners, a hard one-pixel outline, a faint highlight on the top edge. No underline.
+   Every button's outline is quiet off-white; the one main button of a screen (.go) takes the soft pastel instead, set just below */
 .btn:not(.ghost){border-radius:16px!important;min-height:56px;
   background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025))!important;
-  box-shadow:inset 0 0 0 1px rgba(20,211,194,.36),inset 0 1px 0 rgba(255,255,255,.08)!important}
+  box-shadow:inset 0 0 0 1px rgba(245,242,236,.14),inset 0 1px 0 rgba(255,255,255,.07)!important}
 .btn:not(.ghost)::after{display:none!important}
 .btn.danger:not(.ghost){box-shadow:inset 0 0 0 1px rgba(245,242,236,.22),inset 0 1px 0 rgba(255,255,255,.08)!important}
 
@@ -884,6 +884,8 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .wr-q{font-size:13px;color:var(--mu)}
 #tab-pill,.btn.go,#clock .chips button.p{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025))!important;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.07)!important}
 #tab-pill::after,#clock .chips button.p::after{display:none!important}
+/* the main button: a hard 1px line in the soft pastel, the same light as the superset line. No blur, no shadow, nothing outside the edge */
+.btn.go{box-shadow:inset 0 0 0 1px rgba(143,211,202,.32),inset 0 1px 0 rgba(255,255,255,.07)!important}
 .tag{box-shadow:inset 0 0 0 .5px rgba(255,255,255,.1)!important}
 .tag.q::before,.f-best,.best{box-shadow:none!important}
 
@@ -1452,7 +1454,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "138";
+var BUILD = "139";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
