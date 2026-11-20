@@ -974,6 +974,11 @@ details.rt summary small{font-size:15px;color:var(--mu);font-weight:400;letter-s
 .big+.segs.wsg,.bd+.segs.wsg{margin-top:26px}
 .segs.wsg span{height:2px;border-radius:1px;background:#222}
 .segs.wsg i{background:#8FD3CA}
+/* going up: a few quiet words beside the unit, where the number already is */
+.hw-u .x-up b{font-weight:400;color:var(--tx)}
+/* finish: what moved is said in plain numbers */
+.f-ls .fs-r .dl{color:var(--tx);margin-right:14px}
+.f-ls .fs-r span:first-child{min-width:0}
 .okc svg{width:18px!important;height:18px!important;stroke-width:1.8!important}
 </style><style>
 /* ---- the set screen, rebalanced: the two numbers lead; everything else steps back and sits on one rhythm ---- */
@@ -1447,7 +1452,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "136";
+var BUILD = "137";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -1629,7 +1634,7 @@ function initWheels(){
       if(!el._r) el._r = requestAnimationFrame(function(){ el._r = 0; wheelPaint(el); var i = Math.round(wPos(el) / el._w); if(i !== last){ last = i; if(el._live) try{ if(navigator.vibrate) navigator.vibrate(3); }catch(e){} } });
       clearTimeout(tm); tm = setTimeout(function(){ if(!el._live || !el.isConnected) return; var i = clamp(Math.round(wPos(el) / el._w), 0, sp.length - 1), v = +sp[i].dataset.v, a = S.active; if(!a || a.openEx == null) return;
         var x = a.exercises[a.openEx], k = el.dataset.k;
-        if(k === "t") x.rest = v; else { var ci = curIdx(x); if(ci < 0) return; x.sets[ci][k] = v; if(k === "w") delete x.sets[ci].pl; }
+        if(k === "t") x.rest = v; else { var ci = curIdx(x); if(ci < 0) return; x.sets[ci][k] = v; if(k === "w"){ delete x.sets[ci].pl; upSync(x, ci); } }
         el.classList.remove("ghost"); saveActive(); }, 140);
     }, { passive:true });
   });
@@ -2257,11 +2262,11 @@ function endCard(s){
   var u = S.cfg.units, prev = null, i; for(i = 0; i < S.sessions.length; i++){ var q = S.sessions[i]; if(q.id !== s.id && q.routineId === s.routineId && q.startedAt < s.startedAt){ prev = q; break; } }
   var ups = 0, lines = s.exercises.map(function(x){ var b = topOf(x.sets), px = prev ? prev.exercises.filter(function(z){ return key(z.name) === key(x.name); })[0] : null, pb = px ? topOf(px.sets) : null, up = !!(pb && b && beats(b.w, b.r, pb)), best = x.sets.some(function(t){ return t.pr; });
     if(up) ups++;
-    return '<div class="fs-r"><span>' + esc(x.name) + (best ? '<em class="f-best" aria-label="New best"></em>' : '') + '</span><span>' + (b ? (b.w > 0 ? fmtW(b.w) + ' × ' : '') + b.r : '') + (up ? '<u aria-label="Up on last time">▲</u>' : '') + '</span></div>'; }).join("");
+    return '<div class="fs-r"><span>' + esc(x.name) + (best ? '<em class="f-best" aria-label="New best"></em>' : '') + '</span><span>' + (up ? '<span class="dl">' + (b.w > pb.w ? '+' + fmtW(b.w - pb.w) + ' ' + esc(u) : '+' + (b.r - pb.r) + (b.r - pb.r === 1 ? ' rep' : ' reps')) + '</span>' : '') + (b ? (b.w > 0 ? fmtW(b.w) + ' × ' : '') + b.r : '') + '</span></div>'; }).join("");
   var ws = weekStart(Date.now()), n = S.sessions.filter(function(z){ return z.startedAt >= ws; }).length, goal = Math.max(1, +S.cfg.weeklyGoal || 5);
   var el = $("#end"), veil = $("#veil"), meta = [s.dur ? fmtMin(s.dur) : 'Logged for ' + esc(fmtDate(s.startedAt)), s.setCount + (s.setCount === 1 ? " set" : " sets"), n + ' of ' + goal + ' this week'];
   el.innerHTML = '<div class="f-stage" role="img" aria-label="' + esc(s.name) + ', complete"><canvas></canvas></div>' +
-    '<div class="f-meta">' + meta.join('<i></i>') + '</div>' +
+    '<div class="f-meta">' + meta.join(', ') + '</div>' +
     '<div class="f-sec"><span>Top sets</span>' + (prev && ups ? '<span>' + ups + ' up on last time</span>' : '') + '</div><div class="e-ls f-ls">' + lines + '</div>' +
     '<div class="stack f-act"><button type="button" class="btn go" data-act="end-done">Done</button><button type="button" class="btn ghost" data-act="end-undo" data-id="' + esc(s.id) + '">Not finished? Back to workout</button></div>' +
     (bkNeed() ? '<div class="bk-n"><p><b>Only on this phone</b>' + (function(f){ return f === 1 ? "1 workout" : f + " workouts"; })(bkNeed()) + ' since your last backup</p><button type="button" data-act="backup-go">Back up</button></div>' : '');
@@ -3272,6 +3277,37 @@ completeSet = function(ei, si){
   UI.just = null;
   if(nx >= 0) nav(function(){ a.openEx = nx; saveActive(); render(); }, "fwd");
   else nav(function(){ a.openEx = null; saveActive(); render(); }, "back", view.querySelector(".big"), '[data-e="' + ei + '"] .nm');
+};
+})();
+
+/* going up: when every set last time reached the top of the range at one weight, today starts one step heavier.
+   It is only an opening offer: one tap on minus puts it back, and once a set is logged the app follows what was actually lifted */
+function upFor(x){
+  if(!x || !x.target) return null; var m = String(x.target).match(/(\d+)\s*[-–]\s*(\d+)/), one = String(x.target).match(/\d+/); if(!m && !one) return null;
+  var lo = m ? +m[1] : +one[0], hi = m ? +m[2] : +one[0], pv = x.sets.map(function(q){ return q.prev; }).filter(function(p){ return p && num(p.r) > 0; });
+  if(pv.length < Math.min(3, x.sets.length)) return null; var w = num(pv[0].w); if(!(w > 0)) return null;
+  for(var i = 0; i < pv.length; i++) if(num(pv[i].w) !== w || num(pv[i].r) < hi) return null;
+  var v = hwVals("w", gearOf(x.name)), to = w + wStep(); if(to > v[v.length - 1]) return null;
+  return { from:w, to:to, lo:lo };
+}
+/* the words "up 5 from last time" stay only while the number above them is that heavier weight */
+function upSync(x, ci){ var e = view.querySelector(".x-up"), up = e && upFor(x); if(!e || !up) return; var on = num(x.sets[ci].w) === up.to; if(e.hidden === !on) return; e.hidden = !on;
+  /* the reps follow the weight: the bottom of the range for the heavier weight, last time's reps if you stay where you were */
+  var rEl = view.querySelector('.hwx .hw[data-k="r"]'); if(rEl && blank(x.sets[ci].r)) wheelSet(rEl, num(hint(x, ci).r)); }
+(function(){
+var _hint = hint;
+hint = function(x, si){
+  var h = _hint(x, si), up = upFor(x); if(!up) return h;
+  var d = null; for(var i = si - 1; i >= 0; i--) if(x.sets[i].done){ d = x.sets[i]; break; }
+  if(!d) return !blank(x.sets[si].w) && num(x.sets[si].w) !== up.to ? h : { w:up.to, r:up.lo };
+  if(num(d.w) > up.from) return { w:h.w, r:d.r };
+  return h;
+};
+var _vE = vExercise;
+vExercise = function(){
+  var o = _vE(), a = S.active, x = a.exercises[a.openEx], ci = curIdx(x), up = ci >= 0 && upFor(x); if(!up) return o;
+  var st = x.sets[ci], w = num(blank(st.w) ? hint(x, ci).w : st.w);
+  return o.replace(/(<div class="hw-u">)([^<]*)/, '$1$2<span class="x-up"' + (w === up.to ? '' : ' hidden') + '>, <b>up ' + fmtW(up.to - up.from) + ' from last time</b></span>');
 };
 })();
 
