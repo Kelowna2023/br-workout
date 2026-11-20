@@ -1456,7 +1456,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "141";
+var BUILD = "142";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3312,6 +3312,47 @@ vExercise = function(){
   var o = _vE(), a = S.active, x = a.exercises[a.openEx], ci = curIdx(x), up = ci >= 0 && upFor(x); if(!up) return o;
   var st = x.sets[ci], w = num(blank(st.w) ? hint(x, ci).w : st.w);
   return o.replace(/(<div class="hw-u">)([^<]*)/, '$1$2<span class="x-up"' + (w === up.to ? '' : ' hidden') + '>, <b>up ' + fmtW(up.to - up.from) + ' from last time</b></span>');
+};
+})();
+
+(function(){
+/* the word does not stay behind on the opening screen. It lies under each page as if under water: the same script, a breath of the same colour.
+   Moving the page stirs the water; when you are still it settles, and the word comes clear. Nothing moves once it has settled */
+GHOST.home = 1; GHOST.progress = 1;
+var _ga = ghostArt; ghostArt = function(type){ return type === "home" || type === "progress" ? "" : _ga(type); };
+var LW = null, PEAK = 0.13;
+function lwBuild(el, script, ff, low){
+  var W = Math.min(innerWidth, 560), H = innerHeight, d = Math.min(window.devicePixelRatio || 1, 3), c = document.createElement("canvas"), o = c.getContext("2d");
+  o.font = "100px " + ff; var m = o.measureText(script), size = Math.min(100 * (W * 0.72) / (m.width || 300), H * 0.15, 150);
+  o.font = size + "px " + ff; m = o.measureText(script);
+  var asc = m.actualBoundingBoxAscent, desc = m.actualBoundingBoxDescent, pad = 10, w = Math.ceil(m.width + pad * 2), h = Math.ceil(asc + desc + pad * 2), M = 26;
+  c.width = Math.ceil(w * d); c.height = Math.ceil(h * d); o.scale(d, d); o.font = size + "px " + ff; o.fillStyle = "#14D3C2"; o.fillText(script, pad, pad + asc);
+  var cv = document.createElement("canvas"); cv.width = Math.ceil((w + M * 2) * d); cv.height = c.height;
+  cv.style.cssText = "position:absolute;left:" + Math.round((W - w) / 2 - M) + "px;top:" + Math.round((low ? Math.max(H * 0.6, 470) : H * 0.6) - h / 2) + "px;width:" + (w + M * 2) + "px;height:" + h + "px";
+  el.appendChild(cv);
+  LW = { el:el, cv:cv, c:c, w:w, h:h, d:d, M:M, g:cv.getContext("2d"), e:calm ? 0 : 1, t0:performance.now(), last:0, raf:0, y:view.scrollTop };
+  lwGo();
+}
+function lwGo(){ if(LW && !LW.raf) LW.raf = requestAnimationFrame(lwDraw); }
+function lwDraw(ts){
+  var s = LW; if(!s) return; s.raf = 0; if(!s.cv.isConnected){ LW = null; return; }
+  var dt = s.last ? Math.min(64, ts - s.last) : 16; s.last = ts;
+  var f = calm ? 1 : Math.min(1, (ts - s.t0) / 2600); f = 1 - Math.pow(1 - f, 3);
+  s.e *= Math.exp(-dt / 900); if(s.e < 0.004) s.e = 0;
+  var g = s.g, d = s.d; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, s.cv.width, s.cv.height);
+  for(var r = 0, Hd = s.c.height; r < Hd; r++){ var j = r / d, k = j / s.h, amp = s.e * (5 + k * 9),
+      x = amp ? Math.sin(j * 0.21 - ts * 0.0009) * amp + Math.sin(j * 0.063 + ts * 0.0005) * amp * 0.6 : 0;
+    g.globalAlpha = f * PEAK * (Math.pow(1 - k, 1.25) + 0.16);
+    g.drawImage(s.c, 0, r, s.c.width, 1, (s.M + x) * d, r, s.c.width, 1); }
+  g.globalAlpha = 1;
+  if(s.e > 0 || f < 1) lwGo(); else s.last = 0;
+}
+view.addEventListener("scroll", function(){ if(!LW || calm) return; var y = view.scrollTop, dy = Math.abs(y - LW.y); LW.y = y; if(!dy) return; LW.e = Math.min(1, LW.e + dy * 0.004); lwGo(); }, { passive:true });
+var _gs = ghostSet;
+ghostSet = function(type){
+  var same = type === GHK; _gs(type); if(same || (type !== "home" && type !== "progress")) return; var el = $("#ghost").lastElementChild; if(!el) return;
+  var x = type === "home" ? wordToday() : [0, GH.progress[0], "g"], ff = WF[x[2]], go = function(){ if(el.isConnected) try{ lwBuild(el, x[1], ff, type === "progress"); }catch(e){} };
+  try{ document.fonts.load("100px " + ff, x[1]).then(go, go); }catch(e){ go(); }
 };
 })();
 
