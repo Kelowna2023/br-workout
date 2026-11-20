@@ -1456,7 +1456,7 @@ document.addEventListener("change", function(ev){ if(ev.target.id === "restore-f
 /* =====================================================================
    Wake: screens, motion and events. One system, built on the brief.
    ===================================================================== */
-var BUILD = "147";
+var BUILD = "148";
 var view = $("#view"), app = $("#app"), wm = $("#wm");
 var calm = false; try{ calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
 var UI = { key:"", pgEx:null, pgGrp:null, bsel:null, clock:false, month:0, intro:false, just:null, rows:[], big:null };
@@ -3316,74 +3316,57 @@ vExercise = function(){
 })();
 
 (function(){
-/* Train's own quiet drawing: the path of light, built by your thumb. A low sun beside the title and the first few lines of its reflection.
-   Scroll, and the light comes down the right side toward you one level line at a time, following the finger and easing after it;
-   scroll back and it withdraws. At the foot of the page a word for before the work is waiting.
-   No horizon is drawn; the lines are the water. Each workout this week lights one line, nearest the sun first */
+/* Train's own quiet piece: today's word, written. The word that opened the app stands down the right side in its own script,
+   only its first stroke showing. Scroll, and the rest is written downward at its own unhurried pace, however fast the flick;
+   at the foot of the page its name and meaning are waiting. Scroll back and it is unwritten. One word a day, nothing else */
 GHOST.home = 1;
-var PA = "143,211,202", K0 = 7, BEFORE = ["Shoshin","Kairos","Praxis","Askēsis","Sādhanā","Keiko","Shugyō","Vīrya"], _ga = ghostArt, css = document.createElement("style");
-css.textContent = ".pl{position:absolute;display:block;height:1px;will-change:transform,opacity}" +
-  ".pl.pl-a{animation:plin 1400ms cubic-bezier(.2,.7,.2,1) calc(1300ms + var(--i) * 62ms) backwards}" +
-  ".pl u{display:block;width:100%;height:.67px;text-decoration:none;will-change:transform;animation:plsh 9s ease-in-out infinite alternate}" +
-  ".pl-o{transform-box:fill-box;transform-origin:center;animation:plup 2600ms cubic-bezier(.2,.7,.2,1) 250ms backwards}" +
-  ".plh .pl,.plh .pl-o{animation-play-state:paused}" +
-  "@keyframes plin{from{opacity:0;transform:scaleX(.2)}}" +
-  "@keyframes plsh{from{transform:translateX(calc(var(--d) * -1)) scaleX(.84)}to{transform:translateX(var(--d)) scaleX(1.04)}}" +
-  "@keyframes plup{from{opacity:0;transform:translateY(16px)}}" +
+var _ga = ghostArt, css = document.createElement("style"), MK = "linear-gradient(180deg,#000 calc(var(--r,0) * 118% - 16%),transparent calc(var(--r,0) * 118% + 2%))";
+css.textContent = ".tw-w{position:relative;overflow:hidden}" +
+  ".tw{position:absolute;right:22px;-webkit-writing-mode:vertical-rl;writing-mode:vertical-rl;white-space:nowrap;line-height:1.05;letter-spacing:.03em;color:rgba(245,242,236,.15);opacity:0;transition:opacity 2200ms cubic-bezier(.2,.7,.2,1) 500ms;-webkit-mask-image:" + MK + ";mask-image:" + MK + "}" +
+  ".tw.on{opacity:1}" +
   ".pl-end{display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}" +
   ".pl-end div{max-width:56%;opacity:0;will-change:transform,opacity}" +
-  ".pl-end em{display:block;font-style:normal;font-size:38px;line-height:1.25;color:rgba(245,242,236,.13)}" +
-  ".pl-end b{display:block;margin-top:14px;font-weight:300;font-size:17px;letter-spacing:.07em;color:rgba(245,242,236,.9)}" +
+  ".pl-end b{display:block;font-weight:300;font-size:17px;letter-spacing:.07em;color:rgba(245,242,236,.9)}" +
   ".pl-end span{display:block;margin-top:8px;font-size:13px;line-height:1.55;color:#77746E}" +
   /* rows dissolve as they rise under the small title, once the page has moved */
   '#app[data-s="home"] #view{-webkit-mask-image:linear-gradient(180deg,transparent calc((var(--st) + 46px) * var(--mk,0)),#000 calc((var(--st) + 104px) * var(--mk,0)));mask-image:linear-gradient(180deg,transparent calc((var(--st) + 46px) * var(--mk,0)),#000 calc((var(--st) + 104px) * var(--mk,0)))}' +
-  "@media (prefers-reduced-motion: reduce){.pl,.pl u,.pl-o{animation:none!important}}";
+  "@media (prefers-reduced-motion: reduce){.tw{transition:none}}";
 document.head.appendChild(css);
-function oy(e){ var y = 0; while(e){ y += e.offsetTop; e = e.offsetParent; } return y; }
 function cl(v){ return v < 0 ? 0 : v > 1 ? 1 : v; }
-function word(){ var n = Math.round(dayStart(Date.now()) / 864e5), nm = BEFORE[n % BEFORE.length], i; for(i = 0; i < WORDS.length; i++) if(WORDS[i][0] === nm) return WORDS[i]; return WORDS[0]; }
-/* the page gets room to scroll: the routines still all fit on the first screen, and below them is still water with one word at the end of it */
+/* the page gets room to scroll: the routines still all fit on the first screen, and below them the word's meaning waits */
 var _vh = vHome, _fh = fitHome;
-vHome = function(){ var h = _vh(), x = word(); if(h.indexOf('class="wrow') < 0) return h;
-  return h + '<div class="pl-end" style="height:' + Math.round(innerHeight * 0.46) + 'px"><div><em style="font-family:' + WF[x[2]].replace(/"/g, "'") + '">' + x[1] + '</em><b>' + x[0] + '</b><span>' + x[3] + '. ' + x[4] + '</span></div></div>'; };
+vHome = function(){ var h = _vh(), x = wordToday(); if(h.indexOf('class="wrow') < 0) return h;
+  /* the right-hand side belongs to the word now, so "In progress" moves into the row's own grey line */
+  h = h.replace(/<small>(\d+ lifts?)[^<]*<\/small><\/span><span class="wr"><span class="wr-q">In progress<\/span><\/span>/g, '<small>$1 · In progress</small></span><span class="wr"></span>');
+  return h + '<div class="pl-end" style="height:' + Math.round(innerHeight * 0.5) + 'px"><div><b>' + x[0] + '</b><span>' + x[3] + '. ' + x[4] + '</span></div></div>'; };
 fitHome = function(){ _fh(); if(app.dataset.s === "home" && view.querySelector(".pl-end")) view.style.overflowY = ""; };
 ghostArt = function(type){
   if(type !== "home") return _ga(type);
-  var W = Math.min(innerWidth, 560), H = innerHeight, ws = weekStart(Date.now()), done = Math.min(7, S.sessions.filter(function(z){ return z.startedAt >= ws; }).length);
-  var vy = oy(view), top = function(sel, d){ var e = view.querySelector(sel); return e ? oy(e) - vy : d; };
-  var R = Math.round(W * 0.095), cx = W * 0.775, cy = top(".segs", 195) - 14 - R, ya = cy + R + 16, y0 = top(".list", 231) + 12, y = ya, y1 = H - 100, hw = Math.min(W * 0.3, W - 26 - cx), sd = 7, rn = function(){ sd = (sd * 16807) % 2147483647; return sd / 2147483647; }, i = 0, k = 0, h = "", L = [], q;
-  /* the lines between the sun and the list wait until the header has scrolled away; then the reflection joins the sun */
-  while(y < y1){ var near = y < y0 - 6, t = cl((y - ya) / (y1 - ya)), mw = R * 1.3 + (hw * 2 - R * 1.3) * Math.pow(t, 0.8), w = mw * (0.3 + 0.7 * rn()), ox = (rn() - 0.5) * (mw - w) * 0.9;
-    L.push({ y:y, w:w, x:cx + ox - w / 2, t:t, near:near, cut:rn() < 0.3 && w > 46 ? 30 + rn() * 40 : 0, g:6 + rn() * 9, d:1.5 + 5.5 * t + rn() * 1.5, dur:7 + rn() * 6, dl:rn() * 13 });
-    y += 6 + 17 * t + rn() * 3; if(near && y >= y0 - 6) y = y0; }
-  var first = L.filter(function(l){ return !l.near; }), rest = first.length - K0;
-  L.forEach(function(l){ if(!l.near){ l.k = k++; l.lit = l.k < done; } });
-  L.forEach(function(l, n){ var c = l.lit ? PA : "255,255,255", op = (l.lit ? .42 : 0.065 + 0.11 * Math.pow(1 - l.t, 1.3)).toFixed(3), gp = l.cut ? l.g / l.w * 50 : 0, auto = !l.near && l.k < K0,
-        s = l.near ? "px:" + (56 + (y0 - l.y) * 1.1).toFixed(0) : auto ? "" : "f:" + (0.03 + 0.85 * (l.k - K0) / Math.max(1, rest)).toFixed(4);
-    h += '<i class="pl' + (auto ? " pl-a" : "") + '"' + (s ? ' data-s="' + s + '"' : "") + ' data-y="' + l.y.toFixed(1) + '" style="left:' + l.x.toFixed(1) + 'px;top:' + l.y.toFixed(1) + 'px;width:' + l.w.toFixed(1) + 'px;' + (auto ? "--i:" + l.k : "opacity:0") + '"><u style="--d:' + l.d.toFixed(1) + 'px;animation-duration:' + l.dur.toFixed(1) + 's;animation-delay:-' + l.dl.toFixed(1) + 's;background:' +
-      (l.cut ? 'linear-gradient(90deg,rgba(' + c + ',' + op + ') ' + (l.cut - gp).toFixed(1) + '%,transparent ' + (l.cut - gp).toFixed(1) + '%,transparent ' + (l.cut + gp).toFixed(1) + '%,rgba(' + c + ',' + op + ') ' + (l.cut + gp).toFixed(1) + '%)' : 'rgba(' + c + ',' + op + ')') + '"></u></i>'; });
-  return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none"><circle class="pl-o" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + R + '" stroke="#fff" stroke-opacity=".17" stroke-width=".6"/></svg>' + h;
+  var W = Math.min(innerWidth, 560), H = innerHeight, x = wordToday(), n = Array.from ? Array.from(x[1]).length : x[1].length;
+  return '<div class="tw-w" style="width:' + W + 'px;height:' + H + 'px"><div class="tw" data-r0="' + (x[2] === "j" ? (1 / n + 0.04).toFixed(3) : "0.2") + '" style="top:102px;font-family:' + WF[x[2]].replace(/"/g, "'") + '">' + x[1] + '</div></div>';
 };
-/* scroll: the finger sets the target, the light eases after it */
-var sy = 0, raf = 0, bands = [], booting = true, held = null, _gs = ghostSet, _ed = enterDone, _pt = paint; setTimeout(function(){ booting = false; }, 0);
-function measure(){ var vy = oy(view); bands = [].map.call(view.querySelectorAll(".wr-q"), function(e){ var q = oy(e) - vy; return [q - 7, q + e.offsetHeight + 7]; }); }
+/* as large as the right-hand margin allows, and never longer than the page */
+function fit(el){ var t = el && el.querySelector(".tw"); if(!t) return; var W = Math.min(innerWidth, 560), cap = Math.min(W * 0.27, 112), L = innerHeight - 118 - 102; t.style.fontSize = cap + "px"; var h = t.offsetHeight; if(h > L) t.style.fontSize = (cap * L / h).toFixed(1) + "px"; }
+var sy = 0, pd = 0, lt = 0, raf = 0, booting = true, held = null, _gs = ghostSet, _ed = enterDone, _pt = paint; setTimeout(function(){ booting = false; }, 0);
 function apply(){
   var gh = $("#ghost").lastElementChild; if(!gh || !gh.classList.contains("gh-home")) return;
-  var max = Math.max(1, view.scrollHeight - view.clientHeight), p = cl(sy / max), hd = 1 - cl(sy / 64), end = view.querySelector(".pl-end div"), xo = view.querySelector(".x-of"), wk = view.querySelector(".wk"), i, ls = gh.querySelectorAll(".pl");
-  gh.style.transform = "none"; var mk = (1 - hd).toFixed(3); if(view._mk !== mk){ view._mk = mk; view.style.setProperty("--mk", mk); }
+  var hd = 1 - cl(sy / 64), end = view.querySelector(".pl-end div"), xo = view.querySelector(".x-of"), wk = view.querySelector(".wk"), t = gh.querySelector(".tw"), mk = (1 - hd).toFixed(3);
+  gh.style.transform = "none"; if(view._mk !== mk){ view._mk = mk; view.style.setProperty("--mk", mk); }
   if(xo) xo.style.opacity = hd.toFixed(3); if(wk && wk.parentNode) wk.parentNode.style.opacity = hd.toFixed(3);
-  for(i = 0; i < ls.length; i++){ var e = ls[i], s = e.dataset.s, v = 1, ly = +e.dataset.y + sy, b;
-    if(s) v = s.charAt(0) === "p" ? cl((sy - +s.slice(3)) / 44) : cl((p - +s.slice(2)) / 0.1);
-    for(b = 0; b < bands.length; b++) if(ly > bands[b][0] && ly < bands[b][1]) v = 0;
-    if(e._v === v) continue; e._v = v;
-    if(s){ e.style.opacity = v.toFixed(3); e.style.transform = "scaleX(" + (0.2 + 0.8 * v * (2 - v)).toFixed(3) + ")"; } else e.style.visibility = v ? "" : "hidden"; }
-  if(end){ var o = cl((p - 0.5) / 0.42); end.style.opacity = o.toFixed(3); end.style.transform = "translate3d(0," + ((1 - o) * 16).toFixed(1) + "px,0)"; }
+  if(t){ var r0 = +t.dataset.r0, r = (r0 + (1 - r0) * cl(pd / 0.86)).toFixed(4); if(t._r !== r){ t._r = r; t.style.setProperty("--r", r); } }
+  if(end){ var o = cl((pd - 0.6) / 0.38); end.style.opacity = o.toFixed(3); end.style.transform = "translate3d(0," + ((1 - o) * 16).toFixed(1) + "px,0)"; }
 }
-function tick(){ raf = 0; var t = Math.max(0, view.scrollTop); sy = calm ? t : sy + (t - sy) * 0.16; if(Math.abs(t - sy) < 0.3) sy = t; apply(); if(sy !== t) raf = requestAnimationFrame(tick); }
+/* the page follows the finger closely; the writing does not hurry */
+function tick(now){ raf = 0; var t = Math.max(0, view.scrollTop), max = Math.max(1, view.scrollHeight - view.clientHeight), tp = cl(t / max), dt = Math.min(64, lt ? now - lt : 16); lt = now;
+  sy = calm ? t : sy + (t - sy) * 0.2; if(Math.abs(t - sy) < 0.3) sy = t;
+  if(calm) pd = tp; else { var st = (tp - pd) * 0.07, cap = dt / (tp > pd ? 3600 : 1600); pd += Math.max(-cap, Math.min(cap, st)); if(Math.abs(tp - pd) < 0.0015) pd = tp; }
+  apply(); if(sy !== t || pd !== tp) raf = requestAnimationFrame(tick); else lt = 0; }
 paint = function(){ _pt(); if(app.dataset.s !== "home") return; var gh = $("#ghost").lastElementChild; if(gh && gh.classList.contains("gh-home")) gh.style.transform = "none"; if(!raf) raf = requestAnimationFrame(tick); };
-function settle(){ [0, 500, 1600].forEach(function(t){ setTimeout(function(){ if(app.dataset.s !== "home") return; measure(); sy = Math.max(0, view.scrollTop); apply(); }, t); }); }
-ghostSet = function(type){ var same = type === GHK; _gs(type); if(type !== "home") return; settle(); if(same || !booting) return; held = $("#ghost").lastElementChild; if(held) held.classList.add("plh"); };
-enterDone = function(){ _ed(); if(held) held.classList.remove("plh"); held = null; if(GHK === "home") settle(); };
+function settle(el){ var go = function(){ if(app.dataset.s !== "home" || !el || !el.isConnected) return; fit(el); if(!raf){ sy = Math.max(0, view.scrollTop); pd = cl(sy / Math.max(1, view.scrollHeight - view.clientHeight)); apply(); } };
+  [0, 500, 1600].forEach(function(t){ setTimeout(go, t); }); try{ var x = wordToday(); document.fonts.load("100px " + WF[x[2]], x[1]).then(go, go); }catch(e){} }
+function show(el){ var t = el && el.querySelector(".tw"); if(t) requestAnimationFrame(function(){ requestAnimationFrame(function(){ t.classList.add("on"); }); }); }
+ghostSet = function(type){ var same = type === GHK; _gs(type); if(type !== "home") return; var el = $("#ghost").lastElementChild; settle(el); if(same) return; if(booting) held = el; else show(el); };
+enterDone = function(){ _ed(); if(held) show(held); held = null; if(GHK === "home") settle($("#ghost").lastElementChild); };
 })();
 (function(){
 /* a word for the moment. Resting and finishing each get one, chosen for what the moment is, drawn the way the opening screen draws its word:
